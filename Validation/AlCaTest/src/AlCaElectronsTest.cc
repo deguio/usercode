@@ -60,7 +60,7 @@ AlCaElectronsTest::AlCaElectronsTest (const edm::ParameterSet& iConfig) :
 
 
 void 
-AlCaElectronsTest::beginJob ( const edm::EventSetup& iSetup)
+AlCaElectronsTest::beginJob ()
 {
   //Maps of th electrons hits
   m_barrelGlobalCrystalsMap = new TH2F ("m_barrelGlobalCrystalsMap","m_barrelGlobalCrystalsMap",170,-85,85,360,0,360) ;
