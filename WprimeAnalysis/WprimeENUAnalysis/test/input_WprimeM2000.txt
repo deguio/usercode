@@ -1,0 +1,8 @@
+FileIn         /tmp/malberti/treeWprimeM2000_7TeV.root
+FileOut        outputHistos_WprimeM2000_7TeV.root
+Xsec           0.0115
+Lumi           100.
+GenFilterEff   1.
+SkimEff        0.931
+NeventsDataset 12450
+MaxJetPt       100

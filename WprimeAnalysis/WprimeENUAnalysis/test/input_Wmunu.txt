@@ -1,0 +1,8 @@
+FileIn         /tmp/malberti/treeWmunu_7TeV.root
+FileOut        outputHistos_Wmunu_7TeV.root
+Xsec           10312.
+Lumi           100.
+GenFilterEff   0.742
+SkimEff        0.0151	       
+NeventsDataset 2087693
+MaxJetPt       100

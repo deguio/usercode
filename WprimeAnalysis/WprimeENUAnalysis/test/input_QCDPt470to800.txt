@@ -1,0 +1,8 @@
+FileIn         /tmp/malberti/treeQCDPt470to800_7TeV.root
+FileOut        outputHistos_QCDPt470to800_7TeV.root
+Xsec           87.98
+Lumi           100.
+GenFilterEff   1.
+SkimEff        0.5312
+NeventsDataset 2159497
+MaxJetPt       100

@@ -1,0 +1,7 @@
+FileIn         /tmp/malberti/treeWjetsSherpa_7TeV.root
+FileOut        outputHistos_WjetsSherpa_7TeV.root
+Xsec           30936
+Lumi           100.
+GenFilterEff   1.
+NeventsDataset 10000000
+MaxJetPt       100

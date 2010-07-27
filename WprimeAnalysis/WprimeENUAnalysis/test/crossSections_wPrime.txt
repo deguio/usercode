@@ -1,0 +1,6 @@
+Wenu_Summer10-START36_V9_S09-v1_GEN-SIM-RECO						02_MC_Wenu		0	        -1.        4975.32
+Zee_Summer10-START36_V9_S09-v1_GEN-SIM-RECO							03_MC_Zee		0	        -1.        1573.48
+TTbar_Summer10-START36_V9_S09-v1_GEN-SIM-RECO						04_MC_TTbar		0	        -1.        152
+Wtaunu_Summer10-START36_V9_S09-v1_GEN-SIM-RECO						05_MC_Wtaunu	0	        -1.        10312
+QCD_EMEnriched_Pt80to170_Summer10-START36_V9_S09-v1_GEN-SIM-RECO		06_MC_QCD		0		-1.        134088
+DATA_ALL                                                         							        01_DATA                 1              -1.        1.

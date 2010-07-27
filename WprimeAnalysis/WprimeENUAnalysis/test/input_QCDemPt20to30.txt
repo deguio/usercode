@@ -1,0 +1,8 @@
+FileIn         /tmp/malberti/treeQCDemPt20to30_7TeV.root
+FileOut        outputHistos_QCDemPt20to30_7TeV.root
+Xsec           235500000.
+Lumi           100.
+GenFilterEff   0.0073
+SkimEff        0.1592	       
+NeventsDataset 34009839
+MaxJetPt       100

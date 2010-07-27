@@ -1,0 +1,8 @@
+FileIn         /tmp/malberti/treeWW_7TeV.root
+FileOut        outputHistos_WW_7TeV.root
+Xsec           43.
+Lumi           100.
+GenFilterEff   1.
+SkimEff        0.3031
+NeventsDataset 122980
+MaxJetPt       100

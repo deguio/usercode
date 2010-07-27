@@ -1,0 +1,8 @@
+FileIn         /tmp/malberti/treeTTbar_7TeV.root
+FileOut        outputHistos_TTbar_7TeV.root
+Xsec           152.
+Lumi           100.
+GenFilterEff   1.
+SkimEff	       0.5175
+NeventsDataset 632010
+MaxJetPt       100
