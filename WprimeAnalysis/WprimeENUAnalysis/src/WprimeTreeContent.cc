@@ -1,5 +1,6 @@
 #include "WprimeAnalysis/WprimeENUAnalysis/interface/WprimeTreeContent.h"
 
+bool WprimeTreeContent::genVariables           = false;
 bool WprimeTreeContent::electronVariables      = true;
 bool WprimeTreeContent::superclusterVariables  = true;
 bool WprimeTreeContent::metVariables           = true;
@@ -15,6 +16,15 @@ void setBranchAddresses(TTree* chain, WprimeTreeContent& treeVars)
   chain -> SetBranchAddress("runId",         &treeVars.runId);
   chain -> SetBranchAddress("eventId",       &treeVars.eventId);
   chain -> SetBranchAddress("eventNaiveId",  &treeVars.eventNaiveId);
+
+  //GEN VARIABLES
+  if(WprimeTreeContent::genVariables) {
+    
+    chain -> SetBranchAddress("nGenParticles",             &treeVars.nGenParticles);
+    chain -> SetBranchAddress("pdgId",                      treeVars.pdgId);
+  }
+
+
 
   // ELECTRON VARIABLES  
   if(WprimeTreeContent::electronVariables) {
@@ -39,6 +49,10 @@ void setBranchAddresses(TTree* chain, WprimeTreeContent& treeVars)
     chain -> SetBranchAddress("eleEcalIso",              treeVars.eleEcalIso);
     chain -> SetBranchAddress("eleHcalIsoD1",            treeVars.eleHcalIsoD1);
     chain -> SetBranchAddress("eleHcalIsoD2",            treeVars.eleHcalIsoD2);
+    chain -> SetBranchAddress("eleIsEB",                 treeVars.eleIsEB);
+    chain -> SetBranchAddress("eleIsEE",                 treeVars.eleIsEE);
+    chain -> SetBranchAddress("eleIsGap",                treeVars.eleIsGap);
+
     
     chain -> SetBranchAddress("genelePt",                treeVars.genelePt); 
     chain -> SetBranchAddress("geneleEta",               treeVars.geneleEta); 
@@ -150,7 +164,14 @@ void setBranches(TTree* chain, WprimeTreeContent& treeVars)
   chain -> Branch("eventId",       &treeVars.eventId,             "eventId/i");
   chain -> Branch("eventNaiveId",  &treeVars.eventNaiveId,   "eventNaiveId/i");
   
+  // GENPARTICLES  VARIABLES  
+  if(WprimeTreeContent::genVariables)  {
+    
+    chain -> Branch("nGenParticles",      &treeVars.nGenParticles,   "nGenParticles/I");
+    chain -> Branch("pdgId",              treeVars.pdgId,            "pdgId[nGenParticles]/I");
   
+  }
+
   // ELECTRON  VARIABLES  
   if(WprimeTreeContent::electronVariables)  {
     
@@ -174,7 +195,10 @@ void setBranches(TTree* chain, WprimeTreeContent& treeVars)
     chain -> Branch("eleEcalIso",         treeVars.eleEcalIso,      "eleEcalIso[nElectrons]/F");
     chain -> Branch("eleHcalIsoD1",       treeVars.eleHcalIsoD1,    "eleHcalIsoD1[nElectrons]/F");
     chain -> Branch("eleHcalIsoD2",       treeVars.eleHcalIsoD2,    "eleHcalIsoD2[nElectrons]/F");
-    
+    chain -> Branch("eleIsEB",            treeVars.eleIsEB,         "eleIsEB[nElectrons]/I" );
+    chain -> Branch("eleIsEE",            treeVars.eleIsEE,         "eleIsEE[nElectrons]/I" );
+    chain -> Branch("eleIsGap",           treeVars.eleIsGap,        "eleIsGap[nElectrons]/I" );
+
     chain -> Branch("genelePt",           treeVars.genelePt,        "genelePt[nElectrons]/F");
     chain -> Branch("geneleEta",          treeVars.geneleEta,       "geneleEta[nElectrons]/F");
     chain -> Branch("genelePhi",          treeVars.genelePhi,       "genelePhi[nElectrons]/F");
@@ -286,7 +310,17 @@ void initializeBranches(TTree* chain, WprimeTreeContent& treeVars)
   treeVars.eventId = 0; 
   treeVars.eventNaiveId = 0; 
   
-  
+  // GENPARTICLES VARIABLES  
+  if(WprimeTreeContent::genVariables) {    
+    for(int i = 0; i < MAXGENPARTICLES; ++i){
+      
+      treeVars.pdgId[i] = -9999;
+    }
+    treeVars.nGenParticles = 0;
+  }
+    
+
+
   // ELECTRONS VARIABLES  
   if(WprimeTreeContent::electronVariables) {    
     for(int i = 0; i < MAXELECTRONS; ++i){
@@ -310,6 +344,10 @@ void initializeBranches(TTree* chain, WprimeTreeContent& treeVars)
       treeVars.eleEcalIso[i] = -9999;
       treeVars.eleHcalIsoD1[i] = -9999;
       treeVars.eleHcalIsoD2[i] = -9999;
+      treeVars.eleIsEB[i] = -9999;
+      treeVars.eleIsEE[i] = -9999;
+      treeVars.eleIsGap[i] = -9999;
+      
       
       treeVars.genelePt[i] = -9999;
       treeVars.geneleEta[i] = -9999;

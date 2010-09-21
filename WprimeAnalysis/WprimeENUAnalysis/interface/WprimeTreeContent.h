@@ -3,6 +3,7 @@
 
 #include "TChain.h" 
 
+#define MAXGENPARTICLES 10
 #define MAXELECTRONS 10
 #define MAXSUPERCLUSTERS 100
 #define MAXMUONS 10
@@ -14,6 +15,7 @@
 struct WprimeTreeContent
 {
   // Flags
+  static bool genVariables;
   static bool electronVariables;
   static bool superclusterVariables;
   static bool metVariables;
@@ -30,6 +32,9 @@ struct WprimeTreeContent
  
 
   // electron variables
+  int nGenParticles;
+  int pdgId[MAXGENPARTICLES];
+
   int nElectrons;
   float elePx[MAXELECTRONS];
   float elePy[MAXELECTRONS];
@@ -51,6 +56,9 @@ struct WprimeTreeContent
   float eleEcalIso[MAXELECTRONS];
   float eleHcalIsoD1[MAXELECTRONS];
   float eleHcalIsoD2[MAXELECTRONS];
+  int eleIsEB[MAXELECTRONS];
+  int eleIsEE[MAXELECTRONS];
+  int eleIsGap[MAXELECTRONS];
 
   float genelePt[MAXELECTRONS];
   float geneleEta[MAXELECTRONS];

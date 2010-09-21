@@ -74,7 +74,7 @@ int main (int argc, char ** argv)
   int nEvents_ = subPSetSelections.getUntrackedParameter<int>("nEvents", -1);
   bool MCpresent_ =  subPSetSelections.getUntrackedParameter<bool>("MCpresent", false);
   double maxJetPt_ = subPSetSelections.getUntrackedParameter<double>("maxJetPt", 100.);
-  double minEleEt_= subPSetSelections.getUntrackedParameter<double>("minEleEt", 30.);
+  double minEleEt_= subPSetSelections.getUntrackedParameter<double>("minEleEt", 25.);
   int eleId_ = subPSetSelections.getUntrackedParameter<int>("eleId", 0);
   double minEtOverMet_ = subPSetSelections.getUntrackedParameter<double>("minEtOverMet", 0.4);
   double maxEtOverMet_ = subPSetSelections.getUntrackedParameter<double>("maxEtOverMet", 1.5);
@@ -103,6 +103,20 @@ int main (int argc, char ** argv)
   WprimeTreeContent treeVars ;
   setBranchAddresses (chain, treeVars) ;
 
+  //===========================
+  // === load the HLT tree ====
+  //===========================
+  int HLTnpaths;
+  int HLTwasrun[20];
+  int HLTaccept[20];
+  int HLTerror[20];
+
+  TChain *chainHLT = new TChain ("TriggerResults/HLTree") ;
+  chainHLT -> SetBranchAddress("HLTnpaths", &HLTnpaths);
+  chainHLT -> SetBranchAddress("HLTwasrun", HLTwasrun);
+  chainHLT -> SetBranchAddress("HLTaccept", HLTaccept);
+  chainHLT -> SetBranchAddress("HLTerror" , HLTerror);
+  
 
   // Input files
   for(std::vector<std::string>::const_iterator listIt = inputFiles.begin();
@@ -110,6 +124,7 @@ int main (int argc, char ** argv)
       ++listIt)
     {
       chain -> Add (listIt -> c_str());
+      chainHLT -> Add (listIt -> c_str());
       std::cout << *listIt << std::endl;
     }
 
@@ -177,7 +192,6 @@ int main (int argc, char ** argv)
       eventsCounter[1]    +=   ((TH1F*)(fin -> Get("eventsCounterTotal/eventsCounterTotal")) )                             -> GetBinContent(1);
       eventsCounter[2]    +=   ((TH1F*)(fin -> Get("eventsCounterGoodEvt/eventsCounterGoodEvt")) )                         -> GetBinContent(1);
       eventsCounter[3]    +=   ((TH1F*)(fin -> Get("eventsCounterHighEtEle/eventsCounterHighEtEle")) )                     -> GetBinContent(1);
-      eventsCounter[4]    +=   ((TH1F*)(fin -> Get("eventsCounterPatElectronSequence/eventsCounterPatElectronSequence")) ) -> GetBinContent(1);
       
       delete fin;
     }
@@ -189,11 +203,10 @@ int main (int argc, char ** argv)
   step = 2;
   stepEvents[step] = eventsCounter[step];
   stepName[step] = "2) good events";
-  
+
   step = 3;
   stepEvents[step] = eventsCounter[step];
-  stepName[step] = "3) high Electrons";
-  
+  stepName[step] = "3) high Et electrons";
   
   
   
@@ -215,10 +228,10 @@ int main (int argc, char ** argv)
       stepEvents[step] ++;
       stepName[step] = "4) after preselections";
 
-      double met = treeVars.pfMet;
-      double metPhi = treeVars.pfMetPhi;
-      double mex = treeVars.pfMex;
-      double mey = treeVars.pfMey;
+      double met = treeVars.tcMet;
+      double metPhi = treeVars.tcMetPhi;
+      double mex = treeVars.tcMex;
+      double mey = treeVars.tcMey;
 
       histograms -> Fill("hMet",              step,    met);
       histograms -> Fill("hNEle",             step,    treeVars.nElectrons);
@@ -229,12 +242,24 @@ int main (int argc, char ** argv)
       //================================
       //==== step 5: HLT selection  ====
       //================================
-      //if (treeVars.HLT_Photon10_L1R == 0) continue;  //prescaled!
-      if (treeVars.HLT_Ele15_LW_L1R == 0) continue;
+
+      //FIXME hardcoded
+      //'0 -> HLT_Photon10_L1R',
+      //'1 -> HLT_Ele10_LW_L1R',
+      //'2 -> HLT_Ele15_LW_L1R',
+      //'3 -> HLT_Ele15_SW_L1R',
+      //'4 -> HLT_Ele15_SW_CaloEleId_L1R'
+      chainHLT->GetEntry(entry);
+
+      int accept = 0;
+      for (int ii = 0; ii < 5; ++ ii) //fixme!! naive approach
+ 	accept += HLTaccept[ii];
+      
+      if (accept == 0) continue;
       
       step ++ ;
       stepEvents[step] ++ ;
-      stepName[step] = "5) HLT Photon10 L1R";
+      stepName[step] = "5) HLT_Ele15_LW_L1R";
       
 
       histograms -> Fill("hMet",              step,    met);
@@ -242,18 +267,16 @@ int main (int argc, char ** argv)
       histograms -> Fill("hNJets",            step,    treeVars.nJets);
 
 
-
-
-      //================================
-      //==== loop over SuperCluster ====
-      //================================
-      for (int ii = 0; ii < treeVars.nSuperClusters; ++ii)
-	{
+//       //================================
+//       //==== loop over SuperCluster ====
+//       //================================
+//       for (int ii = 0; ii < treeVars.nSuperClusters; ++ii)
+// 	{
 
 
 
 
-	}
+// 	}
 
 
 
@@ -272,46 +295,33 @@ int main (int argc, char ** argv)
 	  //--------------------------------------------
 	  // keep only electrons in ECAL fiducial volume
 	  //--------------------------------------------
-	  if ( fabs(eta) > EtaCutEB && fabs(eta) < EtaCutEE) continue;
-	  
+	  if ( treeVars.eleIsGap[i] == 1 ) continue;
 
 	  //--------------------------------------------
-	  // keep only electrons with ET > 30 GeV
+	  // keep only electrons with ET > XX GeV
 	  //--------------------------------------------
 	  if ( et < minEleEt_) continue ;
 	  
 
 	  //--------------------------------------------
-	  // electron ID
+	  // electron ID (FIXME hardcoded)
 	  //--------------------------------------------
 	  //instructions here: 
 	  //http://cmssw.cvs.cern.ch/cgi-bin/cmssw.cgi/UserCode/SHarper/HEEPAnalyzer/interface/HEEPCutCodes.h?revision=1.5&view=markup&pathrev=HEAD
 	  //https://twiki.cern.ch/twiki/bin/view/CMS/HEEPSelector
 
-	  //if ( treeVars.eleId[i] != eleId_ ) continue;
-	  if ( (treeVars.eleId[i] != 0x0) && ((treeVars.eleId[i] &~ 0x0010) != 0x0) ) continue;  //FIXME!! distinguere barrel ed endcap
-
-
-	  /*
-	  //--------------------------------------------
-	  // electron Isolation
-	  //--------------------------------------------
-	    float combIsoCut  = 0.;
-	    float combinedIso = 0.;
-	    
-	    // isolation
-	    if  ( fabs(eta) < EtaCutEB &&  treeVars.eleTrkIso[i] > 7.5)  continue;
-	    if  ( fabs(eta) > EtaCutEE &&  treeVars.eleTrkIso[i] > 15.)  continue;
-	    
-	    combinedIso = treeVars.eleEcalIso[i] + treeVars.eleHcalIsoD1[i] ;
-	    if ( fabs(eta) < EtaCutEB ) combIsoCut = 2 + 0.03*et;
-	    if ( fabs(eta) > EtaCutEE && et < 50.) combIsoCut = 2.5;
-	    if ( fabs(eta) > EtaCutEE && et > 50.) combIsoCut = 2.5 + 0.03*(et-50);
-	    if ( combinedIso > combIsoCut ) continue;
-	    
-	    if ( treeVars.eleHcalIsoD2[i] > 0.5 && fabs(eta) > EtaCutEE) continue;
-	  */
+	  // barrel
+          if ( treeVars.eleIsEB[i] == 1 && (treeVars.eleId[i] != 0x0) ) continue;
+          //endcap
+          if ( treeVars.eleIsEE[i] == 1 && (treeVars.eleId[i] != 0x0) && ((treeVars.eleId[i] &~ 0x0010) != 0x0) ) continue; //tolgo deltaEta in EE
 	  
+
+	  //--------------------------------------------
+	  // swiss cross (FIXME hardcoded)
+	  //--------------------------------------------
+	  if ( treeVars.eleSeedSwissCross[i] > 0.95 ) continue;
+	  
+
 	  nGoodElectrons++;
 	  chosenEle = i;
 	  
@@ -350,13 +360,15 @@ int main (int argc, char ** argv)
       double cphi   = (elePx*mex + elePy*mey ) / (met*elePt);
       double mt     = sqrt(2*eleEt*met*(1 - cphi));
       double dPhiEleMet = deltaPhi(metPhi,elePhi);
+      bool eleIsEB = treeVars.eleIsEB[chosenEle];
+      bool eleIsEE = treeVars.eleIsEE[chosenEle];
       
       histograms -> Fill("hMet",              step,    met);
       histograms -> Fill("hEleEta",           step,    eleEta);
       histograms -> Fill("hNEle",             step,    nGoodElectrons);
       histograms -> Fill("hNJets",            step,    treeVars.nJets);
 
-      if(fabs (eleEta) < 1.479)
+      if(eleIsEB == true)
 	{
 	  histograms -> Fill("hEt_EB",               step,    eleEt);
 	  histograms -> Fill("hMt_EB",               step,    mt);
@@ -364,7 +376,7 @@ int main (int argc, char ** argv)
 	  histograms -> Fill("hDPhiEleMet_EB",       step,    dPhiEleMet);
 	  histograms -> Fill("hElePhi_EB",           step,    elePhi);
 	}
-      else
+      else if(eleIsEE == true)
 	{
 	  histograms -> Fill("hEt_EE",               step,    eleEt);
 	  histograms -> Fill("hMt_EE",               step,    mt);
@@ -391,7 +403,7 @@ int main (int argc, char ** argv)
       histograms -> Fill("hNEle",             step,    nGoodElectrons);
       histograms -> Fill("hNJets",            step,    treeVars.nJets);
 
-      if(fabs (eleEta) < 1.479)
+      if(eleIsEB == true)
 	{
 	  histograms -> Fill("hEt_EB",               step,    eleEt);
 	  histograms -> Fill("hMt_EB",               step,    mt);
@@ -399,7 +411,7 @@ int main (int argc, char ** argv)
 	  histograms -> Fill("hDPhiEleMet_EB",       step,    dPhiEleMet);
 	  histograms -> Fill("hElePhi_EB",           step,    elePhi);
 	}
-      else
+      else if(eleIsEE == true)
 	{
 	  histograms -> Fill("hEt_EE",               step,    eleEt);
 	  histograms -> Fill("hMt_EE",               step,    mt);
@@ -427,7 +439,7 @@ int main (int argc, char ** argv)
       histograms -> Fill("hNEle",             step,    nGoodElectrons);
       histograms -> Fill("hNJets",            step,    treeVars.nJets);
 
-      if(fabs (eleEta) < 1.479)
+      if(eleIsEB == true)
 	{
 	  histograms -> Fill("hEt_EB",               step,    eleEt);
 	  histograms -> Fill("hMt_EB",               step,    mt);
@@ -435,7 +447,7 @@ int main (int argc, char ** argv)
 	  histograms -> Fill("hDPhiEleMet_EB",       step,    dPhiEleMet);
 	  histograms -> Fill("hElePhi_EB",           step,    elePhi);
 	}
-      else
+      else if(eleIsEE == true)
 	{
 	  histograms -> Fill("hEt_EE",               step,    eleEt);
 	  histograms -> Fill("hMt_EE",               step,    mt);

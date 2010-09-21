@@ -61,7 +61,8 @@ class WprimeTree : public edm::EDAnalyzer
     
    protected:
  
-     
+      void dumpGenInfo (const edm::Event& iEvent,
+			WprimeTreeContent & myTreeVariables_) ;
      
       void dumpL1Info(edm::Handle<L1GlobalTriggerReadoutRecord>  gtRecord,
 		      WprimeTreeContent & myTreeVariables) ;

@@ -22,6 +22,9 @@ process.maxEvents = cms.untracked.PSet(
 process.source = cms.Source("PoolSource",
        fileNames = cms.untracked.vstring(
         'file:/media/amassiro/deguio/Datasets/Summer10_Wenu_GEN-SIM-RECO_START36_V9_S09-v1.root'
+
+        #'file:/media/amassiro/deguio/Datasets/Spring10_WprimeToENu_M-800_7TeV-pythia6_GEN-SIM-RECO_START3X_V26-v1.root'
+
        
        )
 )
@@ -99,11 +102,17 @@ process.myanalysis = cms.EDAnalyzer('WprimeTree',
 
 )
 
+#save HLT infos
+from PhysicsTools.NtupleUtils.HLTrigResultsDumper_cfi import *
+process.TriggerResults = HLTrigResultsDumper.clone()
+process.TriggerResults.HLTriggerResults = cms.InputTag("TriggerResults::REDIGI36X")
+process.TriggerResults.HLTPaths = cms.vstring('HLT_Photon10_L1R','HLT_Ele10_LW_L1R','HLT_Ele15_LW_L1R','HLT_Ele15_SW_L1R','HLT_Ele15_SW_CaloEleId_L1R')   # provide list of HLT paths (or patterns) you want
+
 # filter on primary vertex
 process.primaryVertexFilter = cms.EDFilter("GoodVertexFilter",
    vertexCollection = cms.InputTag('offlinePrimaryVertices'),
    minimumNDOF = cms.uint32(4) ,
-   maxAbsZ = cms.double(15),
+   maxAbsZ = cms.double(24),
    maxd0 = cms.double(2)
 )
 
@@ -129,16 +138,18 @@ process.p = cms.Path(
 
     process.eventsCounterGoodEvt *  #<<---
 
-#    process.highetele *
-#    process.highetFilter *
+    process.highetele *
+    process.highetFilter *
 
-#    process.eventsCounterHighEtEle *  #<<---
+    process.eventsCounterHighEtEle *  #<<---
 
     process.patDefaultSequence *
     process.heepPatElectrons *
 
     process.eventsCounterPatElectronSequence *  #<<---
 
+    process.TriggerResults *
+    
     process.myanalysis
     ) 
 

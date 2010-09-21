@@ -143,7 +143,6 @@ void WprimeTree::analyze (const edm::Event& iEvent, const edm::EventSetup& iSetu
     std::cerr << "WprimeTree::analyze --> recHitsEE not found" << std::endl; 
   }
 
-
   // ********** EB SUPERCLUSTERS
   edm::Handle<reco::SuperClusterCollection> superClusters_EB_h;
   iEvent.getByLabel( superClusterCollection_EB_, superClusters_EB_h );
@@ -219,6 +218,8 @@ void WprimeTree::analyze (const edm::Event& iEvent, const edm::EventSetup& iSetu
   myTreeVariables_.eventNaiveId = naiveId_ ;
 
 
+  //  if (runOnMC_ == true) dumpGenInfo(iEvent, myTreeVariables_);
+  
   dumpElectronInfo(electrons, theBarrelEcalRecHits, theEndcapEcalRecHits, topology, myTreeVariables_) ;
   dumpSuperclusterInfo(theBarrelSuperClusters, theEndcapSuperClusters, iEvent, iSetup,myTreeVariables_);
   dumpCALOMetInfo(calomets, myTreeVariables_) ;
@@ -227,9 +228,11 @@ void WprimeTree::analyze (const edm::Event& iEvent, const edm::EventSetup& iSetu
   dumpJetInfo(jets, myTreeVariables_) ;
   dumpMuonInfo(muons, myTreeVariables_) ;
   dumpL1Info(gtRecord, myTreeVariables_) ;
-  dumpHLTInfo(hltresults, triggerNames, myTreeVariables_) ;
+  //  dumpHLTInfo(hltresults, triggerNames, myTreeVariables_) ;
 
   tree_ -> Fill();
+  
+  return;
 }
 
 
@@ -257,16 +260,29 @@ void WprimeTree::beginJob()
 
 
 
+// -----------------------------------------------------------------------------------------
+void WprimeTree::dumpGenInfo (const edm::Event& iEvent,
+			      WprimeTreeContent & myTreeVariables_)
+{
+  edm::Handle<reco::GenParticleCollection> genParticles;
+  iEvent.getByLabel("genParticles", genParticles);
 
-
-
+  for(reco::GenParticleCollection::const_iterator p = genParticles -> begin();
+      p != genParticles -> end(); 
+      ++p)
+    {
+      //      if(p->pdgId() == )
+      //	myTreeVariables_.pdgId[] = p->daughter()->pdgId()
+    }//loop over genParticles
+  return;
+}
 // -----------------------------------------------------------------------------------------
 
 void WprimeTree::dumpElectronInfo ( View<pat::Electron> electrons,
-				        const EcalRecHitCollection* theBarrelEcalRecHits,
-					const EcalRecHitCollection* theEndcapEcalRecHits,
-					const CaloTopology* topology,
-					WprimeTreeContent & myTreeVariables_)
+				    const EcalRecHitCollection* theBarrelEcalRecHits,
+				    const EcalRecHitCollection* theEndcapEcalRecHits,
+				    const CaloTopology* topology,
+				    WprimeTreeContent & myTreeVariables_)
 {
   
   // Loop over electrons
@@ -308,7 +324,7 @@ void WprimeTree::dumpElectronInfo ( View<pat::Electron> electrons,
     }
 
     myTreeVariables_.eleSeedSwissCross[ myTreeVariables_.nElectrons ] = (1. - E4/E1); 
-    
+
     myTreeVariables_.eleId[ myTreeVariables_.nElectrons ] = electron.userInt("HEEPId");
     myTreeVariables_.eleSigmaIEtaIEta[ myTreeVariables_.nElectrons ] =  electron.sigmaIetaIeta();
     myTreeVariables_.eleE1x5[ myTreeVariables_.nElectrons ] = electron.e1x5();
@@ -319,6 +335,10 @@ void WprimeTree::dumpElectronInfo ( View<pat::Electron> electrons,
     myTreeVariables_.eleEcalIso  [ myTreeVariables_.nElectrons ] = electron.dr03EcalRecHitSumEt();
     myTreeVariables_.eleHcalIsoD1[ myTreeVariables_.nElectrons ] = electron.dr03HcalDepth1TowerSumEt();
     myTreeVariables_.eleHcalIsoD2[ myTreeVariables_.nElectrons ] = electron.dr03HcalDepth2TowerSumEt();
+
+    myTreeVariables_.eleIsEB[ myTreeVariables_.nElectrons ] = (int)electron.isEB();
+    myTreeVariables_.eleIsEE[ myTreeVariables_.nElectrons ] = (int)electron.isEE();
+    myTreeVariables_.eleIsGap[ myTreeVariables_.nElectrons ] = (int)electron.isGap();
 
 
     // gen level matching -- only for MC

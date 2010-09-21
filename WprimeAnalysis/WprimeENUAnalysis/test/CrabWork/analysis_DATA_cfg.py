@@ -12,17 +12,22 @@ process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_cff")
 process.load("Configuration.StandardSequences.MagneticField_cff")
 
 ## global tag for data
-process.GlobalTag.globaltag = cms.string('GR_R_36X_V12A::All')
+process.GlobalTag.globaltag = cms.string('GR_R_36X_V12::All')
 
 
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(1000)
+    input = cms.untracked.int32(200)
     )
 
 process.source = cms.Source("PoolSource",
        #duplicateCheckMode = cms.untracked.string("noDuplicateCheck"),    
        fileNames = cms.untracked.vstring(
-        '/store/data/Commissioning10/MinimumBias/RECO/v7/000/132/440/F4C92A98-163C-DF11-9788-0030487C7392.root',
+        '/store/data/Run2010A/EG/RECO/v4/000/144/114/EEC21BFA-25B4-DF11-840A-001617DBD5AC.root',
+        '/store/data/Run2010A/EG/RECO/v4/000/144/114/EEAA24FA-25B4-DF11-A5F1-000423D98950.root',
+        '/store/data/Run2010A/EG/RECO/v4/000/144/114/C40EDB4E-1DB4-DF11-A83C-0030487C90C2.root',
+        '/store/data/Run2010A/EG/RECO/v4/000/144/114/C2497931-2CB4-DF11-A92C-003048F1183E.root',
+        '/store/data/Run2010A/EG/RECO/v4/000/144/114/AC68ABE0-19B4-DF11-BB93-0030487C7E18.root'
+        
        )
 )
 
@@ -132,11 +137,18 @@ process.load('HLTrigger/HLTfilters/hltLevel1GTSeed_cfi')
 process.hltLevel1GTSeed.L1TechTriggerSeeding = cms.bool(True)
 process.hltLevel1GTSeed.L1SeedsLogicalExpression = cms.string('0 AND (40 OR 41) AND NOT (36 OR 37 OR 38 OR 39)')
 
+#save HLT infos
+from PhysicsTools.NtupleUtils.HLTrigResultsDumper_cfi import *
+process.TriggerResults = HLTrigResultsDumper.clone()
+process.TriggerResults.HLTriggerResults = cms.InputTag("TriggerResults","","HLT")
+process.TriggerResults.HLTPaths = cms.vstring('HLT_Photon10_L1R','HLT_Ele10_LW_L1R','HLT_Ele15_LW_L1R','HLT_Ele15_SW_L1R','HLT_Ele15_SW_CaloEleId_L1R')   # provide list of HLT paths (or patterns) you want
+
+
 # filter on primary vertex
 process.primaryVertexFilter = cms.EDFilter("GoodVertexFilter",
    vertexCollection = cms.InputTag('offlinePrimaryVertices'),
    minimumNDOF = cms.uint32(4) ,
-   maxAbsZ = cms.double(15),
+   maxAbsZ = cms.double(24),
    maxd0 = cms.double(2)
 )
 
@@ -163,15 +175,17 @@ process.p = cms.Path(
 
     process.eventsCounterGoodEvt *  #<<---
 
-#    process.highetele *
-#    process.highetFilter *
+    process.highetele *
+    process.highetFilter *
 
-#    process.eventsCounterHighEtEle *  #<<---
+    process.eventsCounterHighEtEle *  #<<---
 
     process.patDefaultSequence *
     process.heepPatElectrons *
 
     process.eventsCounterPatElectronSequence *  #<<---
+
+    process.TriggerResults *  #save HLT trigger infos
 
     process.myanalysis
     )
