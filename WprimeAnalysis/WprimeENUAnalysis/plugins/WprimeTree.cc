@@ -7,6 +7,7 @@
 #include "WprimeAnalysis/WprimeENUAnalysis/plugins/WprimeTree.h"
 
 #include "DataFormats/DetId/interface/DetId.h"
+#include "DataFormats/EcalDetId/interface/EBDetId.h"
 #include "Geometry/CaloTopology/interface/CaloTopology.h"
 #include "Geometry/CaloEventSetup/interface/CaloTopologyRecord.h"
 
@@ -303,27 +304,38 @@ void WprimeTree::dumpElectronInfo ( View<pat::Electron> electrons,
     myTreeVariables_.eleEt[ myTreeVariables_.nElectrons ]  = scRef->energy()*(Rt/R) ;
     myTreeVariables_.eleEta[ myTreeVariables_.nElectrons ] = scRef->eta();
     myTreeVariables_.elePhi[ myTreeVariables_.nElectrons ] = scRef->phi() ;
-
-    float E1 = 0;
-    float E4 = 0;
-
+   
     if ( electron.isEB() ) {
-      E1 = EcalClusterTools::eMax( *scRef , theBarrelEcalRecHits);
-      E4 = EcalClusterTools::eTop( *scRef, theBarrelEcalRecHits, topology)+
+      float E1 = EcalClusterTools::eMax( *scRef , theBarrelEcalRecHits);
+      float E4 = EcalClusterTools::eTop( *scRef, theBarrelEcalRecHits, topology)+
 	   EcalClusterTools::eRight( *scRef, theBarrelEcalRecHits, topology)+
 	   EcalClusterTools::eBottom( *scRef, theBarrelEcalRecHits, topology)+
 	   EcalClusterTools::eLeft( *scRef, theBarrelEcalRecHits, topology);
+      myTreeVariables_.eleSeedSwissCross[ myTreeVariables_.nElectrons ] = (1. - E4/E1); 
+
+      DetId idEB = EcalClusterTools::getMaximum( scRef->hitsAndFractions(), theBarrelEcalRecHits ).first;
+      EcalRecHitCollection::const_iterator thishitEB = theBarrelEcalRecHits->find (idEB) ;
+
+      myTreeVariables_.eleSeedEnergy[ myTreeVariables_.nElectrons ] = thishitEB->energy();
+      myTreeVariables_.eleSeedTime[ myTreeVariables_.nElectrons ] = thishitEB->time();
     }
 
     if ( electron.isEE() ) {
-      E1 = EcalClusterTools::eMax( *scRef , theEndcapEcalRecHits);
-      E4 = EcalClusterTools::eTop( *scRef, theEndcapEcalRecHits, topology)+
+      float E1 = EcalClusterTools::eMax( *scRef , theEndcapEcalRecHits);
+      float E4 = EcalClusterTools::eTop( *scRef, theEndcapEcalRecHits, topology)+
 	   EcalClusterTools::eRight( *scRef, theEndcapEcalRecHits, topology)+
 	   EcalClusterTools::eBottom( *scRef, theEndcapEcalRecHits, topology)+
 	   EcalClusterTools::eLeft( *scRef, theEndcapEcalRecHits, topology);
+      myTreeVariables_.eleSeedSwissCross[ myTreeVariables_.nElectrons ] = (1. - E4/E1); 
+
+
+      DetId idEE = EcalClusterTools::getMaximum( scRef->hitsAndFractions(), theEndcapEcalRecHits ).first;
+      EcalRecHitCollection::const_iterator thishitEE = theEndcapEcalRecHits->find (idEE) ;
+
+      myTreeVariables_.eleSeedEnergy[ myTreeVariables_.nElectrons ] = thishitEE->energy();
+      myTreeVariables_.eleSeedTime[ myTreeVariables_.nElectrons ] = thishitEE->time();
     }
 
-    myTreeVariables_.eleSeedSwissCross[ myTreeVariables_.nElectrons ] = (1. - E4/E1); 
 
     myTreeVariables_.eleId[ myTreeVariables_.nElectrons ] = electron.userInt("HEEPId");
     myTreeVariables_.eleSigmaIEtaIEta[ myTreeVariables_.nElectrons ] =  electron.sigmaIetaIeta();
@@ -381,7 +393,7 @@ void WprimeTree::dumpSuperclusterInfo ( const reco::SuperClusterCollection* theB
   }
   
   
-  // Loop over EB SC
+  // Loop over EE SC
   for (reco::SuperClusterCollection::const_iterator itSC = theEndcapSuperClusters->begin();
        itSC != theEndcapSuperClusters->end(); ++itSC ) {
  
