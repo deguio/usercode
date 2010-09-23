@@ -101,6 +101,7 @@ drawTStack::drawTStack(const std::string& inputDir,
   }
   
   listFile.close();
+
   std::cout << ">>>plotUtils::Read " << m_list.size() << " samples" << std::endl;
   std::cout << ">>>plotUtils::Closing file " << listFullFileName << "\n" << std::endl;
 }
@@ -703,14 +704,31 @@ void drawTStack::DrawEvents(const std::string& mode, const float& lumi, const in
     
     if(mode == "efficiencies")
     {
-      int totalEvents = globalHisto -> GetBinContent(1);
+      float totalEvents = globalHisto -> GetBinContent(1);
+      //fede
+      std::cout << "crossSection_summed = " << (*mapIt).first << std::endl;
+
       for(int bin = 1; bin <= globalHisto->GetNbinsX(); ++bin)
-        globalHisto->SetBinContent(bin, globalHisto->GetBinContent(bin)/totalEvents);
+	{
+
+	  //fede
+	  if (bin == 1)
+	    {
+	      std::cout << "bin = " << bin << std::endl;
+	      std::cout << "globalHisto->GetBinContent(bin) = " << globalHisto->GetBinContent(bin) << "; totalEvents = " << totalEvents << std::endl;
+	      std::cout << "ratio = " << globalHisto->GetBinContent(bin)/totalEvents << std::endl;
+	    }
+
+
+	  globalHisto->SetBinContent(bin, globalHisto->GetBinContent(bin)/totalEvents);
+
+
+	}
     }
     
     if(mode == "efficienciesRelative")
     {
-      std::map<int, int > totalEvents;
+      std::map<int, float > totalEvents;
       totalEvents[0] = globalHisto->GetBinContent(1);
       for(int bin = 1; bin <= globalHisto->GetNbinsX(); ++bin)
         totalEvents[bin] = globalHisto->GetBinContent(bin);
@@ -794,7 +812,7 @@ void drawTStack::DrawEvents(const std::string& mode, const float& lumi, const in
       {
         const char* binLabel = globalHisto -> GetXaxis() -> GetBinLabel(bin);
         (*outFile) << "   " << binLabel << ":   " << std::fixed
-                                                  << std::setprecision(3)
+                                                  << std::setprecision(4)
                                                   << std::scientific
                                                   << 1. * globalHisto -> GetBinContent(bin);
       }
