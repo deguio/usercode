@@ -59,6 +59,9 @@ struct WprimeTreeContent
   int eleIsEB[MAXELECTRONS];
   int eleIsEE[MAXELECTRONS];
   int eleIsGap[MAXELECTRONS];
+  float eleSeedEnergy[MAXELECTRONS];
+  float eleSeedTime[MAXELECTRONS];
+  int ecalRecHitRecoFlag[MAXELECTRONS];
 
   float genelePt[MAXELECTRONS];
   float geneleEta[MAXELECTRONS];

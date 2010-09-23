@@ -52,7 +52,9 @@ void setBranchAddresses(TTree* chain, WprimeTreeContent& treeVars)
     chain -> SetBranchAddress("eleIsEB",                 treeVars.eleIsEB);
     chain -> SetBranchAddress("eleIsEE",                 treeVars.eleIsEE);
     chain -> SetBranchAddress("eleIsGap",                treeVars.eleIsGap);
-
+    chain -> SetBranchAddress("eleSeedEnergy",           treeVars.eleSeedEnergy);
+    chain -> SetBranchAddress("eleSeedTime",             treeVars.eleSeedTime);
+    chain -> SetBranchAddress("ecalRecHitRecoFlag",      treeVars.ecalRecHitRecoFlag);
     
     chain -> SetBranchAddress("genelePt",                treeVars.genelePt); 
     chain -> SetBranchAddress("geneleEta",               treeVars.geneleEta); 
@@ -198,6 +200,9 @@ void setBranches(TTree* chain, WprimeTreeContent& treeVars)
     chain -> Branch("eleIsEB",            treeVars.eleIsEB,         "eleIsEB[nElectrons]/I" );
     chain -> Branch("eleIsEE",            treeVars.eleIsEE,         "eleIsEE[nElectrons]/I" );
     chain -> Branch("eleIsGap",           treeVars.eleIsGap,        "eleIsGap[nElectrons]/I" );
+    chain -> Branch("eleSeedEnergy",      treeVars.eleSeedEnergy,   "eleSeedEnergy[nElectrons]/F" );
+    chain -> Branch("eleSeedTime",        treeVars.eleSeedTime,     "eleSeedTime[nElectrons]/F" );
+    chain -> Branch("ecalRecHitRecoFlag", treeVars.ecalRecHitRecoFlag,"ecalRecHitRecoFlag[nElectrons]/I");
 
     chain -> Branch("genelePt",           treeVars.genelePt,        "genelePt[nElectrons]/F");
     chain -> Branch("geneleEta",          treeVars.geneleEta,       "geneleEta[nElectrons]/F");
@@ -347,7 +352,9 @@ void initializeBranches(TTree* chain, WprimeTreeContent& treeVars)
       treeVars.eleIsEB[i] = -9999;
       treeVars.eleIsEE[i] = -9999;
       treeVars.eleIsGap[i] = -9999;
-      
+      treeVars.eleSeedEnergy[i] = -9999;
+      treeVars.eleSeedTime[i] = -9999;
+      treeVars.ecalRecHitRecoFlag[i] = -9999;
       
       treeVars.genelePt[i] = -9999;
       treeVars.geneleEta[i] = -9999;

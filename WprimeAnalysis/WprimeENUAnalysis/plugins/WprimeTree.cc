@@ -318,6 +318,7 @@ void WprimeTree::dumpElectronInfo ( View<pat::Electron> electrons,
 
       myTreeVariables_.eleSeedEnergy[ myTreeVariables_.nElectrons ] = thishitEB->energy();
       myTreeVariables_.eleSeedTime[ myTreeVariables_.nElectrons ] = thishitEB->time();
+      myTreeVariables_.ecalRecHitRecoFlag [ myTreeVariables_.nElectrons ] = thishitEB -> recoFlag();
     }
 
     if ( electron.isEE() ) {
@@ -334,6 +335,7 @@ void WprimeTree::dumpElectronInfo ( View<pat::Electron> electrons,
 
       myTreeVariables_.eleSeedEnergy[ myTreeVariables_.nElectrons ] = thishitEE->energy();
       myTreeVariables_.eleSeedTime[ myTreeVariables_.nElectrons ] = thishitEE->time();
+      myTreeVariables_.ecalRecHitRecoFlag [ myTreeVariables_.nElectrons ] = thishitEE -> recoFlag();
     }
 
 
