@@ -92,7 +92,8 @@ process.myanalysis = cms.EDAnalyzer('WprimeTree',
    pfmetTag            = cms.InputTag("patMETsPF"),
    muonTag             = cms.InputTag("patMuons"),
    electronID          = cms.untracked.string("eidRobustHighEnergy"),
-   btagAlgo            = cms.untracked.string("simpleSecondaryVertexHighEffBJetTags"),
+   btagAlgoHighEff     = cms.untracked.string("simpleSecondaryVertexHighEffBJetTags"),
+   btagAlgoHighPur     = cms.untracked.string("simpleSecondaryVertexHighPurBJetTags"),
    HLTInputTag         = cms.InputTag("TriggerResults::REDIGI36X"),
    L1InputTag          = cms.InputTag("gtDigis"),
 
@@ -106,7 +107,7 @@ process.myanalysis = cms.EDAnalyzer('WprimeTree',
 from PhysicsTools.NtupleUtils.HLTrigResultsDumper_cfi import *
 process.TriggerResults = HLTrigResultsDumper.clone()
 process.TriggerResults.HLTriggerResults = cms.InputTag("TriggerResults::REDIGI36X")
-process.TriggerResults.HLTPaths = cms.vstring('HLT_Photon10_L1R','HLT_Ele10_LW_L1R','HLT_Ele15_LW_L1R','HLT_Ele15_SW_L1R','HLT_Ele15_SW_CaloEleId_L1R')   # provide list of HLT paths (or patterns) you want
+process.TriggerResults.HLTPaths = cms.vstring('HLT_Photon10_L1R','HLT_Ele10_LW_L1R','HLT_Ele15_LW_L1R','HLT_Ele15_SW_L1R','HLT_Ele15_SW_CaloEleId_L1R','HLT_Ele17_SW_CaloEleId_L1R')   # provide list of HLT paths (or patterns) you want
 
 # filter on primary vertex
 process.primaryVertexFilter = cms.EDFilter("GoodVertexFilter",

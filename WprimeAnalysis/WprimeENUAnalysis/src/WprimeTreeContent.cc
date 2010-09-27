@@ -107,7 +107,8 @@ void setBranchAddresses(TTree* chain, WprimeTreeContent& treeVars)
     chain -> SetBranchAddress("jetPt",              treeVars.jetPt);
     chain -> SetBranchAddress("jetEta",             treeVars.jetEta);
     chain -> SetBranchAddress("jetPhi",             treeVars.jetPhi);
-    chain -> SetBranchAddress("jetBdisc",           treeVars.jetBdisc);
+    chain -> SetBranchAddress("jetBdiscHighEff",    treeVars.jetBdiscHighEff);
+    chain -> SetBranchAddress("jetBdiscHighPur",    treeVars.jetBdiscHighPur);
     
     chain -> SetBranchAddress("genjetPt",           treeVars.genjetPt);
     chain -> SetBranchAddress("genjetEta",          treeVars.genjetEta);
@@ -255,7 +256,8 @@ void setBranches(TTree* chain, WprimeTreeContent& treeVars)
     chain -> Branch("jetPt",        treeVars.jetPt,        "jetPt[nJets]/F");
     chain -> Branch("jetEta",       treeVars.jetEta,       "jetEta[nJets]/F");
     chain -> Branch("jetPhi",       treeVars.jetPhi,       "jetPhi[nJets]/F");
-    chain -> Branch("jetBdisc",     treeVars.jetBdisc,     "jetBdisc[nJets]/F");
+    chain -> Branch("jetBdiscHighEff",     treeVars.jetBdiscHighEff,     "jetBdiscHighEff[nJets]/F");
+    chain -> Branch("jetBdiscHighPur",     treeVars.jetBdiscHighPur,     "jetBdiscHighPur[nJets]/F");
     
     chain -> Branch("genjetPt",     treeVars.genjetPt,     "genjetPt[nJets]/F");
     chain -> Branch("genjetEta",    treeVars.genjetEta,    "genjetEta[nJets]/F");
@@ -410,7 +412,8 @@ void initializeBranches(TTree* chain, WprimeTreeContent& treeVars)
       treeVars.jetPt[i] = -9999;
       treeVars.jetEta[i] = -9999;
       treeVars.jetPhi[i] = -9999;
-      treeVars.jetBdisc[i] = -9999;
+      treeVars.jetBdiscHighEff[i] = -9999;
+      treeVars.jetBdiscHighPur[i] = -9999;
       
       treeVars.genjetPt[i]  = -9999;
       treeVars.genjetEta[i] = -9999;

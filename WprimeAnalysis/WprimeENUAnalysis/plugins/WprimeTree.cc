@@ -80,7 +80,8 @@ WprimeTree::WprimeTree (const edm::ParameterSet& iConfig)
   L1InputTag_     = iConfig.getParameter<edm::InputTag>("L1InputTag");
 
   electronID_     = iConfig.getUntrackedParameter<std::string>("electronID") ;
-  btagAlgo_       = iConfig.getUntrackedParameter<std::string>("btagAlgo") ;
+  btagAlgoHighEff_       = iConfig.getUntrackedParameter<std::string>("btagAlgoHighEff") ;
+  btagAlgoHighPur_       = iConfig.getUntrackedParameter<std::string>("btagAlgoHighPur") ;
 
 
   runOnMC_         = iConfig.getParameter<bool>("runOnMC");
@@ -292,18 +293,21 @@ void WprimeTree::dumpElectronInfo ( View<pat::Electron> electrons,
     pat::Electron electron = electrons.at(i);
     
     reco::SuperClusterRef scRef = electron.superCluster();
-    double R  = TMath::Sqrt(scRef->x()*scRef->x() + scRef->y()*scRef->y() +scRef->z()*scRef->z());
-    double Rt = TMath::Sqrt(scRef->x()*scRef->x() + scRef->y()*scRef->y());
+    double R  = TMath::Sqrt(electron.trackMomentumAtVtx().x()*electron.trackMomentumAtVtx().x()
+			    + electron.trackMomentumAtVtx().y()*electron.trackMomentumAtVtx().y() 
+			    + electron.trackMomentumAtVtx().z()*electron.trackMomentumAtVtx().z());
+    double Rt = TMath::Sqrt(electron.trackMomentumAtVtx().x()*electron.trackMomentumAtVtx().x()
+			    + electron.trackMomentumAtVtx().y()*electron.trackMomentumAtVtx().y());
 
     myTreeVariables_.elePx[ myTreeVariables_.nElectrons ]  = electron.trackMomentumAtVtx().x() ;
     myTreeVariables_.elePy[ myTreeVariables_.nElectrons ]  = electron.trackMomentumAtVtx().y() ;
     myTreeVariables_.elePz[ myTreeVariables_.nElectrons ]  = electron.trackMomentumAtVtx().z() ;
     myTreeVariables_.eleCharge[ myTreeVariables_.nElectrons ] = electron.gsfTrack()->charge();
 
-    myTreeVariables_.eleE [ myTreeVariables_.nElectrons ]  = scRef->energy() ;
+    myTreeVariables_.eleE [ myTreeVariables_.nElectrons ]  = scRef->energy() ; 
     myTreeVariables_.eleEt[ myTreeVariables_.nElectrons ]  = scRef->energy()*(Rt/R) ;
-    myTreeVariables_.eleEta[ myTreeVariables_.nElectrons ] = scRef->eta();
-    myTreeVariables_.elePhi[ myTreeVariables_.nElectrons ] = scRef->phi() ;
+    myTreeVariables_.eleEta[ myTreeVariables_.nElectrons ] = electron.trackMomentumAtVtx().eta();
+    myTreeVariables_.elePhi[ myTreeVariables_.nElectrons ] = electron.trackMomentumAtVtx().phi() ;
    
     if ( electron.isEB() ) {
       float E1 = EcalClusterTools::eMax( *scRef , theBarrelEcalRecHits);
@@ -501,7 +505,8 @@ void WprimeTree::dumpJetInfo ( View<pat::Jet>  jets ,
     myTreeVariables_.jetPt[ myTreeVariables_.nJets ]    = jet.pt();
     myTreeVariables_.jetEta[ myTreeVariables_.nJets ]   = jet.eta();
     myTreeVariables_.jetPhi[ myTreeVariables_.nJets ]   = jet.phi();
-    myTreeVariables_.jetBdisc[ myTreeVariables_.nJets ] = jet.bDiscriminator( btagAlgo_);
+    myTreeVariables_.jetBdiscHighEff[ myTreeVariables_.nJets ] = jet.bDiscriminator( btagAlgoHighEff_);
+    myTreeVariables_.jetBdiscHighPur[ myTreeVariables_.nJets ] = jet.bDiscriminator( btagAlgoHighPur_);
   
    
     if ( jet.genJet() ) {

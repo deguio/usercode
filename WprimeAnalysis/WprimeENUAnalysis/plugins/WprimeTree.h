@@ -106,7 +106,8 @@ class WprimeTree : public edm::EDAnalyzer
       edm::InputTag jetLabel_ ;
       edm::InputTag muonLabel_ ;
       std::string   electronID_;
-      std::string   btagAlgo_;
+      std::string   btagAlgoHighEff_;
+      std::string   btagAlgoHighPur_;
       edm::InputTag TrkIsolationProducer_ ;
       edm::InputTag EcalIsolationProducer_ ;
       edm::InputTag HcalIsolationProducerDepth1_ ;

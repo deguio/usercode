@@ -101,7 +101,8 @@ struct WprimeTreeContent
   float jetPt[MAXJETS];
   float jetEta[MAXJETS];
   float jetPhi[MAXJETS];
-  float jetBdisc[MAXJETS];
+  float jetBdiscHighEff[MAXJETS];
+  float jetBdiscHighPur[MAXJETS];
 
   float genjetPt[MAXJETS];
   float genjetEta[MAXJETS];
