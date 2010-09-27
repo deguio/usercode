@@ -1,0 +1,176 @@
+
+import FWCore.ParameterSet.Config as cms
+
+process = cms.Process("myprocess")
+
+# initialize MessageLogger and output report
+process.load("FWCore.MessageLogger.MessageLogger_cfi")
+process.MessageLogger.cerr.FwkReport.reportEvery = cms.untracked.int32(10000)
+
+
+process.load("Configuration.StandardSequences.Geometry_cff")
+process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_cff")
+process.GlobalTag.globaltag = cms.string('START3X_V26::All')  #35x
+#process.GlobalTag.globaltag = cms.string('START36_V10::All')
+process.load("Configuration.StandardSequences.MagneticField_cff")
+
+
+process.maxEvents = cms.untracked.PSet(
+    input = cms.untracked.int32(-1)
+    )
+
+process.source = cms.Source("PoolSource",
+       fileNames = cms.untracked.vstring(
+
+
+        '/store/relval/CMSSW_3_5_7/RelValZEE/GEN-SIM-RECO/START3X_V26-v1/0013/8CCEBD30-6949-DF11-B41A-0018F3D09644.root',
+        '/store/relval/CMSSW_3_5_7/RelValZEE/GEN-SIM-RECO/START3X_V26-v1/0012/DE74B1C8-4E49-DF11-B331-00248C55CC97.root',
+        '/store/relval/CMSSW_3_5_7/RelValZEE/GEN-SIM-RECO/START3X_V26-v1/0012/66240342-4C49-DF11-BC0D-00304867902E.root',
+        '/store/relval/CMSSW_3_5_7/RelValZEE/GEN-SIM-RECO/START3X_V26-v1/0012/5E18B200-4849-DF11-8D70-003048678FA0.root',
+        '/store/relval/CMSSW_3_5_7/RelValZEE/GEN-SIM-RECO/START3X_V26-v1/0012/020A72FB-4749-DF11-A27E-003048679076.root'
+
+       
+       )
+)
+
+#filter to divide overlapped pthat for QCD MC
+process.genFilter = cms.EDFilter("MCProcessFilter",
+                                 MinPthat = cms.untracked.vdouble(800),
+                                 MaxPthat = cms.untracked.vdouble(1400)
+                                 )
+
+#PAT configuration
+process.load("PhysicsTools.PatAlgos.patSequences_cff");
+
+#btag only for 35X
+process.load("RecoBTag.SecondaryVertex.simpleSecondaryVertex3TrkES_cfi")
+process.load("RecoBTag.SecondaryVertex.simpleSecondaryVertexHighPurBJetTags_cfi")
+process.load("RecoBTag.SecondaryVertex.simpleSecondaryVertexHighEffBJetTags_cfi")
+
+#ak5GenJets per alcuni 35X
+process.load("RecoJets.Configuration.GenJetParticles_cff")
+process.load("RecoJets.JetProducers.ak5GenJets_cfi")
+
+
+from PhysicsTools.PatAlgos.tools.coreTools import *
+
+# turn off MC matching for the process
+#removeMCMatching(process, ['All'])
+
+
+# Add tcMET and pfMET
+from PhysicsTools.PatAlgos.tools.metTools import *
+addTcMET(process, 'TC')
+addPfMET(process, 'PF')
+
+from PhysicsTools.PatAlgos.tools.cmsswVersionTools import *
+
+## uncomment this line to run on an 35X input sample
+#run36xOn35xInput(process)
+
+#Analysis
+
+# FILTERS 
+process.highetele = cms.EDFilter("GsfElectronSelector",
+        src = cms.InputTag("gsfElectrons"),
+        cut = cms.string("superCluster().get().energy()*sin(theta())> 10 ")
+)
+
+
+process.highetFilter = cms.EDFilter("CandViewCountFilter",
+                                    src = cms.InputTag("highetele"),
+                                    minNumber = cms.uint32(1),
+                                    )
+
+from SHarper.HEEPAnalyzer.HEEPSelectionCuts_cfi import *
+process.heepPatElectrons = cms.EDProducer("HEEPAttStatusToPAT",
+                                          eleLabel   = cms.InputTag("patElectrons"),
+                                          barrelCuts = cms.PSet(heepBarrelCuts),
+                                          endcapCuts = cms.PSet(heepEndcapCuts)
+                                          )
+
+
+
+#Analysis
+process.myanalysis = cms.EDAnalyzer('WprimeTree',
+   
+   recHitCollection_EB = cms.InputTag("ecalRecHit","EcalRecHitsEB"),
+   recHitCollection_EE = cms.InputTag("ecalRecHit","EcalRecHitsEE"),
+   superClusterCollection_EB = cms.InputTag("correctedHybridSuperClusters"),
+   superClusterCollection_EE = cms.InputTag("correctedMulti5x5SuperClustersWithPreshower"),
+                                    
+   electronTag         = cms.InputTag("heepPatElectrons"),
+   jetTag              = cms.InputTag("patJets"),
+   calometTag          = cms.InputTag("patMETs"),
+   tcmetTag            = cms.InputTag("patMETsTC"),
+   pfmetTag            = cms.InputTag("patMETsPF"),
+   muonTag             = cms.InputTag("patMuons"),
+   electronID          = cms.untracked.string("eidRobustHighEnergy"),
+   btagAlgo            = cms.untracked.string("simpleSecondaryVertexHighEffBJetTags"), 
+   HLTInputTag         = cms.InputTag("TriggerResults::HLT"),
+   L1InputTag          = cms.InputTag("gtDigis"),
+
+   runOnMC             = cms.bool(True),
+   storePDFWeights     = cms.bool(False),
+   pdfWeightsTag       = cms.InputTag("pdfWeights:cteq65")
+
+)
+
+#save HLT infos
+from PhysicsTools.NtupleUtils.HLTrigResultsDumper_cfi import *
+process.TriggerResults = HLTrigResultsDumper.clone()
+process.TriggerResults.HLTriggerResults = cms.InputTag("TriggerResults::HLT")
+process.TriggerResults.HLTPaths = cms.vstring('HLT_Photon10_L1R','HLT_Ele10_LW_L1R','HLT_Ele15_LW_L1R','HLT_Ele15_SW_L1R','HLT_Ele15_SW_CaloEleId_L1R','HLT_Ele17_SW_CaloEleId_L1R')   # provide list of HLT paths (or patterns) you want
+
+# filter on primary vertex
+process.primaryVertexFilter = cms.EDFilter("GoodVertexFilter",
+   vertexCollection = cms.InputTag('offlinePrimaryVertices'),
+   minimumNDOF = cms.uint32(4) ,
+   maxAbsZ = cms.double(24),
+   maxd0 = cms.double(2)
+)
+
+
+process.eventsCounterTotal = cms.EDFilter("eventsCounter", histoName = cms.string("eventsCounterTotal"))
+process.eventsCounterGoodEvt = cms.EDFilter("eventsCounter", histoName = cms.string("eventsCounterGoodEvt"))
+process.eventsCounterHighEtEle = cms.EDFilter("eventsCounter", histoName = cms.string("eventsCounterHighEtEle"))
+process.eventsCounterPatElectronSequence = cms.EDFilter("eventsCounter", histoName = cms.string("eventsCounterPatElectronSequence"))
+
+process.TFileService = cms.Service("TFileService",
+                                   fileName = cms.string("WPrimeAnalysisTree_MC_eleIdTest.root")
+)
+
+
+process.p = cms.Path(
+
+    process.eventsCounterTotal *  #<<---
+    
+#    process.genFilter *
+#    process.primaryVertexFilter *
+
+
+
+    process.eventsCounterGoodEvt *  #<<---
+
+#    process.highetele *
+#    process.highetFilter *
+
+    process.eventsCounterHighEtEle *  #<<---
+
+    process.genJetParticles*
+    process.ak5GenJets*
+
+    process.simpleSecondaryVertexHighPurBJetTags*
+    process.simpleSecondaryVertexHighEffBJetTags*
+    process.patDefaultSequence *
+    process.heepPatElectrons *
+
+    process.eventsCounterPatElectronSequence *  #<<---
+
+    process.TriggerResults *
+    
+    process.myanalysis
+    ) 
+
+
+
