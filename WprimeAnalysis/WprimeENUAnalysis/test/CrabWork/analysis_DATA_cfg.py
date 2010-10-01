@@ -63,7 +63,7 @@ from PhysicsTools.PatAlgos.tools.cmsswVersionTools import *
 # FILTERS 
 process.highetele = cms.EDFilter("GsfElectronSelector",
    src = cms.InputTag("gsfElectrons"),
-   cut = cms.string("superCluster().get().energy()*sin(theta())> 10 ")
+   cut = cms.string("superCluster().get().energy()*sin(theta())> 20 ")
 )
 
 process.highetFilter = cms.EDFilter("CandViewCountFilter",

@@ -18,6 +18,7 @@
 <use name=CondFormats/DataRecord>
 <use name=DataFormats/HepMCCandidate>
 <use name=PhysicsTools/NtupleUtils>
+<use name=SHarper/HEEPAnalyzer>
 #<flags EDM_PLUGIN=1>
 <export>
    <lib name=WprimeAnalysisWprimeENUAnalysis>
