@@ -223,14 +223,14 @@ void WprimeTree::analyze (const edm::Event& iEvent, const edm::EventSetup& iSetu
   //  if (runOnMC_ == true) dumpGenInfo(iEvent, myTreeVariables_);
   
   dumpElectronInfo(electrons, theBarrelEcalRecHits, theEndcapEcalRecHits, topology, myTreeVariables_) ;
-  dumpSuperclusterInfo(theBarrelSuperClusters, theEndcapSuperClusters, iEvent, iSetup,myTreeVariables_);
+  //dumpSuperclusterInfo(theBarrelSuperClusters, theEndcapSuperClusters, iEvent, iSetup,myTreeVariables_);
   dumpCALOMetInfo(calomets, myTreeVariables_) ;
   dumpTCMetInfo(tcmets, myTreeVariables_) ;
   dumpPFMetInfo(pfmets, myTreeVariables_) ;
   dumpJetInfo(jets, myTreeVariables_) ;
   dumpMuonInfo(muons, myTreeVariables_) ;
-  dumpL1Info(gtRecord, myTreeVariables_) ;
-  //  dumpHLTInfo(hltresults, triggerNames, myTreeVariables_) ;
+  //dumpL1Info(gtRecord, myTreeVariables_) ;
+  //dumpHLTInfo(hltresults, triggerNames, myTreeVariables_) ;
 
   tree_ -> Fill();
   

@@ -12,7 +12,7 @@ process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_cff")
 process.load("Configuration.StandardSequences.MagneticField_cff")
 
 ## global tag for data
-process.GlobalTag.globaltag = cms.string('GR_R_36X_V12::All')
+process.GlobalTag.globaltag = cms.string('GR_R_38X_V13::All')
 
 
 process.maxEvents = cms.untracked.PSet(
@@ -22,11 +22,7 @@ process.maxEvents = cms.untracked.PSet(
 process.source = cms.Source("PoolSource",
        #duplicateCheckMode = cms.untracked.string("noDuplicateCheck"),    
        fileNames = cms.untracked.vstring(
-        '/store/data/Run2010A/EG/RECO/v4/000/144/114/EEC21BFA-25B4-DF11-840A-001617DBD5AC.root',
-        '/store/data/Run2010A/EG/RECO/v4/000/144/114/EEAA24FA-25B4-DF11-A5F1-000423D98950.root',
-        '/store/data/Run2010A/EG/RECO/v4/000/144/114/C40EDB4E-1DB4-DF11-A83C-0030487C90C2.root',
-        '/store/data/Run2010A/EG/RECO/v4/000/144/114/C2497931-2CB4-DF11-A92C-003048F1183E.root',
-        '/store/data/Run2010A/EG/RECO/v4/000/144/114/AC68ABE0-19B4-DF11-BB93-0030487C7E18.root'
+        '/store/data/Run2010B/Electron/RECO/PromptReco-v2/000/146/431/B83E5CC1-C0C6-DF11-9834-0030487A3232.root'
         
        )
 )
@@ -142,7 +138,7 @@ process.hltLevel1GTSeed.L1SeedsLogicalExpression = cms.string('0 AND (40 OR 41) 
 from PhysicsTools.NtupleUtils.HLTrigResultsDumper_cfi import *
 process.TriggerResults = HLTrigResultsDumper.clone()
 process.TriggerResults.HLTriggerResults = cms.InputTag("TriggerResults","","HLT")
-process.TriggerResults.HLTPaths = cms.vstring('HLT_Photon10_L1R','HLT_Ele10_LW_L1R','HLT_Ele15_LW_L1R','HLT_Ele15_SW_L1R','HLT_Ele15_SW_CaloEleId_L1R','HLT_Ele17_SW_CaloEleId_L1R')   # provide list of HLT paths (or patterns) you want
+process.TriggerResults.HLTPaths = cms.vstring('HLT_Photon10_L1R','HLT_Ele10_LW_L1R','HLT_Ele15_LW_L1R','HLT_Ele15_SW_L1R','HLT_Ele15_SW_CaloEleId_L1R','HLT_Ele17_SW_CaloEleId_L1R','HLT_Ele22_SW_CaloEleId_L1R')   # provide list of HLT paths (or patterns) you want
 
 
 # filter on primary vertex

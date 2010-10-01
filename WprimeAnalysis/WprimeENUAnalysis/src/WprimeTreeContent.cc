@@ -2,12 +2,12 @@
 
 bool WprimeTreeContent::genVariables           = false;
 bool WprimeTreeContent::electronVariables      = true;
-bool WprimeTreeContent::superclusterVariables  = true;
+bool WprimeTreeContent::superclusterVariables  = false;
 bool WprimeTreeContent::metVariables           = true;
 bool WprimeTreeContent::jetVariables           = true;
 bool WprimeTreeContent::muonVariables          = true;
-bool WprimeTreeContent::HLTrigVariables        = true;
-bool WprimeTreeContent::L1TrigVariables        = true;
+bool WprimeTreeContent::HLTrigVariables        = false;
+bool WprimeTreeContent::L1TrigVariables        = false;
   
 void setBranchAddresses(TTree* chain, WprimeTreeContent& treeVars)
 {
