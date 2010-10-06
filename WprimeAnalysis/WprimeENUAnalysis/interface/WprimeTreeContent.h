@@ -29,6 +29,8 @@ struct WprimeTreeContent
   unsigned int runId;
   unsigned int eventId;
   unsigned int eventNaiveId;
+  unsigned int hcalnoiseLoose;
+  unsigned int hcalnoiseTight;
  
 
   // electron variables

@@ -16,6 +16,8 @@ void setBranchAddresses(TTree* chain, WprimeTreeContent& treeVars)
   chain -> SetBranchAddress("runId",         &treeVars.runId);
   chain -> SetBranchAddress("eventId",       &treeVars.eventId);
   chain -> SetBranchAddress("eventNaiveId",  &treeVars.eventNaiveId);
+  chain -> SetBranchAddress("hcalnoiseLoose",&treeVars.hcalnoiseLoose);
+  chain -> SetBranchAddress("hcalnoiseTight",&treeVars.hcalnoiseTight);
 
   //GEN VARIABLES
   if(WprimeTreeContent::genVariables) {
@@ -166,6 +168,8 @@ void setBranches(TTree* chain, WprimeTreeContent& treeVars)
   chain -> Branch("runId",         &treeVars.runId,                 "runId/i");
   chain -> Branch("eventId",       &treeVars.eventId,             "eventId/i");
   chain -> Branch("eventNaiveId",  &treeVars.eventNaiveId,   "eventNaiveId/i");
+  chain -> Branch("hcalnoiseLoose",  &treeVars.hcalnoiseLoose,   "hcalnoiseLoose/i");
+  chain -> Branch("hcalnoiseTight",  &treeVars.hcalnoiseTight,   "hcalnoiseTight/i");
   
   // GENPARTICLES  VARIABLES  
   if(WprimeTreeContent::genVariables)  {
@@ -315,7 +319,9 @@ void initializeBranches(TTree* chain, WprimeTreeContent& treeVars)
   treeVars.lumiId = 0;
   treeVars.runId = 0;
   treeVars.eventId = 0; 
-  treeVars.eventNaiveId = 0; 
+  treeVars.eventNaiveId = 0;
+  treeVars.hcalnoiseLoose = 0;
+  treeVars.hcalnoiseTight = 0;
   
   // GENPARTICLES VARIABLES  
   if(WprimeTreeContent::genVariables) {    
