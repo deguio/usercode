@@ -40,6 +40,8 @@
 #include "DataFormats/GsfTrackReco/interface/GsfTrack.h"
 #include "RecoEcal/EgammaCoreTools/interface/EcalClusterTools.h"
 
+#include "DataFormats/METReco/interface/HcalNoiseSummary.h"
+
 #include "DataFormats/MuonReco/interface/Muon.h"
 #include "DataFormats/MuonReco/interface/MuonFwd.h"
 #include "DataFormats/PatCandidates/interface/Muon.h"
@@ -112,17 +114,22 @@ void WprimeTreePAT::analyze (const edm::Event& iEvent, const edm::EventSetup& iS
 
  
   //*********** Algo and Technical L1 bits
-  edm::ESHandle<L1GtTriggerMenu> menuRcd;
-  iSetup.get<L1GtTriggerMenuRcd>().get(menuRcd) ;
+  //edm::ESHandle<L1GtTriggerMenu> menuRcd;
+  //iSetup.get<L1GtTriggerMenuRcd>().get(menuRcd) ;
    
-  edm::Handle<L1GlobalTriggerReadoutRecord> gtRecord;
-  iEvent.getByLabel(L1InputTag_, gtRecord);
+  //edm::Handle<L1GlobalTriggerReadoutRecord> gtRecord;
+  //iEvent.getByLabel(L1InputTag_, gtRecord);
 
   //*********** HLT INFO
-  Handle<TriggerResults> hltresults;
-  iEvent.getByLabel(HLTInputTag_,hltresults);
+  //Handle<TriggerResults> hltresults;
+  //iEvent.getByLabel(HLTInputTag_,hltresults);
   
-  const edm::TriggerNames & triggerNames = iEvent.triggerNames(*hltresults);
+  //const edm::TriggerNames & triggerNames = iEvent.triggerNames(*hltresults);
+
+  //********** HCAL NOISE
+  Handle<HcalNoiseSummary> handle;
+  iEvent.getByLabel("hcalnoise", handle);
+  const HcalNoiseSummary NoiseSummary = *handle;
 
   //*********** CALO TOPOLOGY
   edm::ESHandle<CaloTopology> pTopology;
@@ -201,6 +208,9 @@ void WprimeTreePAT::analyze (const edm::Event& iEvent, const edm::EventSetup& iS
   myTreeVariables_.runId        = iEvent.id ().run () ;
   myTreeVariables_.eventId      = iEvent.id ().event () ;
   myTreeVariables_.eventNaiveId = naiveId_ ;
+
+  myTreeVariables_.hcalnoiseLoose = ( NoiseSummary.passLooseNoiseFilter() ) ? 1 : 0;
+  myTreeVariables_.hcalnoiseTight = ( NoiseSummary.passTightNoiseFilter() ) ? 1 : 0;
 
 
   //if (runOnMC_ == true) dumpGenInfo(iEvent, myTreeVariables_);
