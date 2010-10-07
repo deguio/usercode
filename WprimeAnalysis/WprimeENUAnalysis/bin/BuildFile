@@ -20,3 +20,7 @@
   <use name=WprimeAnalysis/WprimeENUAnalysis>
   <flags LCGDICT_ARGS="--deep">
 </bin>
+<bin name=TTbarBkgAnalysisBtag file="TTbarBkgAnalysisBtag.cpp">
+  <use name=WprimeAnalysis/WprimeENUAnalysis>
+  <flags LCGDICT_ARGS="--deep">
+</bin>
