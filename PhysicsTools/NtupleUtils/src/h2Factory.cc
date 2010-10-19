@@ -2,8 +2,6 @@
 #include "TString.h"
 #include <iostream>
 
-
-
 h2Factory::h2Factory (std::string fileName, 
                     bool print) :
  m_fileName (fileName) ,
@@ -17,7 +15,7 @@ h2Factory::h2Factory (std::string fileName,
 h2Factory::~h2Factory () 
 {
 //  if (m_H2content.size () && m_print)
-//    for (std::map <TString, h2Chain *>::iterator mapIt = m_H2content.begin () ;
+//    for (std::map <std::string, h2Chain *>::iterator mapIt = m_H2content.begin () ;
 //         mapIt != m_H2content.end () ;
 //         ++mapIt)
 //      {
@@ -26,13 +24,13 @@ h2Factory::~h2Factory ()
 //      }
   if (m_H2content.size () && m_fileName != "no")
     {
-      TFile histosFile (m_fileName.c_str (),"recreate") ;
+      TFile histosFile (m_fileName.c_str (),"update") ;
       histosFile.cd () ;
-      for (std::map <TString, h2Chain *>::iterator mapIt = m_H2content.begin () ;
+      for (std::map <std::string, h2Chain *>::iterator mapIt = m_H2content.begin () ;
            mapIt != m_H2content.end () ;
            ++mapIt)
         {
-          mapIt->second->Write (histosFile) ; 
+          mapIt->second->Write (mapIt->first, histosFile) ; 
         }
       histosFile.Close () ;
     }  
@@ -43,7 +41,7 @@ h2Factory::~h2Factory ()
 
 
 void
-h2Factory::add_h2 (TString baseName, TString baseTitle, 
+h2Factory::add_h2 (std::string baseName, std::string baseTitle, 
                    int nbinsx, double minx, double maxx,
                    int nbinsy, double miny, double maxy, int NUM)
 {
@@ -65,7 +63,7 @@ h2Factory::add_h2 (TString baseName, TString baseTitle,
 
 
 void 
-h2Factory::Fill (const TString & name, int i, double valx, double valy) 
+h2Factory::Fill (const std::string & name, int i, double valx, double valy) 
   {
     if (m_H2content.find (name) != m_H2content.end ())
       m_H2content[name]->Fill (i,valx, valy) ;
@@ -77,7 +75,7 @@ h2Factory::Fill (const TString & name, int i, double valx, double valy)
 
 
 h2Chain * 
-h2Factory::operator[] (const TString& name)
+h2Factory::operator[] (const std::string& name)
   {
     if (m_H2content.find (name) == m_H2content.end ())
       {
@@ -97,10 +95,11 @@ void
 h2Factory::Print (int isLog, int rebin)
 {
   if (!m_H2content.size ()) return ;
-  for (std::map <TString, h2Chain *>::iterator mapIt = m_H2content.begin () ;
+  for (std::map <std::string, h2Chain *>::iterator mapIt = m_H2content.begin () ;
        mapIt != m_H2content.end () ;
        ++mapIt)
     {
       mapIt->second->Print (isLog, rebin) ; 
     }
 }
+

@@ -23,7 +23,7 @@ struct h2Chain
   void Print (bool isLog = false, int rebinx = 1, int rebiny = 1) ;
   void PrintEach () ;
   void Scale (int index, double factor) ;
-  void Write (TFile & outputFile) ;
+  void Write (const std::string& dirName, TFile & outputFile) ;
       
   private :
   

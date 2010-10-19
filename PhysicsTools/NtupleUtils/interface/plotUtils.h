@@ -43,6 +43,7 @@ class drawTStack
             const float& lumi, const int& step,
             const int& rebin, const bool& logy);
   void DrawEvents(const std::string& mode, const float& lumi, const int& step, const bool& logy);
+  void EventYeld(const std::vector<std::string>& histoNames, const float& thr, const float& lumi, const int& step);
   
   void SetXaxisRange(const double& xMin, const double& xMax);
   void SetXaxisTitle(const std::string& xTitle);
@@ -66,7 +67,7 @@ class drawTStack
   std::map<std::string, int> m_dataFlag;
   std::map<std::string, double> m_mH;
   std::map<std::string, double> m_crossSection;
-  std::vector<std::pair<std::string, std::string> > m_jetAlgorithm;
+  std::map<std::string, int> m_color;
   
   bool m_xAxisRange;
   double m_xRangeMin;

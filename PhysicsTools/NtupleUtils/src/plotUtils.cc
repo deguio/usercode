@@ -77,8 +77,9 @@ drawTStack::drawTStack(const std::string& inputDir,
     int dataFlag;
     double mH;
     double crossSection;
+    int color;
     
-    listFile >> sample >> sumName >> dataFlag >> mH >> crossSection;
+    listFile >> sample >> sumName >> dataFlag >> mH >> crossSection >> color;
 
     if(sample.size() == 0)
       continue;
@@ -90,6 +91,7 @@ drawTStack::drawTStack(const std::string& inputDir,
               << dataFlag << "\t"
               << mH << "\t"
               << crossSection << "\t" 
+	      << color << "\t"
               << std::endl;
     
     std::pair<std::string, std::string> dummyPair(sample, sumName);
@@ -97,6 +99,7 @@ drawTStack::drawTStack(const std::string& inputDir,
     m_dataFlag[sample] = dataFlag;
     m_mH[sample] = mH;
     m_crossSection[sample] = crossSection;
+    m_color[sample] = color;
     
   }
   
@@ -117,6 +120,10 @@ drawTStack::~drawTStack()
 }
 
 
+void drawTStack::EventYeld(const std::vector<std::string>& histoNames, const float& thr, const float& lumi, const int& step)
+{
+ 
+}
 
 
 
@@ -140,6 +147,7 @@ void drawTStack::Draw(const std::vector<std::string>& histoNames, const std::str
   //---------------------------------------------
   
   std::map<std::string, double> crossSection_summed;
+  std::map<std::string, int> color_summed;
   std::map<std::string, bool> isFirstSample_summed;
   std::map<std::string, int> dataFlag_summed;
   std::map<std::string, TH1F*> histo_summed;
@@ -149,6 +157,7 @@ void drawTStack::Draw(const std::vector<std::string>& histoNames, const std::str
       vecIt != m_list.end(); ++vecIt)
   {
     crossSection_summed[vecIt->second] = 0.;
+    color_summed[vecIt->second] = 1;
     isFirstSample_summed[vecIt->second] = true;
     dataFlag_summed[vecIt->second] = false;
     histo_summed[vecIt->second] = NULL;
@@ -215,11 +224,13 @@ void drawTStack::Draw(const std::vector<std::string>& histoNames, const std::str
     histo -> Rebin(rebin);
     dataFlag_summed[vecIt->second] = m_dataFlag[vecIt->first];
     
+    //if( (histo->GetEntries() > 0.) ) fede
     if( (histo->GetEntries() > 0.) && (m_dataFlag[vecIt->first] != 1) )
-    {
-      histo -> Scale(m_crossSection[vecIt->first]/eventsHisto->GetBinContent(1));
-      crossSection_summed[vecIt->second] += m_crossSection[vecIt->first];
-    }
+      {
+	histo -> Scale(m_crossSection[vecIt->first]/eventsHisto->GetBinContent(1));
+	crossSection_summed[vecIt->second] += m_crossSection[vecIt->first];
+	color_summed[vecIt->second] = m_color[vecIt->first];
+      }
     
     
     
@@ -342,8 +353,10 @@ void drawTStack::Draw(const std::vector<std::string>& histoNames, const std::str
     if( (mode == "eventsScaled") && (dataFlag_summed[mapIt->first] != 1) )
     {
       globalHisto -> Scale(1. * lumi);
-      globalHisto -> SetLineColor(getColor(i+1));
-      globalHisto -> SetFillColor(getColor(i+1));
+      //fede      globalHisto -> SetLineColor(getColor(i+1));
+      //fede      globalHisto -> SetFillColor(getColor(i+1));
+      globalHisto -> SetLineColor(color_summed[mapIt->first]);
+      globalHisto -> SetFillColor(color_summed[mapIt->first]);
       globalHisto -> SetFillStyle(3003);
       globalHisto -> SetLineWidth(2);
       
@@ -357,7 +370,8 @@ void drawTStack::Draw(const std::vector<std::string>& histoNames, const std::str
     if( (mode == "sameAreaNoStack") )
     {
       globalHisto -> Scale(1./globalHisto->Integral(1, globalHisto->GetNbinsX()));
-      globalHisto -> SetLineColor(getColor(i));
+      //fede   globalHisto -> SetLineColor(getColor(i));
+      globalHisto -> SetLineColor(color_summed[mapIt->first]);
       globalHisto -> SetLineStyle(i+1);
       globalHisto -> SetLineWidth(4);
 
@@ -394,8 +408,10 @@ void drawTStack::Draw(const std::vector<std::string>& histoNames, const std::str
     if( (mode == "sameAreaStack") && (dataFlag_summed[mapIt->first] != 1) )
     {
       globalHisto -> Scale(dataGlobalGlobalIntegral/globalGlobalIntegral);
-      globalHisto -> SetLineColor(getColor(i));
-      globalHisto -> SetFillColor(getColor(i));
+      //fede      globalHisto -> SetLineColor(getColor(i+1));
+      //fede      globalHisto -> SetFillColor(getColor(i+1));
+      globalHisto -> SetLineColor(color_summed[mapIt->first]);
+      globalHisto -> SetFillColor(color_summed[mapIt->first]);
       globalHisto -> SetFillStyle(3003);
       globalHisto -> SetLineWidth(2);
       
@@ -472,7 +488,7 @@ void drawTStack::Draw(const std::vector<std::string>& histoNames, const std::str
 
   if( mode == "sameAreaNoStack" )
   {
-    hs -> Draw("nostack,HISTO");
+    hs -> Draw("HISTO,nostack");
     
     hs->GetYaxis()->SetTitle("event fraction");
   }
@@ -502,7 +518,7 @@ void drawTStack::Draw(const std::vector<std::string>& histoNames, const std::str
   hs->GetXaxis()->SetTitle(fullTitle.c_str());
   if(m_xAxisTitle) hs->GetXaxis()->SetTitle(m_xTitle.c_str());
   hs -> GetXaxis() -> SetTitleSize(0.04);
-  hs -> GetXaxis() -> SetLabelSize(0.0); //fede
+  hs -> GetXaxis() -> SetLabelSize(0.00); //fede
   hs -> GetXaxis() -> SetTitleOffset(1.25);
 
   if(m_xAxisRange) hs->GetXaxis()->SetRangeUser(m_xRangeMin, m_xRangeMax);
@@ -512,7 +528,7 @@ void drawTStack::Draw(const std::vector<std::string>& histoNames, const std::str
   // set y-axis properties
   if(m_yAxisTitle) hs->GetYaxis()->SetTitle(m_yTitle.c_str());    
   hs -> GetYaxis() -> SetTitleSize(0.04);
-  hs -> GetYaxis() -> SetLabelSize(0.0); //fede
+  hs -> GetYaxis() -> SetLabelSize(0.00); //fede
   hs -> GetYaxis() -> SetTitleOffset(1.50);
   
   hs->SetMinimum(0.);
@@ -563,6 +579,8 @@ void drawTStack::Draw(const std::vector<std::string>& histoNames, const std::str
 }
 
 
+
+
 void drawTStack::DrawEvents(const std::string& mode, const float& lumi, const int& step, const bool& logy)
 { 
   std::cout << "\n>>>plotUtils::Drawing " << mode << std::endl;
@@ -583,6 +601,7 @@ void drawTStack::DrawEvents(const std::string& mode, const float& lumi, const in
   //---------------------------------------------
  
   std::map<std::string, double> crossSection_summed;
+  std::map<std::string, int> color_summed;
   std::map<std::string, bool> isFirstSample_summed;
   std::map<std::string, int> dataFlag_summed;
   std::map<std::string, bool> isSignal_summed;
@@ -627,6 +646,7 @@ void drawTStack::DrawEvents(const std::string& mode, const float& lumi, const in
     }
     
     crossSection_summed[vecIt->second] += m_crossSection[vecIt->first];
+    color_summed[vecIt->second] = m_color[vecIt->first];
     if(m_mH[vecIt->first] > 0)
       isSignal_summed[vecIt->second] = true;
     
@@ -638,7 +658,9 @@ void drawTStack::DrawEvents(const std::string& mode, const float& lumi, const in
         (mode == "significance") )
     {
       if( m_dataFlag[vecIt->first] != 1 )
-        histo -> Scale(lumi*m_crossSection[vecIt->first]/histo->GetBinContent(1));
+	{
+	  histo -> Scale(lumi*m_crossSection[vecIt->first]/histo->GetBinContent(1));
+	}
      }
     
     
@@ -706,18 +728,18 @@ void drawTStack::DrawEvents(const std::string& mode, const float& lumi, const in
     {
       float totalEvents = globalHisto -> GetBinContent(1);
       //fede
-      std::cout << "crossSection_summed = " << (*mapIt).first << std::endl;
+      //std::cout << "crossSection_summed = " << (*mapIt).first << std::endl;
 
       for(int bin = 1; bin <= globalHisto->GetNbinsX(); ++bin)
 	{
 
-	  //fede
-	  if (bin == 1)
-	    {
-	      std::cout << "bin = " << bin << std::endl;
-	      std::cout << "globalHisto->GetBinContent(bin) = " << globalHisto->GetBinContent(bin) << "; totalEvents = " << totalEvents << std::endl;
-	      std::cout << "ratio = " << globalHisto->GetBinContent(bin)/totalEvents << std::endl;
-	    }
+// 	  //fede
+// 	  if (bin == 1)
+// 	    {
+// 	      std::cout << "bin = " << bin << std::endl;
+// 	      std::cout << "globalHisto->GetBinContent(bin) = " << globalHisto->GetBinContent(bin) << "; totalEvents = " << totalEvents << std::endl;
+// 	      std::cout << "ratio = " << globalHisto->GetBinContent(bin)/totalEvents << std::endl;
+// 	    }
 
 
 	  globalHisto->SetBinContent(bin, globalHisto->GetBinContent(bin)/totalEvents);
@@ -762,7 +784,8 @@ void drawTStack::DrawEvents(const std::string& mode, const float& lumi, const in
     }
     
     
-    globalHisto -> SetLineColor(getColor(i));
+    //fede    globalHisto -> SetLineColor(getColor(i));
+    globalHisto -> SetLineColor(color_summed[mapIt->first]);
     globalHisto -> SetLineStyle(i+1);
     if(m_xAxisRange)
       globalHisto->GetXaxis()->SetRangeUser(m_xRangeMin, m_xRangeMax);
@@ -859,11 +882,11 @@ void drawTStack::DrawEvents(const std::string& mode, const float& lumi, const in
   
   
   hs -> GetXaxis() -> SetTitleSize(0.04);
-  hs -> GetXaxis() -> SetLabelSize(0.03); //fede
+  hs -> GetXaxis() -> SetLabelSize(0.04); //fede
   hs -> GetXaxis() -> SetTitleOffset(1.25);
 
   hs -> GetYaxis() -> SetTitleSize(0.04);
-  hs -> GetYaxis() -> SetLabelSize(0.03); //fede
+  hs -> GetYaxis() -> SetLabelSize(0.04); //fede
   hs -> GetYaxis() -> SetTitleOffset(1.50);
   
   
@@ -1066,7 +1089,6 @@ void drawTStack::DrawEvents(const std::string& mode, const float& lumi, const in
   }
     
 }
-
 
 
 

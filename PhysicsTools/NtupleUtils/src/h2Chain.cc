@@ -120,9 +120,11 @@ h2Chain::PrintEach ()
 
 
 void 
-h2Chain::Write (TFile & outputFile)
+h2Chain::Write (const std::string& dirName, TFile & outputFile)
   {
     outputFile.cd () ;
+    outputFile.mkdir(dirName.c_str());
+    outputFile.cd(dirName.c_str());
     for (unsigned int i=0 ; i<m_histos.size () ; ++i)
       m_histos.at (i)->Write () ;
     return ;
@@ -137,3 +139,4 @@ h2Chain::Scale (int index, double factor)
 {
   m_histos.at (index)->Scale (factor) ;
 }
+
