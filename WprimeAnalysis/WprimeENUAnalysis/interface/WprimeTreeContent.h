@@ -3,6 +3,7 @@
 
 #include "TChain.h" 
 
+#define MAXVERTICES 25
 #define MAXGENPARTICLES 10
 #define MAXELECTRONS 10
 #define MAXSUPERCLUSTERS 100
@@ -15,6 +16,7 @@
 struct WprimeTreeContent
 {
   // Flags
+  static bool vertexVariables;
   static bool genVariables;
   static bool electronVariables;
   static bool superclusterVariables;
@@ -36,6 +38,9 @@ struct WprimeTreeContent
   // electron variables
   int nGenParticles;
   int pdgId[MAXGENPARTICLES];
+
+  int nVertices;
+  int nTracksVertex[MAXVERTICES];
 
   int nElectrons;
   float elePx[MAXELECTRONS];

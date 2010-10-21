@@ -1,6 +1,7 @@
 #include "WprimeAnalysis/WprimeENUAnalysis/interface/WprimeTreeContent.h"
 
-bool WprimeTreeContent::genVariables           = false;
+bool WprimeTreeContent::genVariables           = true;
+bool WprimeTreeContent::vertexVariables        = true;
 bool WprimeTreeContent::electronVariables      = true;
 bool WprimeTreeContent::superclusterVariables  = false;
 bool WprimeTreeContent::metVariables           = true;
@@ -24,6 +25,13 @@ void setBranchAddresses(TTree* chain, WprimeTreeContent& treeVars)
     
     chain -> SetBranchAddress("nGenParticles",             &treeVars.nGenParticles);
     chain -> SetBranchAddress("pdgId",                      treeVars.pdgId);
+  }
+
+  //VERTEX VARIABLES
+  if(WprimeTreeContent::vertexVariables) {
+    
+    chain -> SetBranchAddress("nVertices",             &treeVars.nVertices);
+    chain -> SetBranchAddress("nTracksVertex",          treeVars.nTracksVertex);
   }
 
 
@@ -179,6 +187,16 @@ void setBranches(TTree* chain, WprimeTreeContent& treeVars)
   
   }
 
+  // VERTEX  VARIABLES  
+  if(WprimeTreeContent::vertexVariables)  {
+    
+    chain -> Branch("nVertices",         &treeVars.nVertices,       "nVertices/I");
+    chain -> Branch("nTracksVertex",     treeVars.nTracksVertex,    "nTracksVertex[nVertices]/I");
+  
+  }
+
+
+
   // ELECTRON  VARIABLES  
   if(WprimeTreeContent::electronVariables)  {
     
@@ -323,6 +341,15 @@ void initializeBranches(TTree* chain, WprimeTreeContent& treeVars)
   treeVars.hcalnoiseLoose = 0;
   treeVars.hcalnoiseTight = 0;
   
+  // VERTICES VARIABLES  
+  if(WprimeTreeContent::vertexVariables) {    
+    for(int i = 0; i < MAXVERTICES; ++i){
+      
+      treeVars.nTracksVertex[i] = 0;
+    }
+    treeVars.nVertices = 0;
+  }
+    
   // GENPARTICLES VARIABLES  
   if(WprimeTreeContent::genVariables) {    
     for(int i = 0; i < MAXGENPARTICLES; ++i){
@@ -332,6 +359,10 @@ void initializeBranches(TTree* chain, WprimeTreeContent& treeVars)
     treeVars.nGenParticles = 0;
   }
     
+
+
+
+
 
 
   // ELECTRONS VARIABLES  
