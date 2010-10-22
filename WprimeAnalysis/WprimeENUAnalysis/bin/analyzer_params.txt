@@ -1,0 +1,13 @@
+LISTDatasets = /afs/cern.ch/user/d/deguio/scratch0/Wprime/CMSSW_3_8_4_patch2/src/WprimeAnalysis/WprimeENUAnalysis/bin/list_datasets.txt
+
+CMSSWCfgTemplate = /afs/cern.ch/user/d/deguio/scratch0/Wprime/CMSSW_3_8_4_patch2/src/WprimeAnalysis/WprimeENUAnalysis/test/selection_Wprime_template.py
+
+INpath = /media/amassiro/Wprime/MC_04102010/
+
+OUTpath = /afs/cern.ch/user/d/deguio/scratch0/Wprime/CMSSW_3_8_4_patch2/src/WprimeAnalysis/WprimeENUAnalysis/bin/PROVA/
+
+OUTname = WPrimeAnalysisTree.root
+
+evtListName = WPrimeEventList
+
+DATE = 
