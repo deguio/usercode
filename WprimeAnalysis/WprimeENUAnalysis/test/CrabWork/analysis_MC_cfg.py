@@ -21,8 +21,8 @@ process.maxEvents = cms.untracked.PSet(
 
 process.source = cms.Source("PoolSource",
        fileNames = cms.untracked.vstring(
-        'file:/media/amassiro/deguio/Datasets/Summer10_Wenu_GEN-SIM-RECO_START36_V9_S09-v1.root'
-
+        #'file:/media/amassiro/deguio/Datasets/Summer10_Wenu_GEN-SIM-RECO_START36_V9_S09-v1.root'
+        'file:/media/amassiro/deguio/Datasets/Fall10_WToENu_TuneZ2_7TeV-pythia6_AODSIM_START38_V12-v1.root'
         #'file:/media/amassiro/deguio/Datasets/Spring10_WprimeToENu_M-800_7TeV-pythia6_GEN-SIM-RECO_START3X_V26-v1.root'
 
        
@@ -59,7 +59,7 @@ from PhysicsTools.PatAlgos.tools.cmsswVersionTools import *
 # FILTERS 
 process.highetele = cms.EDFilter("GsfElectronSelector",
         src = cms.InputTag("gsfElectrons"),
-        cut = cms.string("superCluster().get().energy()*sin(theta())> 10 ")
+        cut = cms.string("superCluster().get().energy()*sin(theta())> 20")
 )
 
 
@@ -107,7 +107,7 @@ process.myanalysis = cms.EDAnalyzer('WprimeTree',
 from PhysicsTools.NtupleUtils.HLTrigResultsDumper_cfi import *
 process.TriggerResults = HLTrigResultsDumper.clone()
 process.TriggerResults.HLTriggerResults = cms.InputTag("TriggerResults::REDIGI36X")
-process.TriggerResults.HLTPaths = cms.vstring('HLT_Photon10_L1R','HLT_Ele10_LW_L1R','HLT_Ele15_LW_L1R','HLT_Ele15_SW_L1R','HLT_Ele15_SW_CaloEleId_L1R','HLT_Ele17_SW_CaloEleId_L1R')   # provide list of HLT paths (or patterns) you want
+process.TriggerResults.HLTPaths = cms.vstring('HLT_Photon10_L1R','HLT_Ele10_LW_L1R','HLT_Ele15_LW_L1R','HLT_Ele15_SW_L1R','HLT_Ele15_SW_CaloEleId_L1R','HLT_Ele17_SW_CaloEleId_L1R','HLT_Ele22_SW_CaloEleId_L1R')   # provide list of HLT paths (or patterns) you want
 
 # filter on primary vertex
 process.primaryVertexFilter = cms.EDFilter("GoodVertexFilter",
@@ -128,11 +128,22 @@ process.TFileService = cms.Service("TFileService",
 )
 
 
+# FilterOutScraping
+process.noscraping = cms.EDFilter("FilterOutScraping",
+   applyfilter = cms.untracked.bool(True),
+   debugOn = cms.untracked.bool(False),
+   numtrack = cms.untracked.uint32(10),
+   thresh = cms.untracked.double(0.25)
+)
+
+
+
 process.p = cms.Path(
 
     process.eventsCounterTotal *  #<<---
     
 #    process.genFilter *
+    process.noscraping *
     process.primaryVertexFilter *
 
 

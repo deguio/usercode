@@ -14,7 +14,7 @@ process.load("Configuration.StandardSequences.MagneticField_cff")
 
 
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(106)
+    input = cms.untracked.int32(1006)
     )
 
 process.source = cms.Source("PoolSource",
@@ -23,7 +23,7 @@ process.source = cms.Source("PoolSource",
         #'file:/media/amassiro/deguio/Datasets/Summer10_Wenu_GEN-SIM-RECO_START36_V9_S09-v1.root'
         'file:/media/amassiro/deguio/Datasets/Fall10_WToENu_TuneZ2_7TeV-pythia6_AODSIM_START38_V12-v1.root'
         #'file:/media/amassiro/deguio/Datasets/Spring10_WprimeToENu_M-800_7TeV-pythia6_GEN-SIM-RECO_START3X_V26-v1.root'
-       
+        #'file:/media/amassiro/deguio/Datasets/WJets_36XReReco.root'  #madgraph
        )
 )
 
@@ -54,7 +54,7 @@ process.genFilter = cms.EDFilter("MCProcessFilter",
 
 process.highetele = cms.EDFilter("GsfElectronSelector",
                                  src = cms.InputTag("gsfElectrons"),
-                                 cut = cms.string("superCluster().get().energy()*sin(theta())> 20")
+                                 cut = cms.string("superCluster().get().energy()*sin(theta())> 25")
                                  )
 
 process.highetFilter = cms.EDFilter("CandViewCountFilter",
@@ -94,7 +94,8 @@ process.myanalysis = cms.EDAnalyzer('WprimeTreePAT',
    recHitCollection_EE = cms.InputTag("reducedEcalRecHitsEE"),
    superClusterCollection_EB = cms.InputTag("correctedHybridSuperClusters"),
    superClusterCollection_EE = cms.InputTag("correctedMulti5x5SuperClustersWithPreshower"),
-                                    
+
+   PVTag               = cms.InputTag("offlinePrimaryVerticesWithBS"),
    electronTag         = cms.InputTag("heepPatElectrons"),
    jetTag              = cms.InputTag("selectedPatJets"),
    calometTag          = cms.InputTag("patMETsAK5Calo"),
@@ -121,7 +122,7 @@ process.TFileService = cms.Service("TFileService",
 from PhysicsTools.NtupleUtils.HLTrigResultsDumper_cfi import *
 process.TriggerResults = HLTrigResultsDumper.clone()
 process.TriggerResults.HLTriggerResults = cms.InputTag("TriggerResults::REDIGI38X")
-process.TriggerResults.HLTPaths = cms.vstring('HLT_Photon10_L1R','HLT_Ele10_LW_L1R','HLT_Ele15_LW_L1R','HLT_Ele15_SW_L1R','HLT_Ele15_SW_CaloEleId_L1R','HLT_Ele17_SW_CaloEleId_L1R','HLT_Ele22_SW_CaloEleId_L1R')   # provide list of HLT paths (or patterns) you want
+process.TriggerResults.HLTPaths = cms.vstring('HLT_Photon10_L1R','HLT_Ele10_LW_L1R','HLT_Ele15_LW_L1R','HLT_Ele15_SW_L1R','HLT_Ele15_SW_CaloEleId_L1R','HLT_Ele17_SW_CaloEleId_L1R','HLT_Ele22_SW_CaloEleId_L1R','HLT_Ele27_SW_TightCaloEleIdTrack_L1R_v1')   # provide list of HLT paths (or patterns) you want
 
 
 #save event number after the selections

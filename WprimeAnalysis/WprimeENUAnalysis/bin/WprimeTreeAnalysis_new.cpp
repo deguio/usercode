@@ -195,6 +195,9 @@ int main (int argc, char ** argv)
   histograms2 -> add_h2("hEoverP_vsE",  "",  1000, 0., 1500., 1000, 0.,  50., nSteps+1);
   histograms2 -> add_h2("heleSeedTime_vsEleSeedEne", "", 3000, 0., 1500., 400, -20., 20., nSteps+1);
   histograms -> add_h1("hSquareSelection_eleEt", "", 3000, 0., 1500., nSteps+1);
+  histograms2 -> add_h2("hSquareSelection_eleSeedTime_vsEleSeedEne", "", 3000, 0., 1500., 400, -20., 20., nSteps+1);
+  histograms -> add_h1("hCorrected_DPhiEleMet",  "",  1000, 0.,  4., nSteps+1);
+  histograms -> add_h1("hCorrected_EtOverMet",  "",  1000, 0.,  50., nSteps+1);
   histograms -> add_h1("hRecoFlag",     "",  20,   0.,  20.,   nSteps+1);
 
   histograms -> add_h1("hMet",       "",  3000, 0.,  1500.,  nSteps+1);
@@ -310,7 +313,7 @@ int main (int argc, char ** argv)
       //==== step 5: MC selection ====
       //==============================
       //      if (MCpresent_ == true && fabs(treeVars.pdgId[0]) != 11) continue;  //FIXME dimensione vettore!!!
-      //      if (treeVars.nGenParticles != 1) std::cout << "PROBLEM: more than one electron @gen level" << std::endl;
+      //      if (treeVars.nGenParticles != 1) std::cout << "PROBLEM: more than one lepton @gen level" << std::endl;
 
       step ++;
       stepEvents[step] ++;
@@ -422,7 +425,7 @@ int main (int argc, char ** argv)
 	  // swiss cross e timing (FIXME hardcoded)
 	  //--------------------------------------------
 	  //if ( treeVars.eleSeedSwissCross[i] > 0.95 ) continue; //included in 38x
-	  //if (treeVars.ecalRecHitRecoFlag[chosenEle] & 0x2 == 2) continue; //solo se posso fidarmi della calibrazione del timing
+	  //if (treeVars.ecalRecHitRecoFlag[chosenEle] == 2) continue; //solo se posso fidarmi della calibrazione del timing
 
 	  //--------------------------------------------
 	  // QCD data driven
@@ -528,7 +531,10 @@ int main (int argc, char ** argv)
 	   (treeVars.eleSeedEnergy[chosenEle] > 150.) &&
 	   (treeVars.eleSeedTime[chosenEle] > -4.)
 	   )
-	histograms -> Fill("hSquareSelection_eleEt",  step,    eleEt);
+	{
+	  histograms -> Fill("hSquareSelection_eleEt",  step,    eleEt);
+	  histograms2 -> Fill("hSquareSelection_eleSeedTime_vsEleSeedEne", step,  eleEmax, eleTime);
+	}
 
 
       histograms -> Fill("hEt",               step,    eleEt);
@@ -588,12 +594,14 @@ int main (int argc, char ** argv)
       // 	  mex = mex - (eleEmax*elePx/eleE);
       // 	  mey = mey - (eleEmax*elePy/eleE);
       // 	  met = sqrt(mex*mex + mey*mey);
+      // 	  cphi = (elePx*mex + elePy*mey ) / (met*elePt);
+      // 	  mt   = sqrt(2*eleEt*met*(1 - cphi));
+      // 	  dPhiEleMet = acos (cphi);
+      // 	  histograms -> Fill("hCorrected_EtOverMet",        step,    eleEt/met);
+      // 	  histograms -> Fill("hCorrected_DPhiEleMet",       step,    dPhiEleMet);
       // 	}
+      
 
-
-      // cphi       = (elePx*mex + elePy*mey ) / (met*elePt);
-      // mt         = sqrt(2*eleEt*met*(1 - cphi));
-      // dPhiEleMet = acos (cphi);
       //===============================
       //=== step 10: ele - met btob ===
       //===============================
@@ -621,7 +629,10 @@ int main (int argc, char ** argv)
 	   (treeVars.eleSeedEnergy[chosenEle] > 150.) &&
 	   (treeVars.eleSeedTime[chosenEle] > -4.)
 	   )
-	histograms -> Fill("hSquareSelection_eleEt",  step,    eleEt);
+	{
+	  histograms -> Fill("hSquareSelection_eleEt",  step,    eleEt);
+	  histograms2 -> Fill("hSquareSelection_eleSeedTime_vsEleSeedEne", step,  eleEmax, eleTime);
+	}
       
       
       histograms -> Fill("hEt",               step,    eleEt);
@@ -696,7 +707,10 @@ int main (int argc, char ** argv)
 	   (treeVars.eleSeedEnergy[chosenEle] > 150.) &&
 	   (treeVars.eleSeedTime[chosenEle] > -4.)
 	   )
-	histograms -> Fill("hSquareSelection_eleEt",  step,    eleEt);
+	{
+	  histograms -> Fill("hSquareSelection_eleEt",  step,    eleEt);
+	  histograms2 -> Fill("hSquareSelection_eleSeedTime_vsEleSeedEne", step,  eleEmax, eleTime);
+	}
       
      
       histograms -> Fill("hEt",               step,    eleEt);

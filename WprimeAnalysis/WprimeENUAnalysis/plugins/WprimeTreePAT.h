@@ -60,6 +60,8 @@ class WprimeTreePAT : public edm::EDAnalyzer
 
     
    protected:
+      void dumpVertex (const VertexCollection* theVertexes,
+		       WprimeTreeContent & myTreeVariables_) ;
  
       void dumpGenInfo (const edm::Event& iEvent,
 			WprimeTreeContent & myTreeVariables_) ;
@@ -95,6 +97,7 @@ class WprimeTreePAT : public edm::EDAnalyzer
 
 
       // ----------member data ---------------------------
+      edm::InputTag PVTag_;
       edm::InputTag recHitCollection_EB_;
       edm::InputTag recHitCollection_EE_;
       edm::InputTag superClusterCollection_EB_;

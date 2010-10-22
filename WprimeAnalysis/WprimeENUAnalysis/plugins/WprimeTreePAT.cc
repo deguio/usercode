@@ -28,6 +28,9 @@
 #include "DataFormats/Common/interface/TriggerResults.h"
 #include "FWCore/Common/interface/TriggerNames.h"
 
+#include "DataFormats/VertexReco/interface/Vertex.h"
+#include "RecoVertex/PrimaryVertexProducer/interface/PrimaryVertexSorter.h"
+
 #include "CondFormats/L1TObjects/interface/L1GtTriggerMenu.h"
 #include "CondFormats/DataRecord/interface/L1GtTriggerMenuRcd.h"
 #include "DataFormats/L1GlobalTrigger/interface/L1GlobalTriggerReadoutSetupFwd.h"
@@ -66,6 +69,8 @@ using namespace reco;
 WprimeTreePAT::WprimeTreePAT (const edm::ParameterSet& iConfig)
 {
  
+  PVTag_       = iConfig.getParameter<edm::InputTag>("PVTag");
+
   recHitCollection_EB_       = iConfig.getParameter<edm::InputTag>("recHitCollection_EB");
   recHitCollection_EE_       = iConfig.getParameter<edm::InputTag>("recHitCollection_EE");
   superClusterCollection_EB_ = iConfig.getParameter<edm::InputTag>("superClusterCollection_EB");
@@ -85,10 +90,11 @@ WprimeTreePAT::WprimeTreePAT (const edm::ParameterSet& iConfig)
   btagAlgoHighEff_       = iConfig.getUntrackedParameter<std::string>("btagAlgoHighEff") ;
   btagAlgoHighPur_       = iConfig.getUntrackedParameter<std::string>("btagAlgoHighPur") ;
 
-
   runOnMC_         = iConfig.getParameter<bool>("runOnMC");
   storePDFWeights_ = iConfig.getParameter<bool>("storePDFWeights");
   pdfWeightsLabel_ = iConfig.getParameter<edm::InputTag>("pdfWeightsTag"); // or any other PDF set
+
+  PVTag_ = iConfig.getParameter<edm::InputTag>("PVTag");
 
 
   naiveId_ = 0;
@@ -130,6 +136,11 @@ void WprimeTreePAT::analyze (const edm::Event& iEvent, const edm::EventSetup& iS
   Handle<HcalNoiseSummary> handle;
   iEvent.getByLabel("hcalnoise", handle);
   const HcalNoiseSummary NoiseSummary = *handle;
+
+  //********** VERTEX
+  edm::Handle<reco::VertexCollection> vertexes;
+  iEvent.getByLabel(PVTag_, vertexes);
+  const VertexCollection* theVertexes = vertexes.product();
 
   //*********** CALO TOPOLOGY
   edm::ESHandle<CaloTopology> pTopology;
@@ -213,8 +224,9 @@ void WprimeTreePAT::analyze (const edm::Event& iEvent, const edm::EventSetup& iS
   myTreeVariables_.hcalnoiseTight = ( NoiseSummary.passTightNoiseFilter() ) ? 1 : 0;
 
 
-  //if (runOnMC_ == true) dumpGenInfo(iEvent, myTreeVariables_);
+  if (runOnMC_ == true) dumpGenInfo(iEvent, myTreeVariables_);
   
+  dumpVertex(theVertexes, myTreeVariables_) ;
   dumpElectronInfo(electrons, theBarrelEcalRecHits, theEndcapEcalRecHits, topology, myTreeVariables_) ;
   //dumpSuperclusterInfo(theBarrelSuperClusters, theEndcapSuperClusters, iEvent, iSetup,myTreeVariables_);
   dumpCALOMetInfo(calomets, myTreeVariables_) ;
@@ -257,7 +269,7 @@ void WprimeTreePAT::beginJob()
 
 // -----------------------------------------------------------------------------------------
 void WprimeTreePAT::dumpGenInfo (const edm::Event& iEvent,
-			      WprimeTreeContent & myTreeVariables_)
+				 WprimeTreeContent & myTreeVariables_)
 {
   edm::Handle<reco::GenParticleCollection> genParticles;
   iEvent.getByLabel("genParticles", genParticles);
@@ -266,12 +278,31 @@ void WprimeTreePAT::dumpGenInfo (const edm::Event& iEvent,
       p != genParticles -> end(); 
       ++p)
     {
-      //      if(p->pdgId() == )
-      //	myTreeVariables_.pdgId[] = p->daughter()->pdgId()
+      if(p->status() == 3 && (fabs(p->pdgId()) == 11 || fabs(p->pdgId()) == 13 || fabs(p->pdgId()) == 15))
+	{
+	  //std::cout << "MC STATUS = " << p->status() << "; PDGID = " << p->pdgId() << std::endl;
+	  myTreeVariables_.pdgId[ myTreeVariables_.nGenParticles ] = p->pdgId();
+	  ++myTreeVariables_.nGenParticles;
+	}
     }//loop over genParticles
+
   return;
 }
 // -----------------------------------------------------------------------------------------
+
+void WprimeTreePAT::dumpVertex (const VertexCollection* theVertexes,
+				WprimeTreeContent & myTreeVariables_)
+{
+  PrimaryVertexSorter PVSorter;
+  std::vector<reco::Vertex> sortedVertices = PVSorter.sortedList( *theVertexes );
+  for(unsigned int ii = 0; ii < sortedVertices.size(); ++ii)
+    {
+      myTreeVariables_.nTracksVertex[myTreeVariables_.nVertices] = sortedVertices.at(ii).tracksSize();
+      ++ myTreeVariables_.nVertices;
+    }
+  
+}
+
 
 void WprimeTreePAT::dumpElectronInfo ( View<pat::Electron> electrons,
 				    const EcalRecHitCollection* theBarrelEcalRecHits,

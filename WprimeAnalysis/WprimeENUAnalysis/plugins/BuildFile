@@ -20,6 +20,7 @@
 <use name=CondFormats/L1TObjects>
 <use name=CondFormats/DataRecord>
 <use name=RecoEgamma/EgammaTools>	
+<use name=RecoVertex/PrimaryVertexProducer>
 <use name=root>
 <use name=rootcore>
 <library file="*.cc" name=WprimeAnalysisWprimeENUAnalysisPlugins>

@@ -20,13 +20,18 @@ int main(int argc, char** argv)
   setTDRStyle();
     
 
-  std::string inputDir("/afs/cern.ch/user/d/deguio/scratch0/Wprime/CMSSW_3_6_3/src/WprimeAnalysis/WprimeENUAnalysis/bin/PROVA/");
-  std::string outputDir("/afs/cern.ch/user/d/deguio/scratch0/Wprime/CMSSW_3_6_3/src/WprimeAnalysis/WprimeENUAnalysis/bin/PROVA/");
+  std::string inputDir("/afs/cern.ch/user/d/deguio/scratch0/Wprime/CMSSW_3_8_4_patch2/src/WprimeAnalysis/WprimeENUAnalysis/bin/PROVA/");
+  std::string outputDir("/afs/cern.ch/user/d/deguio/scratch0/Wprime/CMSSW_3_8_4_patch2/src/WprimeAnalysis/WprimeENUAnalysis/bin/PROVA/");
 
-  int step = 9;
-  float lumi = 3.00269;  // pb-1 -> eventScaled
+  int step = 11;
+
+  //float lumi = 3.15045; //Run2010A Sep17 ReReco -> 08102010
+  //float lumi = 3.002; //Run2010A Sep17 ReReco -> 30092010
+  //float lumi = 3.89768; //Run2010B PromptReco -> 08102010
+  //float lumi = 7.04813;  //total pb-1 -> 08102010
+  //float lumi = 4.37479;  //total pb-1 -> 30092010
   
-  
+  float lumi = 10.789;
   
   
   // draw plots
@@ -56,7 +61,19 @@ int main(int argc, char** argv)
   //stack -> SetXaxisRange(0., 150.);
   stack -> SetXaxisRange(0., 120.);
   stack -> SetXaxisTitle("TcMet (GeV)");
-  stack -> Draw(histoNames, "eventsScaled", lumi, step, 4., false);
+  stack -> Draw(histoNames, "eventsScaled", lumi, step, 4., true);
+  
+  histoNames.at(0) = "hMex";
+  //stack -> SetXaxisRange(0., 150.);
+  stack -> SetXaxisRange(-150., 150.);
+  stack -> SetXaxisTitle("TcMex (GeV)");
+  stack -> Draw(histoNames, "eventsScaled", lumi, step, 4., true);
+  
+  histoNames.at(0) = "hMey";
+  //stack -> SetXaxisRange(0., 150.);
+  stack -> SetXaxisRange(-150., 150.);
+  stack -> SetXaxisTitle("TcMey (GeV)");
+  stack -> Draw(histoNames, "eventsScaled", lumi, step, 4., true);
   
 
   //==============
@@ -112,19 +129,19 @@ int main(int argc, char** argv)
   //stack -> SetXaxisRange(0., 200.);
   stack -> SetXaxisRange(0., 120.);
   stack -> SetXaxisTitle("ele Et (GeV)");
-  stack -> Draw(histoNames, "eventsScaled", lumi, step, 4., false);
+  stack -> Draw(histoNames, "eventsScaled", lumi, step, 4., true);
 
   histoNames.at(0) = "hEt_EB";
   //stack -> SetXaxisRange(0., 200.);
   stack -> SetXaxisRange(0., 120.);
   stack -> SetXaxisTitle("EB ele Et (GeV)");
-  stack -> Draw(histoNames, "eventsScaled", lumi, step, 4., false);
+  stack -> Draw(histoNames, "eventsScaled", lumi, step, 4., true);
 
   histoNames.at(0) = "hEt_EE";
   //stack -> SetXaxisRange(0., 200.);
   stack -> SetXaxisRange(0., 120.);
   stack -> SetXaxisTitle("EE ele Et (GeV)");
-  stack -> Draw(histoNames, "eventsScaled", lumi, step, 4., false);
+  stack -> Draw(histoNames, "eventsScaled", lumi, step, 4., true);
 
 
   //===================
@@ -149,26 +166,26 @@ int main(int argc, char** argv)
   stack -> Draw(histoNames, "eventsScaled", lumi, step, 5., false);
 
 
-  //==========================
-  //==== EtOverMet NonIso ====  
-  //==========================
-  histoNames.at(0) = "hEtOverMetNonIso";
-  //stack -> SetXaxisRange(0., 10.);
-  stack -> SetXaxisRange(0., 50.);
-  stack -> SetXaxisTitle("Et over Met non iso");
-  stack -> Draw(histoNames, "eventsScaled", lumi, 0, 20., false);
+//   //==========================
+//   //==== EtOverMet NonIso ====  
+//   //==========================
+//   histoNames.at(0) = "hEtOverMetNonIso";
+//   //stack -> SetXaxisRange(0., 10.);
+//   stack -> SetXaxisRange(0., 50.);
+//   stack -> SetXaxisTitle("Et over Met non iso");
+//   stack -> Draw(histoNames, "eventsScaled", lumi, 0, 20., false);
 
-  histoNames.at(0) = "hEtOverMetNonIso_EB";
-  //stack -> SetXaxisRange(0., 10.);
-  stack -> SetXaxisRange(0., 50.);
-  stack -> SetXaxisTitle("Et over Met non iso EB");
-  stack -> Draw(histoNames, "eventsScaled", lumi, 0, 20., false);
+//   histoNames.at(0) = "hEtOverMetNonIso_EB";
+//   //stack -> SetXaxisRange(0., 10.);
+//   stack -> SetXaxisRange(0., 50.);
+//   stack -> SetXaxisTitle("Et over Met non iso EB");
+//   stack -> Draw(histoNames, "eventsScaled", lumi, 0, 20., false);
 
-  histoNames.at(0) = "hEtOverMetNonIso_EE";
-  //stack -> SetXaxisRange(0., 10.);
-  stack -> SetXaxisRange(0., 50.);
-  stack -> SetXaxisTitle("Et over Met non iso EE");
-  stack -> Draw(histoNames, "eventsScaled", lumi, 0, 20., false);
+//   histoNames.at(0) = "hEtOverMetNonIso_EE";
+//   //stack -> SetXaxisRange(0., 10.);
+//   stack -> SetXaxisRange(0., 50.);
+//   stack -> SetXaxisTitle("Et over Met non iso EE");
+//   stack -> Draw(histoNames, "eventsScaled", lumi, 0, 20., false);
 
 
   //====================
@@ -210,20 +227,54 @@ int main(int argc, char** argv)
   stack -> SetXaxisTitle("EE transverse Mass (GeV)");
   stack -> Draw(histoNames, "eventsScaled", lumi, step, 4., true);
 
-  histoNames.at(0) = "hMtNonIso";
-  stack -> SetXaxisRange(0., 250.);
-  stack -> SetXaxisTitle("transverse Mass non iso (GeV)");
-  stack -> Draw(histoNames, "eventsScaled", lumi, 0, 4., false);
+//   histoNames.at(0) = "hMtNonIso";
+//   stack -> SetXaxisRange(0., 250.);
+//   stack -> SetXaxisTitle("transverse Mass non iso (GeV)");
+//   stack -> Draw(histoNames, "eventsScaled", lumi, 0, 4., false);
 
-  histoNames.at(0) = "hMtNonIso_EB";
-  stack -> SetXaxisRange(0., 250.);
-  stack -> SetXaxisTitle("transverse Mass non iso EB (GeV)");
-  stack -> Draw(histoNames, "eventsScaled", lumi, 0, 4., false);
+//   histoNames.at(0) = "hMtNonIso_EB";
+//   stack -> SetXaxisRange(0., 250.);
+//   stack -> SetXaxisTitle("transverse Mass non iso EB (GeV)");
+//   stack -> Draw(histoNames, "eventsScaled", lumi, 0, 4., false);
 
-  histoNames.at(0) = "hMtNonIso_EE";
-  stack -> SetXaxisRange(0., 250.);
-  stack -> SetXaxisTitle("transverse Mass non iso EE (GeV)");
-  stack -> Draw(histoNames, "eventsScaled", lumi, 0, 4., false);
+//   histoNames.at(0) = "hMtNonIso_EE";
+//   stack -> SetXaxisRange(0., 250.);
+//   stack -> SetXaxisTitle("transverse Mass non iso EE (GeV)");
+//   stack -> Draw(histoNames, "eventsScaled", lumi, 0, 4., false);
+
+
+  //===========================
+  //==== cumulative plots =====
+  //===========================
+  histoNames.at(0) = "hMt_cumulative";
+  stack -> SetXaxisRange(0., 400.);
+  stack -> SetXaxisTitle("transverse Mass cumulative (GeV)");
+  stack -> Draw(histoNames, "eventsScaled", lumi, 0, 1., true);
+
+  histoNames.at(0) = "hEt_cumulative";
+  stack -> SetXaxisRange(0., 200.);
+  stack -> SetXaxisTitle("Et cumulative (GeV)");
+  stack -> Draw(histoNames, "eventsScaled", lumi, 0, 1., true);
+
+  histoNames.at(0) = "hMt_cumulative_EB";
+  stack -> SetXaxisRange(0., 400.);
+  stack -> SetXaxisTitle("transverse Mass cumulative EB (GeV)");
+  stack -> Draw(histoNames, "eventsScaled", lumi, 0, 1., true);
+
+  histoNames.at(0) = "hMt_cumulative_EE";
+  stack -> SetXaxisRange(0., 400.);
+  stack -> SetXaxisTitle("transverse Mass cumulative EE (GeV)");
+  stack -> Draw(histoNames, "eventsScaled", lumi, 0, 1., true);
+
+  histoNames.at(0) = "hEt_cumulative_EE";
+  stack -> SetXaxisRange(0., 200.);
+  stack -> SetXaxisTitle("Et cumulative EE (GeV)");
+  stack -> Draw(histoNames, "eventsScaled", lumi, 0, 1., true);
+
+  histoNames.at(0) = "hEt_cumulative_EB";
+  stack -> SetXaxisRange(0., 200.);
+  stack -> SetXaxisTitle("Et cumulative EB (GeV)");
+  stack -> Draw(histoNames, "eventsScaled", lumi, 0, 1., true);
 
   
 }

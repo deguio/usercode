@@ -14,7 +14,7 @@ process.load("Configuration.StandardSequences.MagneticField_cff")
 
 
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(200)
+    input = cms.untracked.int32(10000)
     )
 
 process.source = cms.Source("PoolSource",
@@ -48,7 +48,7 @@ from PhysicsTools.PatAlgos.tools.cmsswVersionTools import *
 # FILTERS 
 process.highetele = cms.EDFilter("GsfElectronSelector",
                                  src = cms.InputTag("gsfElectrons"),
-                                 cut = cms.string("superCluster().get().energy()*sin(theta())> 20")
+                                 cut = cms.string("superCluster().get().energy()*sin(theta())> 25")
                                  )
 
 process.highetFilter = cms.EDFilter("CandViewCountFilter",
@@ -104,6 +104,7 @@ process.myanalysis = cms.EDAnalyzer('WprimeTreePAT',
    superClusterCollection_EB = cms.InputTag("correctedHybridSuperClusters"),
    superClusterCollection_EE = cms.InputTag("correctedMulti5x5SuperClustersWithPreshower"),
                                     
+   PVTag               = cms.InputTag("offlinePrimaryVerticesWithBS"),
    electronTag         = cms.InputTag("heepPatElectrons"),
    jetTag              = cms.InputTag("selectedPatJets"),
    calometTag          = cms.InputTag("patMETsAK5Calo"),
@@ -119,18 +120,17 @@ process.myanalysis = cms.EDAnalyzer('WprimeTreePAT',
    runOnMC             = cms.bool(False),
    storePDFWeights     = cms.bool(False),
    pdfWeightsTag       = cms.InputTag("pdfWeights:cteq65")
-
 )
 
 process.TFileService = cms.Service("TFileService",
-                                   fileName = cms.string("WPrimeAnalysisTree_DATA_PAT.root")
+                                   fileName = cms.string("WPrimeAnalysisTree_DATA.root")
 )
 
 #save HLT infos
 from PhysicsTools.NtupleUtils.HLTrigResultsDumper_cfi import *
 process.TriggerResults = HLTrigResultsDumper.clone()
 process.TriggerResults.HLTriggerResults = cms.InputTag("TriggerResults::HLT")
-process.TriggerResults.HLTPaths = cms.vstring('HLT_Photon10_L1R','HLT_Ele10_LW_L1R','HLT_Ele15_LW_L1R','HLT_Ele15_SW_L1R','HLT_Ele15_SW_CaloEleId_L1R','HLT_Ele17_SW_CaloEleId_L1R','HLT_Ele22_SW_CaloEleId_L1R')   # provide list of HLT paths (or patterns) you want
+process.TriggerResults.HLTPaths = cms.vstring('HLT_Photon10_L1R','HLT_Ele10_LW_L1R','HLT_Ele15_LW_L1R','HLT_Ele15_SW_L1R','HLT_Ele15_SW_CaloEleId_L1R','HLT_Ele17_SW_CaloEleId_L1R','HLT_Ele22_SW_CaloEleId_L1R','HLT_Ele27_SW_TightCaloEleIdTrack_L1R_v1')   # provide list of HLT paths (or patterns) you want
 
 #save event number after the selections
 process.eventsCounterTotal = cms.EDFilter("eventsCounter", histoName = cms.string("eventsCounterTotal"))
@@ -144,7 +144,7 @@ process.p = cms.Path(
     
     process.eventsCounterTotal *  #<<--- keep track of the number of event it run on
 
-    process.skimming *            #phys decl
+    #process.skimming *            #deprecated phys decl
     #process.hltLevel1GTSeed *    #deprecated
     process.noscraping *
     process.primaryVertexFilter *
