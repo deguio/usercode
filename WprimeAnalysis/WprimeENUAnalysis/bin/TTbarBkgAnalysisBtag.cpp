@@ -14,6 +14,8 @@
 
 //---- CMSSW includes
 #include "DataFormats/Math/interface/LorentzVector.h"
+#include "SHarper/HEEPAnalyzer/interface/HEEPCutCodes.h"
+#include "SHarper/HEEPAnalyzer/interface/HEEPEleSelector.h"
 
 
 //---- root includes
@@ -46,7 +48,7 @@ int main (int argc, char** argv)
   // Reading input parameters
   
   //---- Input Variables ----
-  std::string FileIn;
+  /*std::string FileIn;
   std::string FileOut;
   float Xsec;
   float GenEff;
@@ -79,7 +81,24 @@ int main (int argc, char** argv)
        <<  variableNameLumi    << "  "  << Lumi    << "  "  
        <<  variableNameIsData  << "  "  << IsData  << "  "  
        <<  endl;
-  
+  */
+
+  // read input parameters
+  std::string InFileName  = argv[1];
+  std::string OutFileName = argv[2] ;
+  float  Xsec    = atof(argv[3]);
+  float  IsData  = atof(argv[4]);
+
+  std::string FileIn  ;
+  if (IsData) FileIn = "/media/amassiro/Wprime/DATA_20102010/" + InFileName;
+  else FileIn = "/media/amassiro/Wprime/MC_20102010/" + InFileName;
+
+  std::string FileOut =  "outputHistos_" + OutFileName + "_7TeV.root";;
+
+  cout << FileIn << endl;
+  cout << FileOut << endl;
+
+
 
   //================================
   // === load the analysis tree ====
@@ -112,16 +131,17 @@ int main (int argc, char** argv)
   // calculate event weight for MC =
   //================================
   float w;
-
+  float Lumi = 1.; // norm all MC to 1 pb^-1
   if (IsData) 
     w = 1;
   else{
     TFile* fin = new TFile(FileIn.c_str(), "READ");
     TH1F *hevents = (TH1F*)fin ->Get("eventsCounterTotal/eventsCounterTotal");
-    w = Xsec*GenEff*Lumi/(float)hevents->GetBinContent(1);
+    w = Xsec*Lumi/(float)hevents->GetBinContent(1);
     cout <<"xsec = " << Xsec   << "     w =" << w << endl;
   }
   
+
 
   // file to save histos
   
@@ -129,15 +149,30 @@ int main (int argc, char** argv)
 
   //INITIALIZING HISTOGRAMS
 
-  TH1F *het = new TH1F("het","het",1500,0,1500);
+  TH1F *het       = new TH1F("het","het",1500,0,1500);
+  TH1F *hmet      = new TH1F("hmet","hmet",1500,0,1500);
+  TH1F *hmt       = new TH1F("hmt","hmt",3000,0,3000);
+  TH1F *hetOmet   = new TH1F("hetOmet","hetOmet",150,0,15);
+  TH1F *hdphi     = new TH1F("hdphi","hdphi",320,0,3.2);
+
+  TH1F *hetEB     = new TH1F("hetEB","hetEB",1500,0,1500);
+  TH1F *hmetEB    = new TH1F("hmetEB","hmetEB",1500,0,1500);
+  TH1F *hmtEB     = new TH1F("hmtEB","hmtEB",3000,0,3000);
+  TH1F *hetOmetEB = new TH1F("hetOmetEB","hetOmetEB",150,0,15);
+  TH1F *hdphiEB   = new TH1F("hdphiEB","hdphiEB",320,0,3.2);
+
+  TH1F *hetEE     = new TH1F("hetEE","hetEE",1500,0,1500);
+  TH1F *hmetEE    = new TH1F("hmetEE","hmetEE",1500,0,1500);
+  TH1F *hmtEE     = new TH1F("hmtEE","hmtEE",3000,0,3000);
+  TH1F *hetOmetEE = new TH1F("hetOmetEE","hetOmetEE",150,0,15);
+  TH1F *hdphiEE   = new TH1F("hdphiEE","hdphiEE",320,0,3.2);
+
   TH1F *het1b = new TH1F("het1b","het1b",1500,0,1500);
   TH1F *het2b = new TH1F("het2b","het2b",1500,0,1500);
 
-  TH1F *hmet = new TH1F("hmet","hmet",1500,0,1500);
   TH1F *hmet1b = new TH1F("hmet1b","hmet1b",1500,0,1500);
   TH1F *hmet2b = new TH1F("hmet2b","hmet2b",1500,0,1500);
 
-  TH1F *hmt = new TH1F("hmt","hmt",3000,0,3000);
   TH1F *hmt1b = new TH1F("hmt1b","hmt1b",3000,0,3000);
   TH1F *hmt2b = new TH1F("hmt2b","hmt2b",3000,0,3000);
 
@@ -145,16 +180,25 @@ int main (int argc, char** argv)
   TH1F *hNjets1b = new TH1F("hNjets1b","hNjets1b",50,0,50);
   TH1F *hNjets2b = new TH1F("hNjets2b","hNjets2b",50,0,50);
 
-  TH1F * hBdisc = new TH1F("hBdisc","hBdisc",100,0,10);
-  TH2F * hBdisc_vs_mt = new TH2F("hBdisc_vs_mt","hBdisc_vs_mt",500,0,500,100,0,10);
+  TH1F *hBdisc = new TH1F("hBdisc","hBdisc",100,0,10);
+  TH2F *hBdisc_vs_mt = new TH2F("hBdisc_vs_mt","hBdisc_vs_mt",500,0,500,100,0,10);
+
+  TH1F *het1bNonIso = new TH1F("het1bNonIso","het1bNonIso",1500,0,1500);
+  TH1F *het2bNonIso = new TH1F("het2bNonIso","het2bNonIso",1500,0,1500);
+
+  TH1F *hmet1bNonIso = new TH1F("hmet1bNonIso","hmet1bNonIso",1500,0,1500);
+  TH1F *hmet2bNonIso = new TH1F("hmet2bNonIso","hmet2bNonIso",1500,0,1500);
+
+  TH1F *hmt1bNonIso = new TH1F("hmt1bNonIso","hmt1bNonIso",3000,0,3000);
+  TH1F *hmt2bNonIso = new TH1F("hmt2bNonIso","hmt2bNonIso",3000,0,3000);
+ 
 
   float EtaCutEB    = 1.4442;
   float EtaCutEE    = 1.560;
 
   float n1b = 0;
   float n2b = 0;
-
-  double et,pt,mt,cphi ;
+  float bdiscThr = 3.0;
 
   int nGoodElectrons = 0;
   int chosenEle = 0;
@@ -167,6 +211,9 @@ int main (int argc, char** argv)
     chain->GetEntry(entry) ;
     if(entry%100000==0) std::cout << "------> reading entry " << entry << " <------\n" ;
 
+    //if ( (!IsData) == true  &&  fabs(treeVars.pdgId[0]) != 11 ) continue; 
+
+
     //================================
     //==== HLT selection          ====
     //================================
@@ -178,43 +225,123 @@ int main (int argc, char** argv)
     //'4 -> HLT_Ele15_SW_CaloEleId_L1R'
     //'5 -> HLT_Ele17_SW_CaloEleId_L1R'
     //'6 -> HLT_Ele22_SW_CaloEleId_L1R'
+    //'7 -> HLT_Ele27_SW_CaloEleIdTrack_L1R_v1'
+    
     chainHLT->GetEntry(entry);
 
     int accept = 0;
+
+       
 
     if (IsData){
       if ( treeVars.runId >= 135059 &&  treeVars.runId <= 140041  ) accept = HLTaccept[1];
       if ( treeVars.runId >= 140042 &&  treeVars.runId <= 141900  ) accept = HLTaccept[3];
       if ( treeVars.runId >= 141901 &&  treeVars.runId <= 146427  ) accept = HLTaccept[4];
-      if ( treeVars.runId >= 146428 &&  treeVars.runId <= 999999  ) accept = HLTaccept[5];
+      if ( treeVars.runId >= 146428 &&  treeVars.runId <= 147116  ) accept = HLTaccept[5];  
+      if ( treeVars.runId >= 147117 &&  treeVars.runId <= 999999  ) accept = HLTaccept[7];   
     }
 
     if (!IsData){
-      accept = HLTaccept[2] + HLTaccept[3] ;  
+      //accept = HLTaccept[2] + HLTaccept[3] ; // cmssw36X
+      for (int ii = 0; ii < 8; ii++){
+	accept+=HLTaccept[ii];
+      }
     }
 
     if (accept == 0) continue;
     
+
+
+    double met    = treeVars.tcMet;
+    double metPhi = treeVars.tcMetPhi;
+    double mex    = treeVars.tcMex;
+    double mey    = treeVars.tcMey;
+
     nGoodElectrons = 0;
     chosenEle = 0;
 
     // loop over electron candidates
     for (int i = 0; i < treeVars.nElectrons; ++i)
       {
-	float et  = treeVars.eleEt[i] ;
-	float eta = treeVars.eleEta[i] ;
+
+	double eleEt  = treeVars.eleEt[i];
+	double elePx  = treeVars.elePx[i];
+	double elePy  = treeVars.elePy[i];
+	double elePhi = treeVars.elePhi[i];
+	double eleEta = treeVars.eleEta[i];
+	double elePt  = sqrt(elePx*elePx + elePy*elePy);      
+	double eleId  = treeVars.eleId[i];
+	double cphi   = (elePx*mex + elePy*mey ) / (met*elePt);
+	double mt     = sqrt(2*eleEt*met*(1 - cphi));
+	double dPhiEleMet = deltaPhi(metPhi,elePhi);
+	bool eleIsEB = treeVars.eleIsEB[i];
+	bool eleIsEE = treeVars.eleIsEE[i];
 	
+
+
+
+	//--------------------------------------------
+	// QCD data driven
+	//--------------------------------------------
+	// check all selection but invert isolation
+
+	// btagging
+	int nbtagNonIso = 0;
+	int njetsNonIso = 0;
+	double deta, dphi, dR;
+	    
+
+	if ( eleEt> 30 && dPhiEleMet > 2.5 &&  eleEt/met > 0.4 && eleEt/met < 1.5  ) {
+
+	  if ( (eleIsEB == 1 && 
+		heep::CutCodes::passCuts(eleId,"ecalDriven:et:detEta:dEtaIn:dPhiIn:e2x5Over5x5:hadem:isolPtTrks") && 
+	        !heep::CutCodes::passCuts(eleId,"isolEmHadDepth1")) ||
+	       (eleIsEE == 1 && 
+		heep::CutCodes::passCuts(eleId,"ecalDriven:et:detEta:dPhiIn:sigmaIEtaIEta:hadem:isolPtTrks") && 
+		!(heep::CutCodes::passCuts(eleId,"isolEmHadDepth1") && 
+		  heep::CutCodes::passCuts(eleId,"isolHadDepth2")))
+	       )
+	    
+	    {
+	      
+	      for (int j=0; j<treeVars.nJets; j++){
+		deta = treeVars.jetEta[j] -  eleEta;
+		dphi = deltaPhi(treeVars.jetPhi[j],elePhi);
+		dR = sqrt(deta*deta+dphi*dphi);
+		if (dR<0.5) continue;
+		if (fabs(treeVars.jetEta[j])<2.4 && treeVars.jetPt[j] > 20.) {
+		  float bdisc = treeVars.jetBdiscHighPur[j];
+		  if (bdisc > bdiscThr) nbtagNonIso++; // high purity btag
+		  njetsNonIso++;
+		}
+	      }// end loop over jets
+	      
+	      if (nbtagNonIso==1) {
+		het1bNonIso->Fill(eleEt,w);
+		hmet1bNonIso->Fill(met,w);
+		hmt1bNonIso->Fill(mt,w);
+	      }
+	      
+	      if (nbtagNonIso==2) {
+		het2bNonIso->Fill(eleEt,w);
+		hmet2bNonIso->Fill(met,w);
+		hmt2bNonIso->Fill(mt,w);
+	      }
+	      
+	    }
+	}
+	               	    
+     
 	//--------------------------------------------
 	// keep only electrons in ECAL fiducial volume
 	//--------------------------------------------
 	
-	if ( fabs(eta) > EtaCutEB && fabs(eta) < EtaCutEE) continue;
 	if ( treeVars.eleIsGap[i] == 1 ) continue;
 
 	//--------------------------------------------
 	// keep only electrons with ET > 30 GeV
 	//--------------------------------------------
-	if ( et < 30 ) continue ;
+	if ( eleEt < 30 ) continue ;
 	
 	//--------------------------------------------
 	// electron ID
@@ -241,10 +368,6 @@ int main (int argc, char** argv)
 
     if ( nGoodElectrons != 1 ) continue;
    
-    double met    = treeVars.tcMet;
-    double metPhi = treeVars.tcMetPhi;
-    double mex    = treeVars.tcMex;
-    double mey    = treeVars.tcMey;
     double eleEt  = treeVars.eleEt[chosenEle];
     double elePx  = treeVars.elePx[chosenEle];
     double elePy  = treeVars.elePy[chosenEle];
@@ -254,9 +377,45 @@ int main (int argc, char** argv)
     double cphi   = (elePx*mex + elePy*mey ) / (met*elePt);
     double mt     = sqrt(2*eleEt*met*(1 - cphi));
     double dPhiEleMet = deltaPhi(metPhi,elePhi);
-   
+
+
+    // EB only
+    if (fabs(eleEta)<EtaCutEB){
+      if (dPhiEleMet > 2.5 ) hetOmetEB->Fill(eleEt/met,w);
+      if (eleEt/met > 0.4 && eleEt/met < 1.5) hdphiEB ->Fill(dPhiEleMet,w);
+    }
+
+    // EE only
+    if (fabs(eleEta)>EtaCutEB){
+      if (dPhiEleMet > 2.5 ) hetOmetEE->Fill(eleEt/met,w);
+      if (eleEt/met > 0.4 && eleEt/met < 1.5) hdphiEE ->Fill(dPhiEleMet,w);
+    }
+
+    // EB+EE
+    hetOmet -> Fill(eleEt/met,w);
+    hdphi   -> Fill(dPhiEleMet,w);
+    
     if (eleEt/met < 0.4 || eleEt/met > 1.5) continue;
     if (dPhiEleMet < 2.5 ) continue;
+    
+    het    -> Fill(eleEt,w);
+    hmet   -> Fill(met,w);
+    hmt    -> Fill(mt,w);
+
+    // EB only
+    if (fabs(eleEta)<EtaCutEB){
+      hetEB    -> Fill(eleEt,w);
+      hmtEB    -> Fill(mt,w);
+      hmetEB   -> Fill(met,w);
+    }
+    // EE only
+    if (fabs(eleEta)>EtaCutEB){
+      hetEE    -> Fill(eleEt,w);
+      hmtEE    -> Fill(mt,w);
+      hmetEE   -> Fill(met,w);
+    }
+
+    if (mt > 100 ) counter+=w;
 
     // btagging
     int nbtag = 0;
@@ -269,23 +428,17 @@ int main (int argc, char** argv)
       dR = sqrt(deta*deta+dphi*dphi);
       if (dR<0.5) continue;
       if (fabs(treeVars.jetEta[j])<2.4 && treeVars.jetPt[j] > 20.) {
-	//float bdisc = treeVars.jetBdiscHighEff[j];
 	float bdisc = treeVars.jetBdiscHighPur[j];
 	hBdisc->Fill(bdisc,w);
 	hBdisc_vs_mt ->Fill(mt,bdisc,w);
- 	//if (bdisc > 3.) nbtag++; // high eff btag
-	if (bdisc > 2.5) nbtag++; // high purity btag
+	if (bdisc > bdiscThr) nbtag++; // high purity btag
 	njets++;
       }
     }// end loop over jets
 
-    het    -> Fill(eleEt,w);
-    hmet   -> Fill(met,w);
-    hmt    -> Fill(mt,w);
     hNjets -> Fill(njets,w);
  
-    if (mt > 100 ) counter+=w;
-
+    
     if (nbtag==1) {
       n1b+=w;
       het1b->Fill(eleEt,w);
