@@ -4,18 +4,6 @@
   <use name=WprimeAnalysis/WprimeENUAnalysis>
   <flags LCGDICT_ARGS="--deep">
 </bin>
-<bin name=WprimeTreeAnalysisFiltered file="WprimeTreeAnalysisFiltered.cpp">
-  <use name=WprimeAnalysis/WprimeENUAnalysis>
-  <flags LCGDICT_ARGS="--deep">
-</bin>
-<bin name=WprimeTreeAnalysisData file="WprimeTreeAnalysisData.cpp">
-  <use name=WprimeAnalysis/WprimeENUAnalysis>
-  <flags LCGDICT_ARGS="--deep">
-</bin>
-<bin name=WprimeTreeAnalysis_new file="WprimeTreeAnalysis_new.cpp">
-  <use name=WprimeAnalysis/WprimeENUAnalysis>
-  <flags LCGDICT_ARGS="--deep">
-</bin>
 <bin name=WprimePrintPlot file="WprimePrintPlot.cpp">
   <use name=WprimeAnalysis/WprimeENUAnalysis>
   <flags LCGDICT_ARGS="--deep">
