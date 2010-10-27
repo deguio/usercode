@@ -58,7 +58,8 @@ drawTStack::drawTStack(const std::string& inputDir,
   // read the file with the list of samples and cross sections
   //----------------------------------------------------------
   
-  std::string listFullFileName = inputDir+listFileName;
+  //fede  std::string listFullFileName = inputDir+listFileName;
+  std::string listFullFileName = listFileName;
   std::ifstream listFile( listFullFileName.c_str() );
   if(!listFile.is_open())
   {
@@ -75,11 +76,12 @@ drawTStack::drawTStack(const std::string& inputDir,
     std::string sample;
     std::string sumName;
     int dataFlag;
+    int isDD;
     double mH;
     double crossSection;
     int color;
     
-    listFile >> sample >> sumName >> dataFlag >> mH >> crossSection >> color;
+    listFile >> sample >> sumName >> dataFlag >> isDD >> mH >> crossSection >> color;
 
     if(sample.size() == 0)
       continue;
@@ -89,6 +91,7 @@ drawTStack::drawTStack(const std::string& inputDir,
     std::cout << sample << "\t"
               << sumName << "\t"
               << dataFlag << "\t"
+              << isDD << "\t"
               << mH << "\t"
               << crossSection << "\t" 
 	      << color << "\t"
@@ -97,6 +100,7 @@ drawTStack::drawTStack(const std::string& inputDir,
     std::pair<std::string, std::string> dummyPair(sample, sumName);
     m_list.push_back(dummyPair);
     m_dataFlag[sample] = dataFlag;
+    m_isDD[sample] = isDD;
     m_mH[sample] = mH;
     m_crossSection[sample] = crossSection;
     m_color[sample] = color;
@@ -118,13 +122,6 @@ drawTStack::~drawTStack()
 {
   delete c1;
 }
-
-
-void drawTStack::EventYeld(const std::vector<std::string>& histoNames, const float& thr, const float& lumi, const int& step)
-{
- 
-}
-
 
 
 
@@ -150,6 +147,7 @@ void drawTStack::Draw(const std::vector<std::string>& histoNames, const std::str
   std::map<std::string, int> color_summed;
   std::map<std::string, bool> isFirstSample_summed;
   std::map<std::string, int> dataFlag_summed;
+  std::map<std::string, int> m_isDD_summed;
   std::map<std::string, TH1F*> histo_summed;
   
   //initialize summed vectors
@@ -160,6 +158,7 @@ void drawTStack::Draw(const std::vector<std::string>& histoNames, const std::str
     color_summed[vecIt->second] = 1;
     isFirstSample_summed[vecIt->second] = true;
     dataFlag_summed[vecIt->second] = false;
+    m_isDD_summed[vecIt->second] = false;
     histo_summed[vecIt->second] = NULL;
   }
   
@@ -191,7 +190,6 @@ void drawTStack::Draw(const std::vector<std::string>& histoNames, const std::str
       char buffer[10];
       sprintf(buffer, "%d", step);
       std::string fullHistoName = histoNames.at(j) + "/" + "h_" + buffer + "_" + histoNames.at(j);
-      //std::cout << "getting histogram " << fullHistoName << std::endl;
       
       TH1F* tempHisto = NULL;
       rootFiles.at(i) -> GetObject(fullHistoName.c_str(), tempHisto);
@@ -223,13 +221,14 @@ void drawTStack::Draw(const std::vector<std::string>& histoNames, const std::str
     histo -> Sumw2();
     histo -> Rebin(rebin);
     dataFlag_summed[vecIt->second] = m_dataFlag[vecIt->first];
-    
-    //if( (histo->GetEntries() > 0.) ) fede
-    if( (histo->GetEntries() > 0.) && (m_dataFlag[vecIt->first] != 1) )
+    m_isDD_summed[vecIt->second] = m_isDD[vecIt->first];
+    color_summed[vecIt->second] = m_color[vecIt->first];
+
+    //se sono dati o se e' DD non scalo e non sommo le sezioni d'urto
+    if( (histo->GetEntries() > 0.) && (m_dataFlag[vecIt->first] != 1) && (m_isDD[vecIt->first] != 1))
       {
 	histo -> Scale(m_crossSection[vecIt->first]/eventsHisto->GetBinContent(1));
 	crossSection_summed[vecIt->second] += m_crossSection[vecIt->first];
-	color_summed[vecIt->second] = m_color[vecIt->first];
       }
     
     
@@ -350,9 +349,13 @@ void drawTStack::Draw(const std::vector<std::string>& histoNames, const std::str
       legend.AddEntry(globalHisto, (mapIt->first).c_str(), "P");
     }
     
-    if( (mode == "eventsScaled") && (dataFlag_summed[mapIt->first] != 1) )
-    {
+    //se sono dati o se e' DD non scalo per la lumi (il DD e' gia' normalizzato giusto)
+    if( (mode == "eventsScaled") && (dataFlag_summed[mapIt->first] != 1) && (m_isDD_summed[mapIt->first] != 1))
       globalHisto -> Scale(1. * lumi);
+
+    //setto i colori solo se non sono dati
+    if( (mode == "eventsScaled") && (dataFlag_summed[mapIt->first] != 1))
+    {
       //fede      globalHisto -> SetLineColor(getColor(i+1));
       //fede      globalHisto -> SetFillColor(getColor(i+1));
       globalHisto -> SetLineColor(color_summed[mapIt->first]);
@@ -559,6 +562,7 @@ void drawTStack::Draw(const std::vector<std::string>& histoNames, const std::str
     exit(-1);
   }
   c1->Print((m_outputDir+fullTitle+".pdf").c_str(), "pdf");
+  c1->Print((m_outputDir+fullTitle+".root").c_str(), "root");
   
   
   

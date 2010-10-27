@@ -20,22 +20,16 @@ int main(int argc, char** argv)
   setTDRStyle();
     
 
-  std::string inputDir("/afs/cern.ch/user/d/deguio/scratch0/Wprime/CMSSW_3_8_4_patch2/src/WprimeAnalysis/WprimeENUAnalysis/bin/PROVA/");
+  std::string inputDir("/media/amassiro/deguio/Wprime/PROVA/");
   std::string outputDir("/afs/cern.ch/user/d/deguio/scratch0/Wprime/CMSSW_3_8_4_patch2/src/WprimeAnalysis/WprimeENUAnalysis/bin/PROVA/");
 
-  int step = 11;
-
-  //float lumi = 3.15045; //Run2010A Sep17 ReReco -> 08102010
-  //float lumi = 3.002; //Run2010A Sep17 ReReco -> 30092010
-  //float lumi = 3.89768; //Run2010B PromptReco -> 08102010
-  //float lumi = 7.04813;  //total pb-1 -> 08102010
-  //float lumi = 4.37479;  //total pb-1 -> 30092010
-  
-  float lumi = 10.789;
-  
+  int step = 11;  
+  float lumi = 14.63;
+  //float lumi = 3.83978;
+  //float lumi = 10.79;
   
   // draw plots
-  drawTStack* stack = new drawTStack(inputDir, "crossSections_wPrime.txt", "WPrimeAnalysisTree", outputDir);
+  drawTStack* stack = new drawTStack(inputDir, "/afs/cern.ch/user/d/deguio/scratch0/Wprime/CMSSW_3_8_4_patch2/src/WprimeAnalysis/WprimeENUAnalysis/bin/crossSections_wPrime_fall10.txt", "WPrimeAnalysisTree", outputDir);
   
   std::string histoName;
   std::vector<std::string> histoNames;

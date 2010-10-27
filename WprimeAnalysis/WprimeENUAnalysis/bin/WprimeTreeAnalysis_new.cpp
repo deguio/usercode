@@ -446,10 +446,9 @@ int main (int argc, char ** argv)
 		  hMtNonIso->Fill(mt);
 		}
 	    }   	    
-	  
 	  //EE
 	  if ( eleIsEE == 1 && 
-	       heep::CutCodes::passCuts(eleId,"ecalDriven:et:detEta:dPhiIn:sigmaIEtaIEta:hadem:isolPtTrks") && 
+	       heep::CutCodes::passCuts(eleId,"ecalDriven:et:detEta:dEtaIn:dPhiIn:sigmaIEtaIEta:hadem:isolPtTrks") && 
 	       !(heep::CutCodes::passCuts(eleId,"isolEmHadDepth1") && heep::CutCodes::passCuts(eleId,"isolHadDepth2")) &&
 	       (dPhiEleMet > eleMetPhiMin_ ))  //fixme: sbagliato nel caso si piu' di un  elettrone!
 	    {
