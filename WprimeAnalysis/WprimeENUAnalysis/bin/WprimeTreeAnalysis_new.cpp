@@ -74,6 +74,7 @@ int main (int argc, char ** argv)
   edm::ParameterSet subPSetSelections =  parameterSet -> getParameter<edm::ParameterSet>("selections");
   int nEvents_ = subPSetSelections.getUntrackedParameter<int>("nEvents", -1);
   bool MCpresent_ =  subPSetSelections.getUntrackedParameter<bool>("MCpresent", false);
+  bool nonIso_ =  subPSetSelections.getUntrackedParameter<bool>("nonIso", false);
   double maxJetPt_ = subPSetSelections.getUntrackedParameter<double>("maxJetPt", 100.);
   double minEleEt_= subPSetSelections.getUntrackedParameter<double>("minEleEt", 25.);
   int eleId_ = subPSetSelections.getUntrackedParameter<int>("eleId", 0);
@@ -217,15 +218,7 @@ int main (int argc, char ** argv)
   //===============================================
   //==== define additional histograms and tree ====
   //===============================================
-  //qcd template for datadrive method
-  TH1F* hEtOverMetNonIso = new TH1F("h_0_hEtOverMetNonIso","h_0_hEtOverMetNonIso",1000, 0., 50.);
-  TH1F* hEtOverMetNonIso_EB = new TH1F("h_0_hEtOverMetNonIso_EB","h_0_hEtOverMetNonIso_EB",1000, 0., 50.);
-  TH1F* hEtOverMetNonIso_EE = new TH1F("h_0_hEtOverMetNonIso_EE","h_0_hEtOverMetNonIso_EE",1000, 0., 50.);
 
-  TH1F* hMtNonIso = new TH1F("h_0_hMtNonIso","h_0_hMtNonIso",3000, 0., 3000.);
-  TH1F* hMtNonIso_EB = new TH1F("h_0_hMtNonIso_EB","h_0_hMtNonIso_EB",3000, 0., 3000.);
-  TH1F* hMtNonIso_EE = new TH1F("h_0_hMtNonIso_EE","h_0_hMtNonIso_EE",3000, 0., 3000.);
-  
   TH1F* histoEt = new TH1F("histoEt","histoEt", 1500, 0., 1500.);
   TH1F* histoMt = new TH1F("histoMt","histoMt", 3000, 0., 3000.);
   TH1F* hEt_cumulative = new TH1F("h_0_hEt_cumulative","h_0_hEt_cumulative", 1500, 0., 1500.);
@@ -428,42 +421,6 @@ int main (int argc, char ** argv)
 	  //if (treeVars.ecalRecHitRecoFlag[chosenEle] == 2) continue; //solo se posso fidarmi della calibrazione del timing
 
 	  //--------------------------------------------
-	  // QCD data driven
-	  //--------------------------------------------
-	  // check all selection but invert isolation
-	  //EB
-	  if ( eleIsEB == 1 && 
-	       heep::CutCodes::passCuts(eleId,"ecalDriven:et:detEta:dEtaIn:dPhiIn:e2x5Over5x5:hadem:isolPtTrks") && 
-	       !heep::CutCodes::passCuts(eleId,"isolEmHadDepth1") &&
-	       (dPhiEleMet > eleMetPhiMin_ ))  //fixme: sbagliato nel caso si piu' di un  elettrone!
-	    {
-	      hEtOverMetNonIso_EB->Fill(eleEt/met);
-	      hEtOverMetNonIso->Fill(eleEt/met);
-
-	      if(eleEt/met > minEtOverMet_ && eleEt/met < maxEtOverMet_ )  //fixme: sbagliato nel caso si piu' di un  elettrone!
-		{
-		  hMtNonIso_EB->Fill(mt);
-		  hMtNonIso->Fill(mt);
-		}
-	    }   	    
-	  //EE
-	  if ( eleIsEE == 1 && 
-	       heep::CutCodes::passCuts(eleId,"ecalDriven:et:detEta:dEtaIn:dPhiIn:sigmaIEtaIEta:hadem:isolPtTrks") && 
-	       !(heep::CutCodes::passCuts(eleId,"isolEmHadDepth1") && heep::CutCodes::passCuts(eleId,"isolHadDepth2")) &&
-	       (dPhiEleMet > eleMetPhiMin_ ))  //fixme: sbagliato nel caso si piu' di un  elettrone!
-	    {
-	      hEtOverMetNonIso_EE->Fill(eleEt/met);
-	      hEtOverMetNonIso->Fill(eleEt/met);
-
-	      if(eleEt/met > minEtOverMet_ && eleEt/met < maxEtOverMet_ )  //fixme: sbagliato nel caso si piu' di un  elettrone!
-		{
-		  hMtNonIso_EE->Fill(mt);
-		  hMtNonIso->Fill(mt);
-		}
-	    }   	    
-
-	  
-	  //--------------------------------------------
 	  // electron ID (FIXME hardcoded)
 	  //--------------------------------------------
 	  //instructions here: 
@@ -471,9 +428,20 @@ int main (int argc, char ** argv)
 	  //https://twiki.cern.ch/twiki/bin/view/CMS/HEEPSelector
 
 	  // barrel + endcap (same selections in 38X)
-          if ( treeVars.eleId[i] != 0x0 ) continue;
-
-
+	  if (nonIso_ == false)
+	    {
+	      if ( !(treeVars.eleId[i] == 0x0) ) continue;
+	    }
+	  else
+	    {
+	      if ( eleIsEB == 1 && 
+		   !(heep::CutCodes::passCuts(eleId,"ecalDriven:et:detEta:dEtaIn:dPhiIn:e2x5Over5x5:hadem:isolPtTrks") && 
+		     !heep::CutCodes::passCuts(eleId,"isolEmHadDepth1") ) ) continue;
+	      if ( eleIsEE == 1 && 
+		   !(heep::CutCodes::passCuts(eleId,"ecalDriven:et:detEta:dEtaIn:dPhiIn:sigmaIEtaIEta:hadem:isolPtTrks") && 
+		     !(heep::CutCodes::passCuts(eleId,"isolEmHadDepth1") && heep::CutCodes::passCuts(eleId,"isolHadDepth2")) ) ) continue;
+	    }
+	  
 	  nGoodElectrons++;
 	  chosenEle = i;
 	  
@@ -929,38 +897,6 @@ int main (int argc, char ** argv)
   fout -> cd("hMt_cumulative_EE");
   hMt_cumulative_EE -> Write();
   fout -> cd();
-
-  fout -> mkdir("hEtOverMetNonIso");
-  fout -> cd("hEtOverMetNonIso");
-  hEtOverMetNonIso -> Write();
-  fout -> cd();
-
-  fout -> mkdir("hEtOverMetNonIso_EB");
-  fout -> cd("hEtOverMetNonIso_EB");
-  hEtOverMetNonIso_EB -> Write();
-  fout -> cd();
-
-  fout -> mkdir("hEtOverMetNonIso_EE");
-  fout -> cd("hEtOverMetNonIso_EE");
-  hEtOverMetNonIso_EE -> Write();
-  fout -> cd();
-
-  fout -> mkdir("hMtNonIso");
-  fout -> cd("hMtNonIso");
-  hMtNonIso -> Write();
-  fout -> cd();
-
-  fout -> mkdir("hMtNonIso_EE");
-  fout -> cd("hMtNonIso_EE");
-  hMtNonIso_EE -> Write();
-  fout -> cd();
-
-  fout -> mkdir("hMtNonIso_EB");
-  fout -> cd("hMtNonIso_EB");
-  hMtNonIso_EB -> Write();
-  fout -> cd();
-
-
 
   fout -> Close();
   
