@@ -37,7 +37,26 @@ struct WprimeTreeContent
 
   // electron variables
   int nGenParticles;
-  int pdgId[MAXGENPARTICLES];
+  float mc_V_pdgId[MAXGENPARTICLES];
+  float mc_V_charge[MAXGENPARTICLES];
+  float mc_V_E[MAXGENPARTICLES];
+  float mc_V_px[MAXGENPARTICLES];
+  float mc_V_py[MAXGENPARTICLES];
+  float mc_V_pz[MAXGENPARTICLES];
+
+  float mcF1_fromV_pdgId[MAXGENPARTICLES];
+  float mcF1_fromV_charge[MAXGENPARTICLES];
+  float mcF1_fromV_E[MAXGENPARTICLES];
+  float mcF1_fromV_px[MAXGENPARTICLES];
+  float mcF1_fromV_py[MAXGENPARTICLES];
+  float mcF1_fromV_pz[MAXGENPARTICLES];
+
+  float mcF2_fromV_pdgId[MAXGENPARTICLES];
+  float mcF2_fromV_charge[MAXGENPARTICLES];
+  float mcF2_fromV_E[MAXGENPARTICLES];
+  float mcF2_fromV_px[MAXGENPARTICLES];
+  float mcF2_fromV_py[MAXGENPARTICLES];
+  float mcF2_fromV_pz[MAXGENPARTICLES];
 
   int nVertices;
   int nTracksVertex[MAXVERTICES];

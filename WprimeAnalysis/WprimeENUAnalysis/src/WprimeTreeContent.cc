@@ -21,10 +21,29 @@ void setBranchAddresses(TTree* chain, WprimeTreeContent& treeVars)
   chain -> SetBranchAddress("hcalnoiseTight",&treeVars.hcalnoiseTight);
 
   //GEN VARIABLES
-  if(WprimeTreeContent::genVariables) {
-    
+  if(WprimeTreeContent::genVariables) { 
     chain -> SetBranchAddress("nGenParticles",             &treeVars.nGenParticles);
-    chain -> SetBranchAddress("pdgId",                      treeVars.pdgId);
+
+    chain -> SetBranchAddress("mc_V_pdgId",                 treeVars.mc_V_pdgId);
+    chain -> SetBranchAddress("mc_V_E",                     treeVars.mc_V_E);
+    chain -> SetBranchAddress("mc_V_px",                    treeVars.mc_V_px);
+    chain -> SetBranchAddress("mc_V_py",                    treeVars.mc_V_py);
+    chain -> SetBranchAddress("mc_V_pz",                    treeVars.mc_V_pz);
+    chain -> SetBranchAddress("mc_V_charge",                treeVars.mc_V_charge);
+
+    chain -> SetBranchAddress("mcF1_fromV_E",               treeVars.mcF1_fromV_E);
+    chain -> SetBranchAddress("mcF1_fromV_px",              treeVars.mcF1_fromV_px);
+    chain -> SetBranchAddress("mcF1_fromV_py",              treeVars.mcF1_fromV_py);
+    chain -> SetBranchAddress("mcF1_fromV_pz",              treeVars.mcF1_fromV_pz);
+    chain -> SetBranchAddress("mcF1_fromV_charge",          treeVars.mcF1_fromV_charge);
+    chain -> SetBranchAddress("mcF1_fromV_pdgId",           treeVars.mcF1_fromV_pdgId);
+
+    chain -> SetBranchAddress("mcF2_fromV_E",               treeVars.mcF2_fromV_E);
+    chain -> SetBranchAddress("mcF2_fromV_px",              treeVars.mcF2_fromV_px);
+    chain -> SetBranchAddress("mcF2_fromV_py",              treeVars.mcF2_fromV_py);
+    chain -> SetBranchAddress("mcF2_fromV_pz",              treeVars.mcF2_fromV_pz);
+    chain -> SetBranchAddress("mcF2_fromV_charge",          treeVars.mcF2_fromV_charge);
+    chain -> SetBranchAddress("mcF2_fromV_pdgId",           treeVars.mcF2_fromV_pdgId);
   }
 
   //VERTEX VARIABLES
@@ -182,10 +201,29 @@ void setBranches(TTree* chain, WprimeTreeContent& treeVars)
   // GENPARTICLES  VARIABLES  
   if(WprimeTreeContent::genVariables)  {
     
-    chain -> Branch("nGenParticles",      &treeVars.nGenParticles,   "nGenParticles/I");
-    chain -> Branch("pdgId",              treeVars.pdgId,            "pdgId[nGenParticles]/I");
-  
-  }
+    chain -> Branch("nGenParticles",             &treeVars.nGenParticles,      "nGenParticles/I");
+    chain -> Branch("mc_V_pdgId",                 treeVars.mc_V_pdgId,         "mc_V_pdgId[nGenParticles]/F");
+    chain -> Branch("mc_V_E",                     treeVars.mc_V_E,             "mc_V_E[nGenParticles]/F");
+    chain -> Branch("mc_V_px",                    treeVars.mc_V_px,            "mc_V_px[nGenParticles]/F");
+    chain -> Branch("mc_V_py",                    treeVars.mc_V_py,            "mc_V_py[nGenParticles]/F");
+    chain -> Branch("mc_V_pz",                    treeVars.mc_V_pz,            "mc_V_pz[nGenParticles]/F");
+    chain -> Branch("mc_V_charge",                treeVars.mc_V_charge,        "mc_V_charge[nGenParticles]/F");
+    
+    chain -> Branch("mcF1_fromV_E",               treeVars.mcF1_fromV_E,       "mcF1_fromV_E[nGenParticles]/F");
+    chain -> Branch("mcF1_fromV_px",              treeVars.mcF1_fromV_px,      "mcF1_fromV_px[nGenParticles]/F");
+    chain -> Branch("mcF1_fromV_py",              treeVars.mcF1_fromV_py,      "mcF1_fromV_py[nGenParticles]/F");
+    chain -> Branch("mcF1_fromV_pz",              treeVars.mcF1_fromV_pz,      "mcF1_fromV_pz[nGenParticles]/F");
+    chain -> Branch("mcF1_fromV_charge",          treeVars.mcF1_fromV_charge,  "mcF1_fromV_charge[nGenParticles]/F");
+    chain -> Branch("mcF1_fromV_pdgId",           treeVars.mcF1_fromV_pdgId,   "mcF1_fromV_pdgId[nGenParticles]/F");
+    
+    chain -> Branch("mcF2_fromV_E",               treeVars.mcF2_fromV_E,       "mcF2_fromV_E[nGenParticles]/F");
+    chain -> Branch("mcF2_fromV_px",              treeVars.mcF2_fromV_px,      "mcF2_fromV_px[nGenParticles]/F");
+    chain -> Branch("mcF2_fromV_py",              treeVars.mcF2_fromV_py,      "mcF2_fromV_py[nGenParticles]/F");
+    chain -> Branch("mcF2_fromV_pz",              treeVars.mcF2_fromV_pz,      "mcF2_fromV_pz[nGenParticles]/F");
+    chain -> Branch("mcF2_fromV_charge",          treeVars.mcF2_fromV_charge,  "mcF2_fromV_charge[nGenParticles]/F");
+    chain -> Branch("mcF2_fromV_pdgId",           treeVars.mcF2_fromV_pdgId,   "mcF2_fromV_pdgId[nGenParticles]/F");
+		    
+}
 
   // VERTEX  VARIABLES  
   if(WprimeTreeContent::vertexVariables)  {
@@ -354,7 +392,27 @@ void initializeBranches(TTree* chain, WprimeTreeContent& treeVars)
   if(WprimeTreeContent::genVariables) {    
     for(int i = 0; i < MAXGENPARTICLES; ++i){
       
-      treeVars.pdgId[i] = -9999;
+      treeVars.mc_V_pdgId[i] = -9999;
+      treeVars.mc_V_charge[i] = -9999;
+      treeVars.mc_V_E[i] = -9999;
+      treeVars.mc_V_px[i] = -9999;
+      treeVars.mc_V_py[i] = -9999;
+      treeVars.mc_V_pz[i] = -9999;
+
+      treeVars.mcF1_fromV_pdgId[i] = -9999;
+      treeVars.mcF1_fromV_charge[i] = -9999;
+      treeVars.mcF1_fromV_E[i] = -9999;
+      treeVars.mcF1_fromV_px[i] = -9999;
+      treeVars.mcF1_fromV_py[i] = -9999;
+      treeVars.mcF1_fromV_pz[i] = -9999;
+
+      treeVars.mcF2_fromV_pdgId[i] = -9999;
+      treeVars.mcF2_fromV_charge[i] = -9999;
+      treeVars.mcF2_fromV_E[i] = -9999;
+      treeVars.mcF2_fromV_px[i] = -9999;
+      treeVars.mcF2_fromV_py[i] = -9999;
+      treeVars.mcF2_fromV_pz[i] = -9999;
+
     }
     treeVars.nGenParticles = 0;
   }
