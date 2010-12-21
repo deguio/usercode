@@ -32,6 +32,7 @@
 #include <TROOT.h>
 #include <TChain.h>
 #include <TFile.h>
+#include <TRandom.h>
 
 #define PI 3.14159265
 #define TWOPI 6.28318530
@@ -96,16 +97,26 @@ int main (int argc, char ** argv)
   
   float EtaCutEB    = 1.4442;
   float EtaCutEE    = 1.560;
+  
+  TRandom* rand = new TRandom();
  
   std::ofstream* outFile100;
   std::ofstream* outFile150;
   std::ofstream* outFile200;
+  std::ofstream* outFile300;
+  std::ofstream* outFile400;
+  std::ofstream* outFile500;
+  std::ofstream* outFile600;
 
   if (MCpresent_ == false)
     {
       outFile100 = new std::ofstream((evtList_+"_100.txt").c_str(), std::ios::out);
       outFile150 = new std::ofstream((evtList_+"_150.txt").c_str(), std::ios::out);
       outFile200 = new std::ofstream((evtList_+"_200.txt").c_str(), std::ios::out);
+      outFile300 = new std::ofstream((evtList_+"_300.txt").c_str(), std::ios::out);
+      outFile400 = new std::ofstream((evtList_+"_400.txt").c_str(), std::ios::out);
+      outFile500 = new std::ofstream((evtList_+"_500.txt").c_str(), std::ios::out);
+      outFile600 = new std::ofstream((evtList_+"_600.txt").c_str(), std::ios::out);
     }
 
 
@@ -153,14 +164,16 @@ int main (int argc, char ** argv)
   //========================================
   //==== define histo entries and steps ====
   //========================================
-  int nSteps = 14;
+  int nSteps = 19;
   TH1F* events = new TH1F("events", "events", nSteps, 0., 1.*nSteps);
   std::map<int, int> stepEvents;
   std::map<int, std::string> stepName;
 
-  
+  std::map<int, TH1F*> etOverMet_map;
+  int nBins = 5;
+  float bins[6] = {0, 40, 60, 90, 200, 10000};
+  TH1F* numBins = new TH1F("numBins", "numBins", nBins, bins);
 
-  
   //=========================== 
   //==== define hfactory ====== 
   //=========================== 
@@ -290,10 +303,23 @@ int main (int argc, char ** argv)
       stepEvents[step] ++;
       stepName[step] = "4) after preselections";
 
-      double met = treeVars.tcMet;
-      double metPhi = treeVars.tcMetPhi;
-      double mex = treeVars.tcMex;
-      double mey = treeVars.tcMey;
+      double met = treeVars.pfMet;
+      double metPhi = treeVars.pfMetPhi;
+      double mex = treeVars.pfMex;
+      double mey = treeVars.pfMey;
+
+
+      //FIXME correggo la met aggiungendo uno smearing
+      //mex = mex * rand -> Gaus(1., 0.1);
+      //mey = mey * rand -> Gaus(1., 0.1);
+      //met = sqrt(mex*mex + mey*mey);
+
+      //FIXME correggo la met aggiungendo uno shift
+      //met *= (1. - 0.05);
+
+
+
+
 
       histograms -> Fill("hMet",              step,    met);
       histograms -> Fill("hMex",              step,    mex);
@@ -318,33 +344,50 @@ int main (int argc, char ** argv)
       //================================
       //==== step 6: HLT selection  ====
       //================================
-
-      //FIXME hardcoded
-      //'0 -> HLT_Photon10_L1R',
-      //'1 -> HLT_Ele10_LW_L1R',
-      //'2 -> HLT_Ele15_LW_L1R',
-      //'3 -> HLT_Ele15_SW_L1R',
-      //'4 -> HLT_Ele15_SW_CaloEleId_L1R'
-      //'5 -> HLT_Ele17_SW_CaloEleId_L1R'
-      //'6 -> HLT_Ele22_SW_CaloEleId_L1R'
-      //'7 -> HLT_Ele27_SW_TightCaloEleIdTrack_L1R_v1'
+      /*
+	0 'HLT_Ele10_LW_L1R',
+	1 'HLT_Ele15_LW_L1R',
+	2 'HLT_Ele15_SW_L1R',
+	3 'HLT_Ele15_SW_CaloEleId_L1R',
+	4 'HLT_Ele17_SW_CaloEleId_L1R',
+	5 'HLT_Ele22_SW_CaloEleId_L1R',
+	6 'HLT_Ele27_SW_TightCaloEleIdTrack_L1R_v1',
+	7 'HLT_Ele22_SW_TighterEleId_L1R_v2',
+	7 'HLT_Ele22_SW_TighterEleId_L1R_v3',
+	8 'HLT_Photon10_L1R',
+	9 'HLT_Photon17_Isol_SC17HE_L1R_v1',
+	10 'HLT_Photon20_Cleaned_L1R',
+	11 'HLT_Photon22_SC22HE_L1R_v1',
+	12 'HLT_Photon25_Cleaned_L1R',
+	13 'HLT_Photon30_Cleaned_L1R',
+	14 'HLT_Photon35_Isol_Cleaned_L1R',
+	15 'HLT_Photon40_CaloId_Cleaned_L1R_v1',
+	16 'HLT_Photon40_Isol_Cleaned_L1R_v1',
+	17 'HLT_Photon50_Cleaned_L1R',
+	18 'HLT_Photon70_Cleaned_L1R_v1',
+      */
 
       chainHLT->GetEntry(entry);
 
       int accept = 0;
       if(MCpresent_ == true)  //darren's reccomendation
 	{
-	  for (int ii = 0; ii < HLTnpaths; ++ ii)    //fixme!! naive approach
-	    accept += HLTaccept[ii];
+	  //for (int ii = 0; ii < HLTnpaths; ++ ii)    //fixme!! naive approach
+	    //accept += HLTaccept[ii];
+	  accept = 1;
 	}
 
       else
 	{
-	  if ( treeVars.runId >= 135059 &&  treeVars.runId <= 140041  ) accept = HLTaccept[1];
-	  if ( treeVars.runId >= 140042 &&  treeVars.runId <= 141900  ) accept = HLTaccept[3];
-	  if ( treeVars.runId >= 141901 &&  treeVars.runId <= 146427  ) accept = HLTaccept[4];
-	  if ( treeVars.runId >= 146428 &&  treeVars.runId <= 147116  ) accept = HLTaccept[5];	  
-	  if ( treeVars.runId >= 147117 &&  treeVars.runId <= 999999  ) accept = HLTaccept[7];	  
+	  if ( treeVars.runId >= 135059 &&  treeVars.runId <= 140041  ) accept = HLTaccept[0];
+	  if ( treeVars.runId >= 140042 &&  treeVars.runId <= 141900  ) accept = HLTaccept[2];
+	  if ( treeVars.runId >= 141901 &&  treeVars.runId <= 146427  ) accept = HLTaccept[3];
+	  if ( treeVars.runId >= 146428 &&  treeVars.runId <= 147116  ) accept = HLTaccept[4];
+	  if ( treeVars.runId >= 147117 &&  treeVars.runId <= 148058  ) accept = HLTaccept[6];
+	  if ( treeVars.runId >= 148819 &&  treeVars.runId <= 149064  ) accept = HLTaccept[7];
+	  if ( treeVars.runId >= 149065 &&  treeVars.runId <= 149442  ) accept = HLTaccept[8];	  
+	  
+	  //if ( treeVars.runId >= 148059 &&  treeVars.runId <= 148864  ) accept = HLTaccept[15];	  
 	}
 
       if (accept == 0) continue;
@@ -402,13 +445,14 @@ int main (int argc, char ** argv)
 	  double dPhiEleMet = deltaPhi(metPhi,elePhi);
 	  bool eleIsEB = treeVars.eleIsEB[i];
 	  bool eleIsEE = treeVars.eleIsEE[i];
-
-
+	  
+	  
 	  //--------------------------------------------
 	  // keep only electrons in ECAL fiducial volume
 	  //--------------------------------------------
 	  if ( treeVars.eleIsGap[i] == 1 ) continue;
-
+	  //if ( fabs(eleEta) > EtaCutEB && fabs(eleEta) < EtaCutEE ) continue;
+	  
 	  //--------------------------------------------
 	  // keep only electrons with ET > XX GeV
 	  //--------------------------------------------
@@ -419,14 +463,14 @@ int main (int argc, char ** argv)
 	  //--------------------------------------------
 	  //if ( treeVars.eleSeedSwissCross[i] > 0.95 ) continue; //included in 38x
 	  //if (treeVars.ecalRecHitRecoFlag[chosenEle] == 2) continue; //solo se posso fidarmi della calibrazione del timing
-
+	  
 	  //--------------------------------------------
 	  // electron ID (FIXME hardcoded)
 	  //--------------------------------------------
 	  //instructions here: 
 	  //http://cmssw.cvs.cern.ch/cgi-bin/cmssw.cgi/UserCode/SHarper/HEEPAnalyzer/interface/HEEPCutCodes.h?revision=1.5&view=markup&pathrev=HEAD
 	  //https://twiki.cern.ch/twiki/bin/view/CMS/HEEPSelector
-
+	  
 	  // barrel + endcap (same selections in 38X)
 	  if (nonIso_ == false)
 	    {
@@ -434,12 +478,26 @@ int main (int argc, char ** argv)
 	    }
 	  else
 	    {
-	      if ( eleIsEB == 1 && 
-		   !(heep::CutCodes::passCuts(eleId,"ecalDriven:et:detEta:dEtaIn:dPhiIn:e2x5Over5x5:hadem:isolPtTrks") && 
-		     !heep::CutCodes::passCuts(eleId,"isolEmHadDepth1") ) ) continue;
-	      if ( eleIsEE == 1 && 
-		   !(heep::CutCodes::passCuts(eleId,"ecalDriven:et:detEta:dEtaIn:dPhiIn:sigmaIEtaIEta:hadem:isolPtTrks") && 
-		     !(heep::CutCodes::passCuts(eleId,"isolEmHadDepth1") && heep::CutCodes::passCuts(eleId,"isolHadDepth2")) ) ) continue;
+	      if ( eleIsEB == 1 &&
+		   ( heep::CutCodes::passCuts(eleId,"isolEmHadDepth1") &&
+		     heep::CutCodes::passCuts(eleId,"hadem")           &&
+		     heep::CutCodes::passCuts(eleId,"isolPtTrks") )
+		   )  continue;
+	      
+	      if ( eleIsEE == 1 &&
+		   ( heep::CutCodes::passCuts(eleId,"isolEmHadDepth1") &&
+		     heep::CutCodes::passCuts(eleId,"isolHadDepth2")   &&
+		     heep::CutCodes::passCuts(eleId,"hadem")           &&
+		     heep::CutCodes::passCuts(eleId,"isolPtTrks") )
+		   ) continue;
+	      
+	      
+	      // if ( eleIsEB == 1 && 
+	      // 	   !(heep::CutCodes::passCuts(eleId,"ecalDriven:et:detEta:dEtaIn:dPhiIn:e2x5Over5x5:hadem:isolPtTrks") && 
+	      // 	     !heep::CutCodes::passCuts(eleId,"isolEmHadDepth1") ) ) continue;
+	      // if ( eleIsEE == 1 && 
+	      // 	   !(heep::CutCodes::passCuts(eleId,"ecalDriven:et:detEta:dEtaIn:dPhiIn:sigmaIEtaIEta:hadem:isolPtTrks") && 
+	      // 	     !(heep::CutCodes::passCuts(eleId,"isolEmHadDepth1") && heep::CutCodes::passCuts(eleId,"isolHadDepth2")) ) ) continue;
 	    }
 	  
 	  nGoodElectrons++;
@@ -448,11 +506,12 @@ int main (int argc, char ** argv)
 	}// end loop over ele cand
       
       
+      
       //================================
       //======== step 8: eleId =========
       //================================
       if( nGoodElectrons == 0 ) continue;
-
+      
       step ++ ;
       stepEvents[step] ++ ;
       stepName[step] = "8) eleId";
@@ -547,6 +606,14 @@ int main (int argc, char ** argv)
 
 
 
+
+      //FIXME correggo la scala aggiungendo uno shift
+      //if (eleIsEB) eleEt *= (1. - 0.01);
+      //if (eleIsEE) eleEt *= (1. - 0.03);
+
+
+
+
       //==============================================
       //==== computing corrected MET if necessary ====
       //==============================================
@@ -618,6 +685,21 @@ int main (int argc, char ** argv)
       histograms -> Fill("hNEle",             step,    nGoodElectrons);
       histograms -> Fill("hNJets",            step,    treeVars.nJets);
 
+      //et/met in MT bins
+      for (int bin = 0; bin < nBins; ++bin)
+	if( mt > bins[bin] && mt < bins[bin+1] )
+	  {
+	    std::map<int, TH1F*>::const_iterator itr = etOverMet_map.find(bin);
+	    if (itr == etOverMet_map.end())
+	      {
+		char name[50];
+		sprintf(name, "etOverMet_%.0f", bins[bin]);
+		etOverMet_map[bin] = new TH1F(name, name, 1000, 0., 50.);
+	      }
+	    else etOverMet_map[bin] -> Fill(eleEt/met);
+	  }
+      
+      
       if(eleIsEB == true)
 	{
 	  histograms -> Fill("hEt_EB",               step,    eleEt);
@@ -645,9 +727,79 @@ int main (int argc, char ** argv)
 
 	}
 
+
+      //========================================
+      //=== step 11: jet selection for ttbar ===
+      //========================================
+
+      int nbtag = 0;
+      int njets = 0;
+      double deta, dphi, dR;
+      for (int j=0; j<treeVars.nJets; j++)
+	{
+	  deta = treeVars.jetEta[j] - eleEta;
+	  dphi = deltaPhi(treeVars.jetPhi[j], elePhi);
+	  dR   = sqrt(deta*deta + dphi*dphi);
+	  if (dR < 0.5) continue;
+	  if (fabs(treeVars.jetEta[j]) < 2.4 && treeVars.jetPt[j] > 20.)
+	    {
+	      float bdisc = treeVars.jetBdiscHighPur[j];
+	      if (bdisc > 3.) nbtag++; // high purity btag
+	      njets++;
+	    }
+	}// end loop over jets
+
+      //if (nbtag != 1) continue;
+
+      step ++ ;
+      stepEvents[step] ++ ;
+      stepName[step] = "11) jet selection for ttbar";
+
       
+      histograms -> Fill("hEt",               step,    eleEt);
+      histograms -> Fill("hMt",               step,    mt);
+      histograms -> Fill("hEtOverMet",        step,    eleEt/met);
+      histograms -> Fill("hDPhiEleMet",       step,    dPhiEleMet);
+      histograms2 -> Fill("hEtOverMet_vsE",    step,   eleE, eleEt/met);
+      histograms2 -> Fill("hEoverP_vsE",        step,   eleE, eleE/eleP);
+      histograms2 -> Fill("heleSeedTime_vsEleSeedEne",  step,  eleEmax, eleTime);
+      histograms -> Fill("hRecoFlag",         step,    treeVars.ecalRecHitRecoFlag[chosenEle]);
+      histograms -> Fill("hElePhi",           step,    elePhi);      
+      histograms -> Fill("hMet",              step,    met);
+      histograms -> Fill("hMex",              step,    mex);
+      histograms -> Fill("hMey",              step,    mey);
+      histograms -> Fill("hEleEta",           step,    eleEta);
+      histograms -> Fill("hNEle",             step,    nGoodElectrons);
+      histograms -> Fill("hNJets",            step,    treeVars.nJets);
+
+      if(eleIsEB == true)
+	{
+	  histograms -> Fill("hEt_EB",               step,    eleEt);
+	  histograms -> Fill("hMt_EB",               step,    mt);
+	  histograms -> Fill("hEtOverMet_EB",        step,    eleEt/met);
+	  histograms2 -> Fill("hEtOverMet_vsE_EB",    step,   eleE, eleEt/met);
+	  histograms2 -> Fill("hEoverP_vsE_EB",        step,   eleE, eleE/eleP);
+	  histograms2 -> Fill("heleSeedTime_vsEleSeedEne_EB",  step,  eleEmax, eleTime);
+	  histograms -> Fill("hRecoFlag_EB",         step,    treeVars.ecalRecHitRecoFlag[chosenEle]);
+	  histograms -> Fill("hDPhiEleMet_EB",       step,    dPhiEleMet);
+	  histograms -> Fill("hElePhi_EB",           step,    elePhi);
+	}
+      else if(eleIsEE == true)
+	{
+	  histograms -> Fill("hEt_EE",               step,    eleEt);
+	  histograms -> Fill("hMt_EE",               step,    mt);
+	  histograms -> Fill("hEtOverMet_EE",        step,    eleEt/met);
+	  histograms2 -> Fill("hEtOverMet_vsE_EE",    step,   eleE, eleEt/met);
+	  histograms2 -> Fill("hEoverP_vsE_EE",        step,   eleE, eleE/eleP);
+	  histograms2 -> Fill("heleSeedTime_vsEleSeedEne_EE",  step,  eleEmax, eleTime);
+	  histograms -> Fill("hRecoFlag_EE",         step,    treeVars.ecalRecHitRecoFlag[chosenEle]);
+	  histograms -> Fill("hDPhiEleMet_EE",       step,    dPhiEleMet);
+	  histograms -> Fill("hElePhi_EE",           step,    elePhi);
+	}
+
+
       //==============================
-      //=== step 11: met selection ===
+      //=== step 12: met selection ===
       //==============================
 
       if (eleEt/met < minEtOverMet_ || eleEt/met > maxEtOverMet_) continue;  //original
@@ -664,7 +816,7 @@ int main (int argc, char ** argv)
       
       step ++ ;
       stepEvents[step] ++ ;
-      stepName[step] = "11) met selection";
+      stepName[step] = "12) met selection";
 
       
       if ( (eleIsEB == true) &&
@@ -679,6 +831,7 @@ int main (int argc, char ** argv)
 	  histograms2 -> Fill("hSquareSelection_eleSeedTime_vsEleSeedEne", step,  eleEmax, eleTime);
 	}
       
+      numBins -> Fill(mt);
      
       histograms -> Fill("hEt",               step,    eleEt);
       histograms -> Fill("hMt",               step,    mt);
@@ -745,13 +898,13 @@ int main (int argc, char ** argv)
       //tree -> Fill();
 
       //========================================================
-      //=== step 12: saving interesting events above 100 GeV ===
+      //=== step 13: saving interesting events above 100 GeV ===
       //========================================================
       if(mt < 100.) continue;
 
       step ++ ;
       stepEvents[step] ++ ;
-      stepName[step] = "12) mT > 100 GeV";
+      stepName[step] = "13) mT > 100 GeV";
      
       histograms -> Fill("hEt",               step,    eleEt);
       histograms -> Fill("hMt",               step,    mt);
@@ -771,16 +924,16 @@ int main (int argc, char ** argv)
             
       if (MCpresent_ == false)
 	(*outFile100) << "Run = " << treeVars.runId << "; LS = " << treeVars.lumiId << "; evt = " << treeVars.eventId
-		      << "; mT = " << mt << "; Et = " << eleEt << "; tcMET = " << met << "\n";
+		      << "; mT = " << mt << "; Et = " << eleEt << "; pfMET = " << met << "\n";
       
       //========================================================
-      //=== step 13: saving interesting events above 150 GeV ===
+      //=== step 14: saving interesting events above 150 GeV ===
       //========================================================
       if(mt < 150.) continue;
 
       step ++ ;
       stepEvents[step] ++ ;
-      stepName[step] = "13) mT > 150 GeV";
+      stepName[step] = "14) mT > 150 GeV";
 
       histograms -> Fill("hEt",               step,    eleEt);
       histograms -> Fill("hMt",               step,    mt);
@@ -800,16 +953,16 @@ int main (int argc, char ** argv)
       
       if (MCpresent_ == false)
 	(*outFile150) << "Run = " << treeVars.runId << "; LS = " << treeVars.lumiId << "; evt = " << treeVars.eventId
-		      << "; mT = " << mt << "; Et = " << eleEt << "; tcMET = " << met << "\n";
+		      << "; mT = " << mt << "; Et = " << eleEt << "; pfMET = " << met << "\n";
 
       //========================================================
-      //=== step 14: saving interesting events above 200 GeV ===
+      //=== step 15: saving interesting events above 200 GeV ===
       //========================================================
       if(mt < 200.) continue;
 
       step ++ ;
       stepEvents[step] ++ ;
-      stepName[step] = "14) mT > 200 GeV";
+      stepName[step] = "15) mT > 200 GeV";
 
       histograms -> Fill("hEt",               step,    eleEt);
       histograms -> Fill("hMt",               step,    mt);
@@ -829,7 +982,128 @@ int main (int argc, char ** argv)
 
       if (MCpresent_ == false)
 	(*outFile200) << "Run = " << treeVars.runId << "; LS = " << treeVars.lumiId << "; evt = " << treeVars.eventId
-		      << "; mT = " << mt << "; Et = " << eleEt << "; tcMET = " << met << "\n";
+		      << "; mT = " << mt << "; Et = " << eleEt << "; pfMET = " << met << "\n";
+
+
+      //========================================================
+      //=== step 16: saving interesting events above 300 GeV ===
+      //========================================================
+      if(mt < 300.) continue;
+
+      step ++ ;
+      stepEvents[step] ++ ;
+      stepName[step] = "16) mT > 300 GeV";
+
+      histograms -> Fill("hEt",               step,    eleEt);
+      histograms -> Fill("hMt",               step,    mt);
+      histograms -> Fill("hEtOverMet",        step,    eleEt/met);
+      histograms -> Fill("hDPhiEleMet",       step,    dPhiEleMet);
+      histograms2 -> Fill("hEtOverMet_vsE",    step,   eleE, eleEt/met);
+      histograms2 -> Fill("hEoverP_vsE",        step,   eleE, eleE/eleP);
+      histograms2 -> Fill("heleSeedTime_vsEleSeedEne",  step,  eleEmax, eleTime);
+      histograms -> Fill("hRecoFlag",         step,    treeVars.ecalRecHitRecoFlag[chosenEle]);
+      histograms -> Fill("hElePhi",           step,    elePhi);      
+      histograms -> Fill("hMet",              step,    met);
+      histograms -> Fill("hMex",              step,    mex);
+      histograms -> Fill("hMey",              step,    mey);
+      histograms -> Fill("hEleEta",           step,    eleEta);
+      histograms -> Fill("hNEle",             step,    nGoodElectrons);
+      histograms -> Fill("hNJets",            step,    treeVars.nJets);
+
+      if (MCpresent_ == false)
+	(*outFile300) << "Run = " << treeVars.runId << "; LS = " << treeVars.lumiId << "; evt = " << treeVars.eventId
+		      << "; mT = " << mt << "; Et = " << eleEt << "; pfMET = " << met << "\n";
+
+
+      //========================================================
+      //=== step 17: saving interesting events above 400 GeV ===
+      //========================================================
+      if(mt < 400.) continue;
+
+      step ++ ;
+      stepEvents[step] ++ ;
+      stepName[step] = "17) mT > 400 GeV";
+
+      histograms -> Fill("hEt",               step,    eleEt);
+      histograms -> Fill("hMt",               step,    mt);
+      histograms -> Fill("hEtOverMet",        step,    eleEt/met);
+      histograms -> Fill("hDPhiEleMet",       step,    dPhiEleMet);
+      histograms2 -> Fill("hEtOverMet_vsE",    step,   eleE, eleEt/met);
+      histograms2 -> Fill("hEoverP_vsE",        step,   eleE, eleE/eleP);
+      histograms2 -> Fill("heleSeedTime_vsEleSeedEne",  step,  eleEmax, eleTime);
+      histograms -> Fill("hRecoFlag",         step,    treeVars.ecalRecHitRecoFlag[chosenEle]);
+      histograms -> Fill("hElePhi",           step,    elePhi);      
+      histograms -> Fill("hMet",              step,    met);
+      histograms -> Fill("hMex",              step,    mex);
+      histograms -> Fill("hMey",              step,    mey);
+      histograms -> Fill("hEleEta",           step,    eleEta);
+      histograms -> Fill("hNEle",             step,    nGoodElectrons);
+      histograms -> Fill("hNJets",            step,    treeVars.nJets);
+
+      if (MCpresent_ == false)
+	(*outFile400) << "Run = " << treeVars.runId << "; LS = " << treeVars.lumiId << "; evt = " << treeVars.eventId
+		      << "; mT = " << mt << "; Et = " << eleEt << "; pfMET = " << met << "\n";
+
+
+      //========================================================
+      //=== step 17: saving interesting events above 500 GeV ===
+      //========================================================
+      if(mt < 500.) continue;
+
+      step ++ ;
+      stepEvents[step] ++ ;
+      stepName[step] = "18) mT > 500 GeV";
+
+      histograms -> Fill("hEt",               step,    eleEt);
+      histograms -> Fill("hMt",               step,    mt);
+      histograms -> Fill("hEtOverMet",        step,    eleEt/met);
+      histograms -> Fill("hDPhiEleMet",       step,    dPhiEleMet);
+      histograms2 -> Fill("hEtOverMet_vsE",    step,   eleE, eleEt/met);
+      histograms2 -> Fill("hEoverP_vsE",        step,   eleE, eleE/eleP);
+      histograms2 -> Fill("heleSeedTime_vsEleSeedEne",  step,  eleEmax, eleTime);
+      histograms -> Fill("hRecoFlag",         step,    treeVars.ecalRecHitRecoFlag[chosenEle]);
+      histograms -> Fill("hElePhi",           step,    elePhi);      
+      histograms -> Fill("hMet",              step,    met);
+      histograms -> Fill("hMex",              step,    mex);
+      histograms -> Fill("hMey",              step,    mey);
+      histograms -> Fill("hEleEta",           step,    eleEta);
+      histograms -> Fill("hNEle",             step,    nGoodElectrons);
+      histograms -> Fill("hNJets",            step,    treeVars.nJets);
+
+      if (MCpresent_ == false)
+	(*outFile500) << "Run = " << treeVars.runId << "; LS = " << treeVars.lumiId << "; evt = " << treeVars.eventId
+		      << "; mT = " << mt << "; Et = " << eleEt << "; pfMET = " << met << "\n";
+
+
+      //========================================================
+      //=== step 19: saving interesting events above 600 GeV ===
+      //========================================================
+      if(mt < 600.) continue;
+
+      step ++ ;
+      stepEvents[step] ++ ;
+      stepName[step] = "19) mT > 600 GeV";
+
+      histograms -> Fill("hEt",               step,    eleEt);
+      histograms -> Fill("hMt",               step,    mt);
+      histograms -> Fill("hEtOverMet",        step,    eleEt/met);
+      histograms -> Fill("hDPhiEleMet",       step,    dPhiEleMet);
+      histograms2 -> Fill("hEtOverMet_vsE",    step,   eleE, eleEt/met);
+      histograms2 -> Fill("hEoverP_vsE",        step,   eleE, eleE/eleP);
+      histograms2 -> Fill("heleSeedTime_vsEleSeedEne",  step,  eleEmax, eleTime);
+      histograms -> Fill("hRecoFlag",         step,    treeVars.ecalRecHitRecoFlag[chosenEle]);
+      histograms -> Fill("hElePhi",           step,    elePhi);      
+      histograms -> Fill("hMet",              step,    met);
+      histograms -> Fill("hMex",              step,    mex);
+      histograms -> Fill("hMey",              step,    mey);
+      histograms -> Fill("hEleEta",           step,    eleEta);
+      histograms -> Fill("hNEle",             step,    nGoodElectrons);
+      histograms -> Fill("hNJets",            step,    treeVars.nJets);
+
+      if (MCpresent_ == false)
+	(*outFile600) << "Run = " << treeVars.runId << "; LS = " << treeVars.lumiId << "; evt = " << treeVars.eventId
+		      << "; mT = " << mt << "; Et = " << eleEt << "; pfMET = " << met << "\n";
+
 
 
     } // end loop over entries
@@ -866,6 +1140,14 @@ int main (int argc, char ** argv)
 
   events -> Write();
   //tree -> Write();
+
+
+  
+  for (std::map<int, TH1F*>::const_iterator itr = etOverMet_map.begin();
+       itr != etOverMet_map.end();
+       ++itr)
+    itr -> second -> Write();
+  numBins -> Write();
 
 
   fout -> mkdir("hEt_cumulative");
@@ -905,6 +1187,10 @@ int main (int argc, char ** argv)
       outFile100 -> close();
       outFile150 -> close();
       outFile200 -> close();
+      outFile300 -> close();
+      outFile400 -> close();
+      outFile500 -> close();
+      outFile600 -> close();
     }
 
   delete histograms;
