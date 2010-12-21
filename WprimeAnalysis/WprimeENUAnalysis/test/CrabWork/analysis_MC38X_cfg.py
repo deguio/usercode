@@ -4,7 +4,7 @@ process = cms.Process("myprocess")
 
 # initialize MessageLogger and output report
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
-process.MessageLogger.cerr.FwkReport.reportEvery = cms.untracked.int32(10000)
+process.MessageLogger.cerr.FwkReport.reportEvery = cms.untracked.int32(10000) #10000
 
 
 process.load("Configuration.StandardSequences.Geometry_cff")
@@ -130,8 +130,6 @@ process.eventsCounterTotal = cms.EDFilter("eventsCounter", histoName = cms.strin
 process.eventsCounterGoodEvt = cms.EDFilter("eventsCounter", histoName = cms.string("eventsCounterGoodEvt"))
 process.eventsCounterHighEtEle = cms.EDFilter("eventsCounter", histoName = cms.string("eventsCounterHighEtEle"))
 process.eventsCounterPatElectronSequence = cms.EDFilter("eventsCounter", histoName = cms.string("eventsCounterPatElectronSequence"))
-
-
 
 process.p = cms.Path(
 

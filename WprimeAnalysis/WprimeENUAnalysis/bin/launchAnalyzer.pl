@@ -61,8 +61,8 @@ while (<LISTFile>)
   $outevtlist_i = $OUTpath.$_."/".$evtListName;
 
   print "File = ".$indataset_i." \n";
-  print  "mkdir ".$OUTpath.$_."\n";
-  system("mkdir ".$OUTpath.$_."\n");
+  print  "mkdir -p ".$OUTpath.$_."\n";
+  system("mkdir -p ".$OUTpath.$_."\n");
 
   $tempo1 = "./tempo.py" ;
   system ("cat ".$CMSSWCfgTemplate." | sed -e s%LISTOFFILES%".$indataset_i. 

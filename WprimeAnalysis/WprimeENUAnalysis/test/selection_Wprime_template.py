@@ -5,6 +5,7 @@ process.selections = cms.PSet(
 
    nEvents   =  cms.untracked.int32(-1),
    MCpresent = cms.untracked.bool(True),
+   nonIso = cms.untracked.bool(False),
 
    maxJetPt  = cms.untracked.double(100.),
 

@@ -147,7 +147,7 @@ void drawTStack::Draw(const std::vector<std::string>& histoNames, const std::str
   std::map<std::string, int> color_summed;
   std::map<std::string, bool> isFirstSample_summed;
   std::map<std::string, int> dataFlag_summed;
-  std::map<std::string, int> m_isDD_summed;
+  std::map<std::string, int> isDD_summed;
   std::map<std::string, TH1F*> histo_summed;
   
   //initialize summed vectors
@@ -158,7 +158,7 @@ void drawTStack::Draw(const std::vector<std::string>& histoNames, const std::str
     color_summed[vecIt->second] = 1;
     isFirstSample_summed[vecIt->second] = true;
     dataFlag_summed[vecIt->second] = false;
-    m_isDD_summed[vecIt->second] = false;
+    isDD_summed[vecIt->second] = false;
     histo_summed[vecIt->second] = NULL;
   }
   
@@ -221,7 +221,7 @@ void drawTStack::Draw(const std::vector<std::string>& histoNames, const std::str
     histo -> Sumw2();
     histo -> Rebin(rebin);
     dataFlag_summed[vecIt->second] = m_dataFlag[vecIt->first];
-    m_isDD_summed[vecIt->second] = m_isDD[vecIt->first];
+    isDD_summed[vecIt->second] = m_isDD[vecIt->first];
     color_summed[vecIt->second] = m_color[vecIt->first];
 
     //se sono dati o se e' DD non scalo e non sommo le sezioni d'urto
@@ -230,6 +230,9 @@ void drawTStack::Draw(const std::vector<std::string>& histoNames, const std::str
 	histo -> Scale(m_crossSection[vecIt->first]/eventsHisto->GetBinContent(1));
 	crossSection_summed[vecIt->second] += m_crossSection[vecIt->first];
       }
+
+    if( (histo->GetEntries() > 0.) && (m_dataFlag[vecIt->first] != 1) && (m_isDD[vecIt->first] == 1))
+	histo -> Scale(m_crossSection[vecIt->first] / lumi);
     
     
     
@@ -349,13 +352,11 @@ void drawTStack::Draw(const std::vector<std::string>& histoNames, const std::str
       legend.AddEntry(globalHisto, (mapIt->first).c_str(), "P");
     }
     
-    //se sono dati o se e' DD non scalo per la lumi (il DD e' gia' normalizzato giusto)
-    if( (mode == "eventsScaled") && (dataFlag_summed[mapIt->first] != 1) && (m_isDD_summed[mapIt->first] != 1))
-      globalHisto -> Scale(1. * lumi);
-
+    //scalo anche il DD per la lumi che ho provveduto a scalare al contrario
     //setto i colori solo se non sono dati
     if( (mode == "eventsScaled") && (dataFlag_summed[mapIt->first] != 1))
     {
+      globalHisto -> Scale(1. * lumi);
       //fede      globalHisto -> SetLineColor(getColor(i+1));
       //fede      globalHisto -> SetFillColor(getColor(i+1));
       globalHisto -> SetLineColor(color_summed[mapIt->first]);

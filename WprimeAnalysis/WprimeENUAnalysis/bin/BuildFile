@@ -1,6 +1,6 @@
 <use name=root>
 <use name=boost>
-<bin name=WprimeTreeAnalysis file="WprimeTreeAnalysis.cpp">
+<bin name=WprimeTreeAnalysis_new file="WprimeTreeAnalysis_new.cpp">
   <use name=WprimeAnalysis/WprimeENUAnalysis>
   <flags LCGDICT_ARGS="--deep">
 </bin>
@@ -8,7 +8,11 @@
   <use name=WprimeAnalysis/WprimeENUAnalysis>
   <flags LCGDICT_ARGS="--deep">
 </bin>
-<bin name=TTbarBkgAnalysisBtag file="TTbarBkgAnalysisBtag.cpp">
   <use name=WprimeAnalysis/WprimeENUAnalysis>
   <flags LCGDICT_ARGS="--deep">
 </bin>
+<bin name=WprimePrintPlot_DDbkg file="WprimePrintPlot_DDbkg.cpp">
+  <use name=WprimeAnalysis/WprimeENUAnalysis>
+  <flags LCGDICT_ARGS="--deep">
+</bin>
+

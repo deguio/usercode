@@ -23,10 +23,11 @@ int main(int argc, char** argv)
   std::string inputDir("/media/amassiro/deguio/Wprime/PROVA/");
   std::string outputDir("/afs/cern.ch/user/d/deguio/scratch0/Wprime/CMSSW_3_8_4_patch2/src/WprimeAnalysis/WprimeENUAnalysis/bin/PROVA/");
 
-  int step = 11;  
-  float lumi = 14.63;
-  //float lumi = 3.83978;
-  //float lumi = 10.79;
+  int step = 12;   //11 = penultimo!
+  float lumi = 34.9;
+
+
+  
   
   // draw plots
   drawTStack* stack = new drawTStack(inputDir, "/afs/cern.ch/user/d/deguio/scratch0/Wprime/CMSSW_3_8_4_patch2/src/WprimeAnalysis/WprimeENUAnalysis/bin/crossSections_wPrime_fall10.txt", "WPrimeAnalysisTree", outputDir);

@@ -130,7 +130,27 @@ process.TFileService = cms.Service("TFileService",
 from PhysicsTools.NtupleUtils.HLTrigResultsDumper_cfi import *
 process.TriggerResults = HLTrigResultsDumper.clone()
 process.TriggerResults.HLTriggerResults = cms.InputTag("TriggerResults::HLT")
-process.TriggerResults.HLTPaths = cms.vstring('HLT_Photon10_L1R','HLT_Ele10_LW_L1R','HLT_Ele15_LW_L1R','HLT_Ele15_SW_L1R','HLT_Ele15_SW_CaloEleId_L1R','HLT_Ele17_SW_CaloEleId_L1R','HLT_Ele22_SW_CaloEleId_L1R','HLT_Ele27_SW_TightCaloEleIdTrack_L1R_v1')   # provide list of HLT paths (or patterns) you want
+process.TriggerResults.HLTPaths = cms.vstring('HLT_Ele10_LW_L1R',
+                                              'HLT_Ele15_LW_L1R',
+                                              'HLT_Ele15_SW_L1R',
+                                              'HLT_Ele15_SW_CaloEleId_L1R',
+                                              'HLT_Ele17_SW_CaloEleId_L1R',
+                                              'HLT_Ele22_SW_CaloEleId_L1R',
+                                              'HLT_Ele27_SW_TightCaloEleIdTrack_L1R_v1',
+                                              'HLT_Ele22_SW_TighterEleId_L1R_v2',
+                                              'HLT_Ele22_SW_TighterEleId_L1R_v3',
+                                              'HLT_Photon10_L1R',
+                                              'HLT_Photon17_Isol_SC17HE_L1R_v1',
+                                              'HLT_Photon20_Cleaned_L1R',
+                                              'HLT_Photon22_SC22HE_L1R_v1',
+                                              'HLT_Photon25_Cleaned_L1R',
+                                              'HLT_Photon30_Cleaned_L1R',
+                                              'HLT_Photon35_Isol_Cleaned_L1R',
+                                              'HLT_Photon40_CaloId_Cleaned_L1R_v1',
+                                              'HLT_Photon40_Isol_Cleaned_L1R_v1',
+                                              'HLT_Photon50_Cleaned_L1R',
+                                              'HLT_Photon70_Cleaned_L1R_v1',
+                                              )   # provide list of HLT paths (or patterns) you want
 
 #save event number after the selections
 process.eventsCounterTotal = cms.EDFilter("eventsCounter", histoName = cms.string("eventsCounterTotal"))
