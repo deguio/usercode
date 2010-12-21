@@ -90,7 +90,10 @@ WprimeTreePAT::WprimeTreePAT (const edm::ParameterSet& iConfig)
   btagAlgoHighEff_       = iConfig.getUntrackedParameter<std::string>("btagAlgoHighEff") ;
   btagAlgoHighPur_       = iConfig.getUntrackedParameter<std::string>("btagAlgoHighPur") ;
 
-  runOnMC_         = iConfig.getParameter<bool>("runOnMC");
+  runOnMC_        = iConfig.getParameter<bool>("runOnMC");
+  verbosity_      = iConfig.getUntrackedParameter<bool>("verbosity", false);
+  eventType_      = iConfig.getUntrackedParameter<int>("eventType", 0);
+
   storePDFWeights_ = iConfig.getParameter<bool>("storePDFWeights");
   pdfWeightsLabel_ = iConfig.getParameter<edm::InputTag>("pdfWeightsTag"); // or any other PDF set
 
@@ -98,7 +101,6 @@ WprimeTreePAT::WprimeTreePAT (const edm::ParameterSet& iConfig)
 
 
   naiveId_ = 0;
-
 
 }
 
@@ -224,7 +226,8 @@ void WprimeTreePAT::analyze (const edm::Event& iEvent, const edm::EventSetup& iS
   myTreeVariables_.hcalnoiseTight = ( NoiseSummary.passTightNoiseFilter() ) ? 1 : 0;
 
 
-  if (runOnMC_ == true) dumpGenInfo(iEvent, myTreeVariables_);
+  if (runOnMC_ == true) 
+    dumpGenInfo(iEvent, myTreeVariables_);
   
   dumpVertex(theVertexes, myTreeVariables_) ;
   dumpElectronInfo(electrons, theBarrelEcalRecHits, theEndcapEcalRecHits, topology, myTreeVariables_) ;
@@ -271,20 +274,36 @@ void WprimeTreePAT::beginJob()
 void WprimeTreePAT::dumpGenInfo (const edm::Event& iEvent,
 				 WprimeTreeContent & myTreeVariables_)
 {
+
   edm::Handle<reco::GenParticleCollection> genParticles;
   iEvent.getByLabel("genParticles", genParticles);
 
-  for(reco::GenParticleCollection::const_iterator p = genParticles -> begin();
-      p != genParticles -> end(); 
-      ++p)
-    {
-      if(p->status() == 3 && (fabs(p->pdgId()) == 11 || fabs(p->pdgId()) == 13 || fabs(p->pdgId()) == 15))
-	{
-	  //std::cout << "MC STATUS = " << p->status() << "; PDGID = " << p->pdgId() << std::endl;
-	  myTreeVariables_.pdgId[ myTreeVariables_.nGenParticles ] = p->pdgId();
-	  ++myTreeVariables_.nGenParticles;
-	}
-    }//loop over genParticles
+  mcAnalysisZW_ = new MCDumperZW(genParticles, eventType_, verbosity_); //eventType = 1, verbosity = 1
+  if( !(mcAnalysisZW_ -> isValid()) ) return;
+
+  myTreeVariables_.nGenParticles = 0;
+  
+  myTreeVariables_.mc_V_pdgId[myTreeVariables_.nGenParticles] = mcAnalysisZW_ -> mcV()->pdgId();
+  myTreeVariables_.mc_V_charge[myTreeVariables_.nGenParticles] = mcAnalysisZW_ -> mcV()->charge();
+  myTreeVariables_.mc_V_px[myTreeVariables_.nGenParticles] = mcAnalysisZW_ -> mcV()->px();
+  myTreeVariables_.mc_V_py[myTreeVariables_.nGenParticles] = mcAnalysisZW_ -> mcV()->py();
+  myTreeVariables_.mc_V_pz[myTreeVariables_.nGenParticles] = mcAnalysisZW_ -> mcV()->pz();
+  myTreeVariables_.mc_V_E[myTreeVariables_.nGenParticles] = mcAnalysisZW_ -> mcV()->p4().E();
+
+  myTreeVariables_.mcF1_fromV_pdgId[myTreeVariables_.nGenParticles] = mcAnalysisZW_ -> mcF1_fromV()->pdgId();
+  myTreeVariables_.mcF1_fromV_charge[myTreeVariables_.nGenParticles] = mcAnalysisZW_ -> mcF1_fromV()->charge();
+  myTreeVariables_.mcF1_fromV_px[myTreeVariables_.nGenParticles] = mcAnalysisZW_ -> mcF1_fromV()->px();
+  myTreeVariables_.mcF1_fromV_py[myTreeVariables_.nGenParticles] = mcAnalysisZW_ -> mcF1_fromV()->py();
+  myTreeVariables_.mcF1_fromV_pz[myTreeVariables_.nGenParticles] = mcAnalysisZW_ -> mcF1_fromV()->pz();
+  myTreeVariables_.mcF1_fromV_E[myTreeVariables_.nGenParticles] = mcAnalysisZW_ -> mcF1_fromV()->p4().E();
+
+  myTreeVariables_.mcF2_fromV_pdgId[myTreeVariables_.nGenParticles] = mcAnalysisZW_ -> mcF2_fromV()->pdgId();
+  myTreeVariables_.mcF2_fromV_charge[myTreeVariables_.nGenParticles] = mcAnalysisZW_ -> mcF2_fromV()->charge();
+  myTreeVariables_.mcF2_fromV_px[myTreeVariables_.nGenParticles] = mcAnalysisZW_ -> mcF2_fromV()->px();
+  myTreeVariables_.mcF2_fromV_py[myTreeVariables_.nGenParticles] = mcAnalysisZW_ -> mcF2_fromV()->py();
+  myTreeVariables_.mcF2_fromV_pz[myTreeVariables_.nGenParticles] = mcAnalysisZW_ -> mcF2_fromV()->pz();
+  myTreeVariables_.mcF2_fromV_E[myTreeVariables_.nGenParticles] = mcAnalysisZW_ -> mcF2_fromV()->p4().E();
+  
 
   return;
 }

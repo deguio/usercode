@@ -38,6 +38,7 @@
 #include "TTree.h"
 
 #include "WprimeAnalysis/WprimeENUAnalysis/interface/WprimeTreeContent.h"
+#include "WprimeAnalysis/WprimeENUAnalysis/interface/MCDumperZW.h"
 
 using namespace cms ;
 using namespace edm ;
@@ -122,6 +123,10 @@ class WprimeTreePAT : public edm::EDAnalyzer
       edm::InputTag pdfWeightsLabel_ ;
       bool storePDFWeights_;
       bool runOnMC_;
+      int eventType_; //---- 0 = signal    1 = background 
+      bool verbosity_; //---- true = loquacious    false = silence 
+
+      MCDumperZW* mcAnalysisZW_;
       
       int naiveId_;
     
