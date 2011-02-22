@@ -15,8 +15,7 @@
 #define G__ANSIHEADER
 #define G__DICTIONARY
 #define G__PRIVATE_GVALUE
-#include "G__ci.h"
-#include "FastAllocString.h"
+#include "cint/G__ci.h"
 extern "C" {
 extern void G__cpp_setup_tagtablemydict();
 extern void G__cpp_setup_inheritancemydict();
