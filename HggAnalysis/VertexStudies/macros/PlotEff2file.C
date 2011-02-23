@@ -11,29 +11,22 @@
   TH1F* PtPt2_1 = (TH1F*) _file0->Get("PtGood");
   TH1F* PtBDT_1 = (TH1F*) _file0->Get("PtGood_BDT");
 
-  TGraphAsymmErrors* h_nvPt_Pt  = new TGraphAsymmErrors();
-  TGraphAsymmErrors* h_nvPt_BDT = new TGraphAsymmErrors();
-  TGraphAsymmErrors* h_nvNv_Pt  = new TGraphAsymmErrors();
-  TGraphAsymmErrors* h_nvNv_BDT = new TGraphAsymmErrors();
+  TGraphAsymmErrors effVsNv_BDT_1;
+  TGraphAsymmErrors effVsNv_Pt_1;
 
-   TH1F effVsNvPt_1 ("effPt_1","eff sumpt2", NvtAll_1->GetNbinsX(), NvtAll_1->GetXaxis()->GetXmin(), NvtAll_1->GetXaxis()->GetXmax()) ;
-   TH1F effVsNvBDT_1 ("effBDT_1","eff BDT", NvtAll_1->GetNbinsX(), NvtAll_1->GetXaxis()->GetXmin(), NvtAll_1->GetXaxis()->GetXmax()) ;
+  NvtPt2_1->Sumw2();  NvtBDT_1->Sumw2(); NvtAll_1->Sumw2();
+  
+  effVsNv_BDT_1.BayesDivide(NvtBDT_1,NvtAll_1, "cp"); effVsNv_BDT_1.SetLineColor(kGreen+1); effVsNv_BDT_1.SetMarkerColor(kGreen+1); 
+  effVsNv_Pt_1.BayesDivide(NvtPt2_1,NvtAll_1, "cp"); effVsNv_Pt_1.SetLineColor(2); effVsNv_Pt_1.SetMarkerColor(2); 
+  
+  
+  TGraphAsymmErrors effVsPt_Pt_1;
+  TGraphAsymmErrors effVsPt_BDT_1;
 
-   effVsNvPt_1.Sumw2();effVsNvBDT_1.Sumw2();
-   NvtPt2_1->Sumw2();  NvtBDT_1->Sumw2(); NvtAll_1->Sumw2();
+  PtPt2_1->Sumw2();  PtBDT_1->Sumw2(); PtAll_1->Sumw2();
 
-   effVsNvBDT_1.Divide(NvtBDT_1,NvtAll_1, 1,1,"B"); effVsNvBDT_1.SetLineColor(kGreen+1); effVsNvBDT_1.SetMarkerColor(kGreen+1); 
-   effVsNvPt_1.Divide(NvtPt2_1,NvtAll_1, 1,1,"B"); effVsNvPt_1.SetLineColor(2); effVsNvPt_1.SetMarkerColor(2); 
-
-
-   TH1F effVsPt_Pt_1 ("effPt_1","eff sumpt2", PtAll_1->GetNbinsX(), PtAll_1->GetXaxis()->GetXmin(), PtAll_1->GetXaxis()->GetXmax()) ;
-   TH1F effVsPt_BDT_1 ("effBDT_1","eff BDT", PtAll_1->GetNbinsX(), PtAll_1->GetXaxis()->GetXmin(), PtAll_1->GetXaxis()->GetXmax()) ;
-
-   effVsPt_Pt_1.Sumw2();effVsPt_BDT_1.Sumw2();
-   PtPt2_1->Sumw2();  PtBDT_1->Sumw2(); PtAll_1->Sumw2();
-
-   effVsPt_BDT_1.Divide(PtBDT_1,PtAll_1, 1,1,"B"); effVsPt_BDT_1.SetLineColor(kGreen+1); effVsPt_BDT_1.SetMarkerColor(kGreen+1); 
-   effVsPt_Pt_1.Divide(PtPt2_1,PtAll_1, 1,1,"B"); effVsPt_Pt_1.SetLineColor(2); effVsPt_Pt_1.SetMarkerColor(2); 
+  effVsPt_BDT_1.BayesDivide(PtBDT_1,PtAll_1,"cp"); effVsPt_BDT_1.SetLineColor(kGreen+1); effVsPt_BDT_1.SetMarkerColor(kGreen+1); 
+  effVsPt_Pt_1.BayesDivide(PtPt2_1,PtAll_1,"cp"); effVsPt_Pt_1.SetLineColor(2); effVsPt_Pt_1.SetMarkerColor(2); 
 
 
 
@@ -47,27 +40,25 @@
   TH1F* PtPt2_2 = (TH1F*) _file1->Get("PtGood");
   TH1F* PtBDT_2 = (TH1F*) _file1->Get("PtGood_BDT");
 
-  TH1F effVsNvPt_2 ("effPt_2","eff sumpt2", NvtAll_2->GetNbinsX(), NvtAll_2->GetXaxis()->GetXmin(), NvtAll_2->GetXaxis()->GetXmax()) ;
-  TH1F effVsNvBDT_2 ("effBDT_2","eff BDT", NvtAll_2->GetNbinsX(), NvtAll_2->GetXaxis()->GetXmin(), NvtAll_2->GetXaxis()->GetXmax()) ;
+  TGraphAsymmErrors effVsNv_Pt_2;
+  TGraphAsymmErrors effVsNv_BDT_2;
   
-  effVsNvPt_2.Sumw2();effVsNvBDT_2.Sumw2();
   NvtPt2_2->Sumw2();  NvtBDT_2->Sumw2(); NvtAll_2->Sumw2();
   
-  effVsNvBDT_2.Divide(NvtBDT_2,NvtAll_2, 1,1,"B"); effVsNvBDT_2.SetLineColor(6); effVsNvBDT_2.SetMarkerColor(6); 
-  effVsNvPt_2.Divide(NvtPt2_2,NvtAll_2, 1,1,"B"); effVsNvPt_2.SetLineColor(4); effVsNvPt_2.SetMarkerColor(4); 
+  effVsNv_BDT_2.BayesDivide(NvtBDT_2,NvtAll_2, "cp"); effVsNv_BDT_2.SetLineColor(6); effVsNv_BDT_2.SetMarkerColor(6); 
+  effVsNv_Pt_2.BayesDivide(NvtPt2_2,NvtAll_2, "cp"); effVsNv_Pt_2.SetLineColor(4); effVsNv_Pt_2.SetMarkerColor(4); 
   
 
-   TH1F effVsPt_Pt_2 ("effPt_2","eff sumpt2", PtAll_2->GetNbinsX(), PtAll_2->GetXaxis()->GetXmin(), PtAll_2->GetXaxis()->GetXmax()) ;
-   TH1F effVsPt_BDT_2 ("effBDT_2","eff BDT", PtAll_2->GetNbinsX(), PtAll_2->GetXaxis()->GetXmin(), PtAll_2->GetXaxis()->GetXmax()) ;
+  TGraphAsymmErrors effVsPt_Pt_2;
+  TGraphAsymmErrors effVsPt_BDT_2;
 
-   effVsPt_Pt_2.Sumw2();effVsPt_BDT_2.Sumw2();
    PtPt2_2->Sumw2();  PtBDT_2->Sumw2(); PtAll_2->Sumw2();
 
-   effVsPt_BDT_2.Divide(PtBDT_2,PtAll_2, 1,1,"B"); effVsPt_BDT_2.SetLineColor(6); effVsPt_BDT_2.SetMarkerColor(6); 
-   effVsPt_Pt_2.Divide(PtPt2_2,PtAll_2, 1,1,"B"); effVsPt_Pt_2.SetLineColor(4); effVsPt_Pt_2.SetMarkerColor(4); 
+   effVsPt_BDT_2.BayesDivide(PtBDT_2,PtAll_2, "cp"); effVsPt_BDT_2.SetLineColor(6); effVsPt_BDT_2.SetMarkerColor(6); 
+   effVsPt_Pt_2.BayesDivide(PtPt2_2,PtAll_2, "cp"); effVsPt_Pt_2.SetLineColor(4); effVsPt_Pt_2.SetMarkerColor(4); 
 
   
-   int nMBMax =20;
+   int nMBMax =12;
 
    TLegend legend1(0.68, 0.78, 0.99, 0.99);
    legend1.SetFillColor(kWhite);
@@ -77,19 +68,21 @@
    cc.SetStats(0); cc.GetXaxis()->SetTitle("number of PV"); cc.GetYaxis()->SetTitle("efficiency");
    cc.Draw();
    
-   effVsNvPt_1.Draw("esame");
-   legend1.AddEntry(&effVsNvPt_1,"Pt_1");
+   effVsNv_Pt_1.Draw("p,same");
+   legend1.AddEntry(&effVsNv_Pt_1,"Pt_1","LP");
 
-   effVsNvBDT_1.Draw("esame");
-   legend1.AddEntry(&effVsNvBDT_1,"BDT_1");
+   effVsNv_BDT_1.Draw("p,same");
+   legend1.AddEntry(&effVsNv_BDT_1,"BDT_1","LP");
 
-   effVsNvPt_2.Draw("esame");
-   legend1.AddEntry(&effVsNvPt_2,"Pt_2");
+   effVsNv_Pt_2.Draw("p,same");
+   legend1.AddEntry(&effVsNv_Pt_2,"Pt_2","LP");
 
-   effVsNvBDT_2.Draw("esame");
-   legend1.AddEntry(&effVsNvBDT_2,"BDT_2");
+   effVsNv_BDT_2.Draw("P,same");
+   legend1.AddEntry(&effVsNv_BDT_2,"BDT_2","LP");
 
    legend1.Draw();
+   c1.SetGridx();
+   c1.SetGridy();
 
    TLegend legend2(0.68, 0.78, 0.99, 0.99);
    legend2.SetFillColor(kWhite);
@@ -100,17 +93,19 @@
    dd.Draw();
 
    
-   effVsPt_Pt_1.Draw("esame");
-   legend2.AddEntry(&effVsPt_Pt_1,"Pt_1");
+   effVsPt_Pt_1.Draw("P,same");
+   legend2.AddEntry(&effVsPt_Pt_1,"Pt_1","LP");
 
-   effVsPt_BDT_1.Draw("esame");
-   legend2.AddEntry(&effVsPt_BDT_1,"BDT_1");
+   effVsPt_BDT_1.Draw("P,same");
+   legend2.AddEntry(&effVsPt_BDT_1,"BDT_1","LP");
 
-   effVsPt_Pt_2.Draw("esame");
-   legend2.AddEntry(&effVsPt_Pt_2,"Pt_2");
+   effVsPt_Pt_2.Draw("P,same");
+   legend2.AddEntry(&effVsPt_Pt_2,"Pt_2","LP");
 
-   effVsPt_BDT_2.Draw("esame");
-   legend2.AddEntry(&effVsPt_BDT_2,"BDT_2");
+   effVsPt_BDT_2.Draw("P,same");
+   legend2.AddEntry(&effVsPt_BDT_2,"BDT_2","LP");
    
    legend2.Draw();
+   c2.SetGridx();
+   c2.SetGridy();
 }
