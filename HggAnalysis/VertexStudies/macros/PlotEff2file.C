@@ -11,6 +11,11 @@
   TH1F* PtPt2_1 = (TH1F*) _file0->Get("PtGood");
   TH1F* PtBDT_1 = (TH1F*) _file0->Get("PtGood_BDT");
 
+  TGraphAsymmErrors* h_nvPt_Pt  = new TGraphAsymmErrors();
+  TGraphAsymmErrors* h_nvPt_BDT = new TGraphAsymmErrors();
+  TGraphAsymmErrors* h_nvNv_Pt  = new TGraphAsymmErrors();
+  TGraphAsymmErrors* h_nvNv_BDT = new TGraphAsymmErrors();
+
    TH1F effVsNvPt_1 ("effPt_1","eff sumpt2", NvtAll_1->GetNbinsX(), NvtAll_1->GetXaxis()->GetXmin(), NvtAll_1->GetXaxis()->GetXmax()) ;
    TH1F effVsNvBDT_1 ("effBDT_1","eff BDT", NvtAll_1->GetNbinsX(), NvtAll_1->GetXaxis()->GetXmin(), NvtAll_1->GetXaxis()->GetXmax()) ;
 

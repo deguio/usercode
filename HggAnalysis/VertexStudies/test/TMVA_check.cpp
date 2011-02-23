@@ -51,6 +51,7 @@ int main(int argc, char** argv)
   std::string baseDir = gConfigParser -> readStringOption("Input::baseDir");
   std::string inputFile = gConfigParser -> readStringOption("Input::inputFile");
   std::string treeName = gConfigParser -> readStringOption("Input::treeName");
+  std::string weights = gConfigParser -> readStringOption("Input::weights");
   
   std::string outputRootFilePath = gConfigParser -> readStringOption("Output::outputRootFilePath");
   std::string outputRootFileName = gConfigParser -> readStringOption("Output::outputRootFileName");  
@@ -98,14 +99,14 @@ int main(int argc, char** argv)
    // those given in the weight file(s) that you use
 
    Float_t sumPt2_TMVA, tracksNum_TMVA, deltaPhi_HSumPt_TMVA, sumPtModOversum2PhoPt_TMVA, sum2PhoPt_TMVA;
-   TMVAreader->AddVariable( "log(sumPt2)"     , &sumPt2_TMVA);
+   TMVAreader->AddVariable( "sumPt2"          , &sumPt2_TMVA);
    TMVAreader->AddVariable( "tracksNum"       , &tracksNum_TMVA);
    TMVAreader->AddVariable( "deltaPhi_HSumPt" , &deltaPhi_HSumPt_TMVA);
+   TMVAreader->AddVariable( "sum2PhoPt"       , &sum2PhoPt_TMVA);
    TMVAreader->AddVariable( "sumPtMod/sum2PhoPt" , &sumPtModOversum2PhoPt_TMVA);
-   //TMVAreader->AddVariable( "sum2PhoPt" , &sum2PhoPt_TMVA);
 
 
-   TMVAreader->BookMVA( "BDTmethod", "/Users/deguio/Documents/Universita/Lavoro/VertexStudies/TMVA_studies/weights/TMVAClassification_BDT.weights.xml" ); 
+   TMVAreader->BookMVA( "BDTmethod", weights.c_str() ); 
 
 
    //start loop over entries
@@ -310,11 +311,11 @@ int main(int argc, char** argv)
 	   
 	   
 	   //TMVA variables
-	   sumPt2_TMVA = log(sumpt2);
+	   sumPt2_TMVA = sumpt2;
 	   tracksNum_TMVA = ngoodTracks;
 	   deltaPhi_HSumPt_TMVA = deltaPhi( sumTracks.phi(),sum2pho.phi() );
-	   sumPtModOversum2PhoPt_TMVA = sqrt( sumTracks.perp2() ) / sum2pho.pt();
 	   sum2PhoPt_TMVA = sum2pho.pt();
+	   sumPtModOversum2PhoPt_TMVA = sqrt( sumTracks.perp2() ) / sum2pho.pt();
 	   
 	   //Evaluate TMVA
 	   Double_t mva = TMVAreader->EvaluateMVA( "BDTmethod" ); 

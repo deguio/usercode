@@ -98,16 +98,21 @@ int main(int argc, char** argv)
 
        ROOT::Math::XYZTVector sum2pho = photons->at(indpho1)+ photons->at(indpho2);
 
-       int npv = PV_z->size();
-       if ( npv > 0 && PV_nTracks->at(0) < 1) {npv = 0;}
-       if (npv == 0 ) continue;
-    
+       //int npv = PV_z->size();
+       //if ( npv > 0 && PV_nTracks->at(0) < 1) {npv = 0;}
+       //if (npv == 0 ) continue;
+       std::vector<int> vt_in;
+       for ( int uu = 0; uu <PV_z->size(); uu++){
+	 if( PV_nTracks->at(uu) > 3 || PV_SumPt2->at(uu) > 10 ) { vt_in.push_back(uu);}
+       }
+       int npv = vt_in.size();
+
        //look if the H vertex matches one of the PV vertices
        float dmin = 10000;
        int iClosest = -1;
        for ( int uu = 0; uu < npv; uu++)
 	 {
-	   float distt = fabs( PV_z->at(uu) - MCvertex->at(0).Z() );
+	   float distt = fabs( PV_z->at(vt_in[uu]) - MCvertex->at(0).Z() );
 	   if ( distt < dmin)
 	     {
 	       dmin = distt;
@@ -125,7 +130,7 @@ int main(int argc, char** argv)
 	     ROOT::Math::XYZVector sumTracksInCone_30;
 	     ROOT::Math::XYZVector sumTracksInCone_45;
 	     for (unsigned int kk = 0; kk < PVtracks->size(); ++kk)
-	       if (PVtracks_PVindex->at(kk) == uu)
+	       if (PVtracks_PVindex->at(kk) == vt_in[uu])
 		 {
 		   sumTracks += PVtracks->at(kk);
 		   if ( deltaPhi(PVtracks->at(kk).phi(), sum2pho.phi()) > PI*11./12. ) sumTracksInCone_30 += PVtracks->at(kk);
@@ -133,15 +138,15 @@ int main(int argc, char** argv)
 		 }
 
 	     //variable filling
-	     sumPt2 = PV_SumPt2->at(uu);
-	     sumPt  = PV_SumPt->at(uu);
+	     sumPt2 = PV_SumPt2->at(vt_in[uu]);
+	     sumPt  = PV_SumPt->at(vt_in[uu]);
 	     deltaPhi_HSumPt = deltaPhi( sumTracks.phi(),sum2pho.phi());
 	     sumPtMod = sqrt( sumTracks.perp2() );
 	     sumPtModInCone_30 = sqrt( sumTracksInCone_30.perp2() );
 	     sumPtModInCone_45 = sqrt( sumTracksInCone_45.perp2() );
 	     sum2PhoPt = sum2pho.pt();
-	     tracksNum = PV_nTracks->at(uu);
-	     normalizedChi2 = PV_normalizedChi2->at(uu);	 
+	     tracksNum = PV_nTracks->at(vt_in[uu]);
+	     normalizedChi2 = PV_normalizedChi2->at(vt_in[uu]);	 
 
 	     isSig = 0;
 	     if (uu == iClosest)
@@ -152,7 +157,7 @@ int main(int argc, char** argv)
      }
    
 
-   TFile fout("NtupleForTMVA.root","RECREATE");
+   TFile fout("output/NtupleForTMVA.root","RECREATE");
    
    outTree -> Write();
 
