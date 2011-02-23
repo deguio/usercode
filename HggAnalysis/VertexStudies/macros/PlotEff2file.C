@@ -69,17 +69,17 @@
    cc.Draw();
    
    effVsNv_Pt_1.Draw("p,same");
-   legend1.AddEntry(&effVsNv_Pt_1,"Pt_1","LP");
+   legend1.AddEntry(&effVsNv_Pt_1,"SumPt2 Zee MC","LP");
 
    effVsNv_BDT_1.Draw("p,same");
-   legend1.AddEntry(&effVsNv_BDT_1,"BDT_1","LP");
-
+   legend1.AddEntry(&effVsNv_BDT_1,"BDT Zee MC","LP");
+   
    effVsNv_Pt_2.Draw("p,same");
-   legend1.AddEntry(&effVsNv_Pt_2,"Pt_2","LP");
+   legend1.AddEntry(&effVsNv_Pt_2,"SumPt2 Hgg","LP");
 
    effVsNv_BDT_2.Draw("P,same");
-   legend1.AddEntry(&effVsNv_BDT_2,"BDT_2","LP");
-
+   legend1.AddEntry(&effVsNv_BDT_2,"BDT Hgg","LP");
+   
    legend1.Draw();
    c1.SetGridx();
    c1.SetGridy();
@@ -94,16 +94,16 @@
 
    
    effVsPt_Pt_1.Draw("P,same");
-   legend2.AddEntry(&effVsPt_Pt_1,"Pt_1","LP");
+   legend2.AddEntry(&effVsPt_Pt_1,"SumPt2 Zee MC","LP");
 
    effVsPt_BDT_1.Draw("P,same");
-   legend2.AddEntry(&effVsPt_BDT_1,"BDT_1","LP");
+   legend2.AddEntry(&effVsPt_BDT_1,"BDT Zee MC","LP");
 
    effVsPt_Pt_2.Draw("P,same");
-   legend2.AddEntry(&effVsPt_Pt_2,"Pt_2","LP");
+   legend2.AddEntry(&effVsPt_Pt_2,"SumPt2 Hgg","LP");
 
    effVsPt_BDT_2.Draw("P,same");
-   legend2.AddEntry(&effVsPt_BDT_2,"BDT_2","LP");
+   legend2.AddEntry(&effVsPt_BDT_2,"BDT Hgg","LP");
    
    legend2.Draw();
    c2.SetGridx();

@@ -129,23 +129,32 @@ int main(int argc, char** argv)
 	     ROOT::Math::XYZVector sumTracks;
 	     ROOT::Math::XYZVector sumTracksInCone_30;
 	     ROOT::Math::XYZVector sumTracksInCone_45;
+
+	     sumPt2 = 0;
+	     sumPt = 0;
+	     tracksNum = 0;
 	     for (unsigned int kk = 0; kk < PVtracks->size(); ++kk)
 	       if (PVtracks_PVindex->at(kk) == vt_in[uu])
 		 {
+		   if(PVtracks->at(kk).perp2() < 0.25) continue;
 		   sumTracks += PVtracks->at(kk);
+		   sumPt2 += PVtracks->at(kk).perp2();
+		   sumPt  += sqrt(PVtracks->at(kk).perp2());
+		   ++tracksNum;
+		   
 		   if ( deltaPhi(PVtracks->at(kk).phi(), sum2pho.phi()) > PI*11./12. ) sumTracksInCone_30 += PVtracks->at(kk);
 		   if ( deltaPhi(PVtracks->at(kk).phi(), sum2pho.phi()) > PI*7./8. ) sumTracksInCone_45 += PVtracks->at(kk);
 		 }
 
 	     //variable filling
-	     sumPt2 = PV_SumPt2->at(vt_in[uu]);
-	     sumPt  = PV_SumPt->at(vt_in[uu]);
+	     // 	     sumPt2 = PV_SumPt2->at(vt_in[uu]);
+	     // 	     sumPt  = PV_SumPt->at(vt_in[uu]);
 	     deltaPhi_HSumPt = deltaPhi( sumTracks.phi(),sum2pho.phi());
 	     sumPtMod = sqrt( sumTracks.perp2() );
 	     sumPtModInCone_30 = sqrt( sumTracksInCone_30.perp2() );
 	     sumPtModInCone_45 = sqrt( sumTracksInCone_45.perp2() );
 	     sum2PhoPt = sum2pho.pt();
-	     tracksNum = PV_nTracks->at(vt_in[uu]);
+	     //	     tracksNum = PV_nTracks->at(vt_in[uu]);
 	     normalizedChi2 = PV_normalizedChi2->at(vt_in[uu]);	 
 
 	     isSig = 0;
@@ -157,7 +166,7 @@ int main(int argc, char** argv)
      }
    
 
-   TFile fout("output/NtupleForTMVA.root","RECREATE");
+   TFile fout("output/NtupleForTMVA_thr05.root","RECREATE");
    
    outTree -> Write();
 

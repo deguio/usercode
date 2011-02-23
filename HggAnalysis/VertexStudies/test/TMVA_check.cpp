@@ -58,9 +58,11 @@ int main(int argc, char** argv)
   
   int entryMIN = gConfigParser -> readIntOption("Options::entryMIN");
   int entryMAX = gConfigParser -> readIntOption("Options::entryMAX");
-  int isZee      = gConfigParser -> readIntOption("Options::isZee");
-  int isZmumu      = gConfigParser -> readIntOption("Options::isZmumu");
+  int isZee    = gConfigParser -> readIntOption("Options::isZee");
+  int isZmumu  = gConfigParser -> readIntOption("Options::isZmumu");
   int isHiggs  = gConfigParser -> readIntOption("Options::isHiggs");
+
+  double trackThr = gConfigParser -> readDoubleOption("Options::trackThr");
 
   std::cout << std::endl;
   std::cout << std::endl;
@@ -72,9 +74,9 @@ int main(int argc, char** argv)
 
   treeReader reader((TTree*)(chain));
   
-  TH1F PtAll("PtAll","Pt of boson all",40,0,200);
-  TH1F PtGood("PtGood","Pt of boson good",40,0,200);
-  TH1F PtGood_BDT("PtGood_BDT","Pt of boson good BDT",40,0,200);
+  TH1F PtAll("PtAll","Pt of boson all",200,0,200);
+  TH1F PtGood("PtGood","Pt of boson good",200,0,200);
+  TH1F PtGood_BDT("PtGood_BDT","Pt of boson good BDT",200,0,200);
   
   TH1F NvtAll("NvtAll","number of PV all",20,0,20);
   TH1F NvtGood("NvtGood","number of PV good",20,0,20);
@@ -87,6 +89,8 @@ int main(int argc, char** argv)
   TH1F pt2bkg("pt2bkg","pt2 bkg",500,0,500);
 
   TH1F nmatched("nmatched","nm",100,0,10);
+
+  TH1F sum2Pho_overMC("sum2Pho_overMC","Sum2Pho/mcH",180,-3.,3.);
 
    std::cout<<"found "<< reader.GetEntries() <<" entries"<<std::endl;
    
@@ -144,6 +148,8 @@ int main(int argc, char** argv)
 	 {
 	   //taking H variables
 	   std::vector<ROOT::Math::XYZVector>* TrueVertex = reader.Get3V("mc_H_vertex");
+	   std::vector<ROOT::Math::XYZTVector>* mcH = reader.Get4V("mc_H");
+
 	   if (TrueVertex->size() != 1) continue;
 	   TrueVertex_Z = TrueVertex->at(0).Z();
 	   
@@ -175,7 +181,10 @@ int main(int argc, char** argv)
 	   if ( ngood != 2) continue;
 	   
 	   sum2pho = photons->at(indpho1)+ photons->at(indpho2);
+
 	   if ( fabs(sum2pho.M() - 120) > 4 ) continue;
+
+	   if (mcH->at(0).Pt() > 5.) sum2Pho_overMC.Fill( sum2pho.Pt()/mcH->at(0).Pt() );
 
 	 }//Hgg
        //---------------------------
@@ -302,6 +311,7 @@ int main(int argc, char** argv)
 	     {
 	       if (PVtracks_PVindex->at(kk) == goodIndex[uu])
 		 {
+		   if ( PVtracks->at(kk).perp2() < trackThr*trackThr ) continue;
 		   sumTracks += PVtracks->at(kk);
 		   summodpt += sqrt((PVtracks->at(kk)).perp2());
 		   sumpt2 += PVtracks->at(kk).perp2();
@@ -368,6 +378,8 @@ int main(int argc, char** argv)
    pt2h.Write();
    
    nmatched.Write();
+
+   sum2Pho_overMC.Write();
    ff.Close();
    return 0;
    
