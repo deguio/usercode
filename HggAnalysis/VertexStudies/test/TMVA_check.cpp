@@ -74,13 +74,17 @@ int main(int argc, char** argv)
 
   treeReader reader((TTree*)(chain));
   
-  TH1F PtAll("PtAll","Pt of boson all",200,0,200);
-  TH1F PtGood("PtGood","Pt of boson good",200,0,200);
-  TH1F PtGood_BDT("PtGood_BDT","Pt of boson good BDT",200,0,200);
+  TH1F PtAll("PtAll","Pt of boson all",40,0,200);
+  TH1F PtGood("PtGood","Pt of boson good",40,0,200);
+  TH1F PtGood_BDT("PtGood_BDT","Pt of boson good BDT",40,0,200);
   
   TH1F NvtAll("NvtAll","number of PV all",20,0,20);
   TH1F NvtGood("NvtGood","number of PV good",20,0,20);
   TH1F NvtGood_BDT("NvtGood_BDT","number of PV good BDT",20,0,20);
+
+  TH2F PtAll_vsNvtAll   ("PtAll_vsNvtAll","PtAll_vsNvtAll",20,0,20,40,0,200);
+  TH2F PtGood_vsNvtGood ("PtGood_vsNvtGood","PtGood_vsNvtGood",20,0,20,40,0,200);
+  TH2F PtBDT_vsNvtBDT   ("PtBDT_vsNvtBDT","PtBDT_vsNvtBDT",20,0,20,40,0,200);
 
   TH1F bdth("bdtH"," bdt H",500,-1,1);
   TH1F bdtbkg("bdtBkg"," bdt bkg",500,-1,1);
@@ -271,14 +275,16 @@ int main(int argc, char** argv)
        int npv = goodIndex.size();
        if (npv == 0 ){continue;}
        
-       PtAll.Fill(sum2pho.pt() );
+       PtAll.Fill( sum2pho.pt() );
        NvtAll.Fill(npv);
-       
+       PtAll_vsNvtAll.Fill(npv,sum2pho.pt());
+
        //is sumPt2 the good choice?
        if( fabs(PV_z->at(goodIndex[0]) - TrueVertex_Z ) < 0.3 )
 	 {
 	   PtGood.Fill( sum2pho.pt() );
 	   NvtGood.Fill(npv);
+	   PtGood_vsNvtGood.Fill(npv,sum2pho.pt());
 	 }
        
        
@@ -354,7 +360,8 @@ int main(int argc, char** argv)
        if( fabs(PV_z->at(goodIndex[TMVAind]) - TrueVertex_Z ) < 0.3 )
 	 {
 	   PtGood_BDT.Fill( sum2pho.pt() );
-	   NvtGood_BDT.Fill(npv);
+	   NvtGood_BDT.Fill( npv );
+	   PtBDT_vsNvtBDT.Fill( npv,sum2pho.pt() );
 	 }
        
        
@@ -367,9 +374,13 @@ int main(int argc, char** argv)
    PtGood.Write();
    NvtAll.Write();
    NvtGood.Write();
+
+   PtAll_vsNvtAll.Write();
+   PtGood_vsNvtGood.Write();
    
    PtGood_BDT.Write();
    NvtGood_BDT.Write();
+   PtBDT_vsNvtBDT.Write();
    
    bdtbkg.Write();
    bdth.Write();
