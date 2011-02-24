@@ -2,7 +2,7 @@
   //gROOT->Reset();
   //TFile f1("TMVA_check.root");
   //TFile f1("./output/TMVA_check_ZeeMC.root");
- 
+
   TH1F* NvtAll_1 = (TH1F*) _file0->Get("NvtAll");
   TH1F* NvtPt2_1 = (TH1F*) _file0->Get("NvtGood");
   TH1F* NvtBDT_1 = (TH1F*) _file0->Get("NvtGood_BDT");
@@ -10,6 +10,10 @@
   TH1F* PtAll_1 = (TH1F*) _file0->Get("PtAll");
   TH1F* PtPt2_1 = (TH1F*) _file0->Get("PtGood");
   TH1F* PtBDT_1 = (TH1F*) _file0->Get("PtGood_BDT");
+
+  TH2F* PtAll_vsNvtAll_1 = (TH2F*)_file0->Get("PtAll_vsNvtAll");
+  TH2F* PtPt2_vsNvtPt2_1 = (TH2F*)_file0->Get("PtGood_vsNvtGood");
+  TH2F* PtBDT_vsNvtBDT_1 = (TH2F*)_file0->Get("PtBDT_vsNvtBDT");
 
   TGraphAsymmErrors effVsNv_BDT_1;
   TGraphAsymmErrors effVsNv_Pt_1;
@@ -29,8 +33,25 @@
   effVsPt_Pt_1.BayesDivide(PtPt2_1,PtAll_1,"cp"); effVsPt_Pt_1.SetLineColor(2); effVsPt_Pt_1.SetMarkerColor(2); 
 
 
+  TH2F* eff2D_Pt_1 = new TH2F("eff2D_Pt_1","eff2D_Pt_1",
+			      PtPt2_vsNvtPt2_1->GetNbinsX(),
+			      PtPt2_vsNvtPt2_1->GetXaxis()->GetXmin(),
+			      PtPt2_vsNvtPt2_1->GetXaxis()->GetXmax(),
+			      PtPt2_vsNvtPt2_1->GetNbinsY(),
+			      PtPt2_vsNvtPt2_1->GetYaxis()->GetXmin(),
+			      PtPt2_vsNvtPt2_1->GetYaxis()->GetXmax() );
+  eff2D_Pt_1 -> Divide(PtPt2_vsNvtPt2_1,PtAll_vsNvtAll_1);
+  
+  TH2F* eff2D_BDT_1 = new TH2F("eff2D_BDT_1","eff2D_BDT_1",
+			       PtBDT_vsNvtBDT_1->GetNbinsX(),
+			       PtBDT_vsNvtBDT_1->GetXaxis()->GetXmin(),
+			       PtBDT_vsNvtBDT_1->GetXaxis()->GetXmax(),
+			       PtBDT_vsNvtBDT_1->GetNbinsY(),
+			       PtBDT_vsNvtBDT_1->GetYaxis()->GetXmin(),
+			       PtBDT_vsNvtBDT_1->GetYaxis()->GetXmax() );
+  eff2D_BDT_1 -> Divide(PtBDT_vsNvtBDT_1,PtAll_vsNvtAll_1);
 
-   //TFile f2("./output/TMVA_check_ZmumuMC.root");
+  //    TFile f2("./output/TMVA_check_ZmumuMC.root");
 
   TH1F* NvtAll_2 = (TH1F*) _file1->Get("NvtAll");
   TH1F* NvtPt2_2 = (TH1F*) _file1->Get("NvtGood");
@@ -40,6 +61,10 @@
   TH1F* PtPt2_2 = (TH1F*) _file1->Get("PtGood");
   TH1F* PtBDT_2 = (TH1F*) _file1->Get("PtGood_BDT");
 
+  TH2F* PtAll_vsNvtAll_2 = (TH2F*)_file1->Get("PtAll_vsNvtAll");
+  TH2F* PtPt2_vsNvtPt2_2 = (TH2F*)_file1->Get("PtGood_vsNvtGood");
+  TH2F* PtBDT_vsNvtBDT_2 = (TH2F*)_file1->Get("PtBDT_vsNvtBDT");
+
   TGraphAsymmErrors effVsNv_Pt_2;
   TGraphAsymmErrors effVsNv_BDT_2;
   
@@ -48,16 +73,35 @@
   effVsNv_BDT_2.BayesDivide(NvtBDT_2,NvtAll_2, "cp"); effVsNv_BDT_2.SetLineColor(6); effVsNv_BDT_2.SetMarkerColor(6); 
   effVsNv_Pt_2.BayesDivide(NvtPt2_2,NvtAll_2, "cp"); effVsNv_Pt_2.SetLineColor(4); effVsNv_Pt_2.SetMarkerColor(4); 
   
-
+  
   TGraphAsymmErrors effVsPt_Pt_2;
   TGraphAsymmErrors effVsPt_BDT_2;
-
-   PtPt2_2->Sumw2();  PtBDT_2->Sumw2(); PtAll_2->Sumw2();
-
-   effVsPt_BDT_2.BayesDivide(PtBDT_2,PtAll_2, "cp"); effVsPt_BDT_2.SetLineColor(6); effVsPt_BDT_2.SetMarkerColor(6); 
-   effVsPt_Pt_2.BayesDivide(PtPt2_2,PtAll_2, "cp"); effVsPt_Pt_2.SetLineColor(4); effVsPt_Pt_2.SetMarkerColor(4); 
-
   
+  PtPt2_2->Sumw2();  PtBDT_2->Sumw2(); PtAll_2->Sumw2();
+  
+  effVsPt_BDT_2.BayesDivide(PtBDT_2,PtAll_2, "cp"); effVsPt_BDT_2.SetLineColor(6); effVsPt_BDT_2.SetMarkerColor(6); 
+  effVsPt_Pt_2.BayesDivide(PtPt2_2,PtAll_2, "cp"); effVsPt_Pt_2.SetLineColor(4); effVsPt_Pt_2.SetMarkerColor(4); 
+
+  TH2F* eff2D_Pt_2 = new TH2F("eff2D_Pt_2","eff2D_Pt_2",
+			      PtPt2_vsNvtPt2_2->GetNbinsX(),
+			      PtPt2_vsNvtPt2_2->GetXaxis()->GetXmin(),
+			      PtPt2_vsNvtPt2_2->GetXaxis()->GetXmax(),
+			      PtPt2_vsNvtPt2_2->GetNbinsY(),
+			      PtPt2_vsNvtPt2_2->GetYaxis()->GetXmin(),
+			      PtPt2_vsNvtPt2_2->GetYaxis()->GetXmax() );
+  eff2D_Pt_2 -> Divide(PtPt2_vsNvtPt2_2,PtAll_vsNvtAll_2);
+
+  TH2F* eff2D_BDT_2 = new TH2F("eff2D_BDT_2","eff2D_BDT_1",
+			       PtBDT_vsNvtBDT_2->GetNbinsX(),
+			       PtBDT_vsNvtBDT_2->GetXaxis()->GetXmin(),
+			       PtBDT_vsNvtBDT_2->GetXaxis()->GetXmax(),
+			       PtBDT_vsNvtBDT_2->GetNbinsY(),
+			       PtBDT_vsNvtBDT_2->GetYaxis()->GetXmin(),
+			       PtBDT_vsNvtBDT_2->GetYaxis()->GetXmax() );
+  eff2D_BDT_2 -> Divide(PtBDT_vsNvtBDT_2,PtAll_vsNvtAll_2);
+
+
+
    int nMBMax =12;
 
    TLegend legend1(0.68, 0.78, 0.99, 0.99);
@@ -108,4 +152,17 @@
    legend2.Draw();
    c2.SetGridx();
    c2.SetGridy();
+
+   TCanvas c3;
+   eff2D_Pt_1 -> SetTitle("SumPt2 Zee MC");
+   eff2D_Pt_1 -> Draw("colz");
+   TCanvas c4;
+   eff2D_BDT_1 -> SetTitle("BDT Zee MC");
+   eff2D_BDT_1 -> Draw("colz");
+   TCanvas c5;
+   eff2D_Pt_2 -> SetTitle("SumPt2 Hgg");   
+   eff2D_Pt_2 -> Draw("colz");
+   TCanvas c6;
+   eff2D_BDT_2 -> SetTitle("BDT Hgg");
+   eff2D_BDT_2 -> Draw("colz");
 }
