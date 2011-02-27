@@ -254,6 +254,10 @@ int main(int argc, char** argv)
 	   TrueVertex_Z = PV_z->at(0) + (muons_dz_PV_noMuon->at(indmu1) + muons_dz_PV_noMuon->at(indmu2))/2.;
 	   
 	 }//Zmumu end
+
+       //photon/lepton momentum
+       sum2PhoPt          = sum2pho.pt();	   
+
        
        // //vettore degli indici dei PV buoni (no splitting)
        // std::vector<int> goodIndex;
@@ -281,14 +285,14 @@ int main(int argc, char** argv)
        for ( unsigned int uu = 0; uu < PV_z->size(); uu++)
 	 {
 	   nPVTracks[uu]     = 0;
+	   sumModPt[uu] = 0;
+	   sumPt2[uu]   = 0;
 
 	   ROOT::Math::XYZVector sumTracks;
 	   ROOT::Math::XYZVector sumTracksInCone_30;
 	   ROOT::Math::XYZVector sumTracksInCone_45;
 
-	   sumModPt[uu] = 0;
-	   sumPt2[uu]   = 0;
-	   
+	   //PV tracks loop
 	   for (unsigned int kk = 0; kk < PVtracks->size(); ++kk)
 	     {
 	       if ( PVtracks->at(kk).perp2() < trackThr*trackThr ) continue;
@@ -317,7 +321,6 @@ int main(int argc, char** argv)
 	 }//vertices loop
 
        nVertices = PV_z->size();
-       sum2PhoPt          = sum2pho.pt();	   
 
 
 
