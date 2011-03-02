@@ -1,5 +1,5 @@
 {
-  TFile fmva("/Users/deguio/Documents/Universita/Lavoro/VertexStudies/Analysis/MyTest/output/TMVA_check.root");
+  TFile fmva("/Users/deguio/Documents/Universita/Lavoro/Hgg/HggAnalysis/VertexStudies/output/TMVA_check.root");
   TH1F* mva_s = (TH1F*) fmva.Get("bdtH");
   TH1F* mva_b = (TH1F*) fmva.Get("bdtBkg");
   TH1F* sigPt2 = (TH1F*) fmva.Get("pt2h");

@@ -71,8 +71,11 @@ int main(int argc, char** argv)
 
 
   //Filling the ntuple
-  int isSig, evtNumber, nVertices;
-  float sumPt2, modSumPt, modSumPtInCone_30, modSumPtInCone_45, deltaPhi_HSumPt, sum2PhoPt, tracksNum, tracksNumPt05, tracksNumPt4, normalizedChi2, sumModPt;
+  int isSig, evtNumber, nVertices, nTracks, nTracksPt05, nTracksPt4;
+  float sumPt2, modSumPt, modSumPtInCone_30, modSumPtInCone_45, deltaPhi_HSumPt, sum2PhoPt, normalizedChi2, sumModPt;
+  
+  float trackPx[500], trackPy[500], trackPz[500];
+
   TTree* outTree = new TTree("TMVA_vertexTree","TMVA_vertexTree");
   outTree -> Branch("evtNumber", &evtNumber, "evtNumber/I");
   outTree -> Branch("nVertices", &nVertices, "nVertices/I");
@@ -84,11 +87,15 @@ int main(int argc, char** argv)
   outTree -> Branch("modSumPtInCone_45", &modSumPtInCone_45,  "modSumPtInCone_45/F");
   outTree -> Branch("deltaPhi_HSumPt", &deltaPhi_HSumPt,  "deltaPhi_HSumPt/F");
   outTree -> Branch("sum2PhoPt",  &sum2PhoPt,   "sum2PhoPt/F");
-  outTree -> Branch("tracksNum",&tracksNum, "tracksNum/F");
-  outTree -> Branch("tracksNumPt05",&tracksNumPt05, "tracksNumPt05/F");
-  outTree -> Branch("tracksNumPt4",&tracksNumPt4, "tracksNumPt4/F");
+  outTree -> Branch("nTracks",&nTracks, "nTracks/I");
+  outTree -> Branch("nTracksPt05",&nTracksPt05, "nTracksPt05/I");
+  outTree -> Branch("nTracksPt4",&nTracksPt4, "nTracksPt4/I");
   outTree -> Branch("normalizedChi2",&normalizedChi2, "normalizedChi2/F");
   
+  outTree -> Branch("trackPx",trackPx, "trackPx[nTracks]/F");
+  outTree -> Branch("trackPy",trackPy, "trackPy[nTracks]/F");
+  outTree -> Branch("trackPz",trackPz, "trackPz[nTracks]/F");
+
   outTree -> Branch("isSig", &isSig, "isSig/I");
 
 
@@ -280,9 +287,9 @@ int main(int argc, char** argv)
        //pt balance for vertexId
        for ( int uu = 0; uu < npv; uu++)
 	 {
-	   tracksNum     = 0;
-	   tracksNumPt05 = 0;
-	   tracksNumPt4  = 0;
+	   nTracks     = 0;
+	   nTracksPt05 = 0;
+	   nTracksPt4  = 0;
 
 	   ROOT::Math::XYZVector sumTracks;
 	   ROOT::Math::XYZVector sumTracksInCone_30;
@@ -302,9 +309,14 @@ int main(int argc, char** argv)
 		   if ( deltaPhi(PVtracks->at(kk).phi(), sum2pho.phi()) > PI*11./12. ) sumTracksInCone_30 += PVtracks->at(kk);
 		   if ( deltaPhi(PVtracks->at(kk).phi(), sum2pho.phi()) > PI*7./8. ) sumTracksInCone_45 += PVtracks->at(kk);
 
-		   tracksNum ++;
-		   if ( PVtracks->at(kk).perp2() > 0.25 ) tracksNumPt05++;
-		   if ( PVtracks->at(kk).perp2() > 16. )  tracksNumPt4++;
+		   trackPx[nTracks] = PVtracks->at(kk).X();
+		   trackPy[nTracks] = PVtracks->at(kk).Y();
+		   trackPz[nTracks] = PVtracks->at(kk).Z();
+
+		   nTracks ++;
+		   if ( PVtracks->at(kk).perp2() > 0.25 ) nTracksPt05++;
+		   if ( PVtracks->at(kk).perp2() > 16. )  nTracksPt4++;
+
 		 }
 	     }//tracks loop
 	   
@@ -314,7 +326,7 @@ int main(int argc, char** argv)
 	   modSumPtInCone_45 = sqrt( sumTracksInCone_45.perp2() );
 	   sum2PhoPt = sum2pho.pt();	   
 	   normalizedChi2 = PV_normalizedChi2->at(goodIndex[uu]);
-	 
+	   
 
 	   isSig = 0.;
 	   if (uu == iClosest)
