@@ -119,3 +119,4 @@ std::vector<ROOT::Math::XYZTVector>* photons_SC = reader.Get4V("photons_SC");
  std::vector<ROOT::Math::XYZVector>* tracks = reader.Get3V("tracks");
  std::vector<int>* tracks_PVindex = reader.GetInt("tracks_PVindex");
  std::vector<float>* tracks_PVtracks_dR = reader.GetFloat("tracks_PVtracks_dR");
+ std::vector<float>* tracks_dz = reader.GetFloat("tracks_dz");
