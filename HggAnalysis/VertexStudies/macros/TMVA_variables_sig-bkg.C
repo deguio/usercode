@@ -17,28 +17,28 @@
   logSumPt2_bkg.SetFillColor(4);
   logSumPt2_bkg.SetFillStyle(3002);
 
-  TH1F tracksNum_sig("tracksNum_sig","tracksNum_sig",200,0.,200.);
+  TH1F tracksNum_sig("tracksNum_sig","Number of tracks",200,0.,200.);
   tracksNum_sig.GetXaxis()->SetTitle("number of tracks");
   tracksNum_sig.GetYaxis()->SetTitle("a.u.");
   tracksNum_sig.SetLineColor(2);
   tracksNum_sig.SetFillColor(2);
   tracksNum_sig.SetFillStyle(3002);
   
-  TH1F tracksNum_bkg("tracksNum_bkg","tracksNum_bkg",200,0.,200.);
+  TH1F tracksNum_bkg("tracksNum_bkg","Number of tracks",200,0.,200.);
   tracksNum_bkg.GetXaxis()->SetTitle("number of tracks");
   tracksNum_bkg.GetYaxis()->SetTitle("a.u.");
   tracksNum_bkg.SetLineColor(4);
   tracksNum_bkg.SetFillColor(4);
   tracksNum_bkg.SetFillStyle(3002);
 
-  TH1F deltaPhi_sig("deltaPhi_sig","deltaPhi_sig",100,0.,3.15);
+  TH1F deltaPhi_sig("deltaPhi_sig","deltaPhi",100,0.,3.15);
   deltaPhi_sig.GetXaxis()->SetTitle("#Delta#phi");
   deltaPhi_sig.GetYaxis()->SetTitle("a.u.");
   deltaPhi_sig.SetLineColor(2);
   deltaPhi_sig.SetFillColor(2);
   deltaPhi_sig.SetFillStyle(3002);
 
-  TH1F deltaPhi_bkg("deltaPhi_bkg","deltaPhi_bkg",100,0.,3.15);
+  TH1F deltaPhi_bkg("deltaPhi_bkg","deltaPhi",100,0.,3.15);
   deltaPhi_bkg.GetXaxis()->SetTitle("#Delta#phi");
   deltaPhi_bkg.GetYaxis()->SetTitle("a.u.");
   deltaPhi_bkg.SetLineColor(4);
@@ -71,28 +71,28 @@
   ntu->Draw("modSumPt / sum2PhoPt >> ptRatio_sig","isSig == 1 ","goff");
   ntu->Draw("modSumPt / sum2PhoPt >> ptRatio_bkg","isSig == 0 ","goff");
 
-  TLegend leg (0.6, 0.8,0.8,0.89);
+  TLegend leg (0.5, 0.7,0.8,0.89);
   leg->SetFillColor(0);
   leg->AddEntry(&tracksNum_bkg,"Background","F");
   leg->AddEntry(&tracksNum_sig,"Signal","F");
 
 
-  TCanvas c1;
+  TCanvas c1("c1","c1",500,500);
   tracksNum_bkg.DrawNormalized();
   tracksNum_sig.DrawNormalized("sames");
   leg->Draw("same");  
 
-  TCanvas c2;
+  TCanvas c2("c2","c2",500,500);
   deltaPhi_sig.DrawNormalized();
   deltaPhi_bkg.DrawNormalized("sames");
   leg->Draw("same");  
  
-  TCanvas c3;
+  TCanvas c3("c3","c3",500,500);
   logSumPt2_sig.DrawNormalized();
   logSumPt2_bkg.DrawNormalized("sames");
   leg->Draw("same");  
 
-  TCanvas c4;
+  TCanvas c4("c4","c4",500,500);
   ptRatio_bkg.DrawNormalized();
   ptRatio_sig.DrawNormalized("sames");
   leg->Draw("same");  
