@@ -4,48 +4,63 @@
   TTree* ntu = (TTree*)_file0->Get("TMVA_vertexTree");
   
   TH1F logSumPt2_sig("logSumPt2_sig","log(sumPt2)",400,-10.,30.);
+  logSumPt2_sig.GetXaxis()->SetTitle("SumPt2");
+  logSumPt2_sig.GetYaxis()->SetTitle("a.u.");
   logSumPt2_sig.SetLineColor(2);
   logSumPt2_sig.SetFillColor(2);  
   logSumPt2_sig.SetFillStyle(3002);
   
   TH1F logSumPt2_bkg("logSumPt2_bkg","log(sumPt2)",400,-10.,30.);
+  logSumPt2_bkg.GetXaxis()->SetTitle("SumPt2");
+  logSumPt2_bkg.GetYaxis()->SetTitle("a.u.");
   logSumPt2_bkg.SetLineColor(4);
   logSumPt2_bkg.SetFillColor(4);
   logSumPt2_bkg.SetFillStyle(3002);
 
   TH1F tracksNum_sig("tracksNum_sig","tracksNum_sig",200,0.,200.);
+  tracksNum_sig.GetXaxis()->SetTitle("number of tracks");
+  tracksNum_sig.GetYaxis()->SetTitle("a.u.");
   tracksNum_sig.SetLineColor(2);
   tracksNum_sig.SetFillColor(2);
   tracksNum_sig.SetFillStyle(3002);
   
   TH1F tracksNum_bkg("tracksNum_bkg","tracksNum_bkg",200,0.,200.);
+  tracksNum_bkg.GetXaxis()->SetTitle("number of tracks");
+  tracksNum_bkg.GetYaxis()->SetTitle("a.u.");
   tracksNum_bkg.SetLineColor(4);
   tracksNum_bkg.SetFillColor(4);
   tracksNum_bkg.SetFillStyle(3002);
 
   TH1F deltaPhi_sig("deltaPhi_sig","deltaPhi_sig",100,0.,3.15);
+  deltaPhi_sig.GetXaxis()->SetTitle("#Delta#phi");
+  deltaPhi_sig.GetYaxis()->SetTitle("a.u.");
   deltaPhi_sig.SetLineColor(2);
   deltaPhi_sig.SetFillColor(2);
   deltaPhi_sig.SetFillStyle(3002);
 
   TH1F deltaPhi_bkg("deltaPhi_bkg","deltaPhi_bkg",100,0.,3.15);
+  deltaPhi_bkg.GetXaxis()->SetTitle("#Delta#phi");
+  deltaPhi_bkg.GetYaxis()->SetTitle("a.u.");
   deltaPhi_bkg.SetLineColor(4);
   deltaPhi_bkg.SetFillColor(4);
   deltaPhi_bkg.SetFillStyle(3002);
 
   TH1F ptRatio_sig("ptRatio_sig","|SumPt| / bosonPt",100,0.,5.);
+  ptRatio_sig.GetXaxis()->SetTitle("|SumPt|/p^{T}_{H}");
+  ptRatio_sig.GetYaxis()->SetTitle("a.u.");
   ptRatio_sig.SetLineColor(2);  
   ptRatio_sig.SetFillColor(2);  
   ptRatio_sig.SetFillStyle(3002);
   
   TH1F ptRatio_bkg("ptRatio_bkg","|SumPt| / bosonPt",100,0.,5.);
+  ptRatio_bkg.GetXaxis()->SetTitle("|SumPt|/p^{T}_{H}");
+  ptRatio_bkg.GetYaxis()->SetTitle("a.u.");
   ptRatio_bkg.SetLineColor(4);
   ptRatio_bkg.SetFillColor(4);
   ptRatio_bkg.SetFillStyle(3002);
 
-
-  ntu->Draw("log(sumPt2) >> logSumPt2_sig","isSig == 1 ","goff");
-  ntu->Draw("log(sumPt2) >> logSumPt2_bkg","isSig == 0 ","goff");
+  ntu->Draw("TMath::Log(sumPt2) >> logSumPt2_sig","isSig == 1 && sumPt2>0","goff");
+  ntu->Draw("TMath::Log(sumPt2) >> logSumPt2_bkg","isSig == 0 && sumPt2>0","goff");
 
   ntu->Draw("nTracks >> tracksNum_sig","isSig == 1 ","goff");
   ntu->Draw("nTracks >> tracksNum_bkg","isSig == 0 ","goff");
