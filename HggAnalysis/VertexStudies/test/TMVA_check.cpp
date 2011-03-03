@@ -32,6 +32,8 @@
 #define etaEB 1.444
 #define etaEE 1.560
 
+#define matchingCut 0.6
+
 bool PhotonId( float et, float eta, float Eiso, float Hiso, float HoE, float Tiso, float setaeta);
 
 
@@ -316,7 +318,7 @@ int main(int argc, char** argv)
        PtAll_vsNvtAll.Fill(npv,sum2pho.pt());
 
        //is sumPt2 the good choice?
-       if( fabs(PV_z->at(goodIndex[0]) - TrueVertex_Z ) < 0.3 )
+       if( fabs(PV_z->at(goodIndex[0]) - TrueVertex_Z ) < matchingCut )
 	 {
 	   PtGood.Fill( sum2pho.pt() );
 	   NvtGood.Fill(npv);
@@ -332,7 +334,7 @@ int main(int argc, char** argv)
        for ( int uu = 0; uu < npv; uu++)
 	 {
 	   float distt = fabs( PV_z->at(goodIndex[uu]) - TrueVertex_Z );
-	   if ( distt < 0.3 )   { Vmatched++; }
+	   if ( distt < matchingCut )   { Vmatched++; }
 	   if ( distt < dmin)   { dmin = distt; iClosest = uu; }
 	 }
        nmatched.Fill(Vmatched);
@@ -394,7 +396,7 @@ int main(int argc, char** argv)
 	   
 	 }//vertex loop
        
-       if( fabs(PV_z->at(goodIndex[TMVAind]) - TrueVertex_Z ) < 0.3 )
+       if( fabs(PV_z->at(goodIndex[TMVAind]) - TrueVertex_Z ) <  matchingCut)
 	 {
 	   PtGood_BDT.Fill( sum2pho.pt() );
 	   NvtGood_BDT.Fill( npv );
