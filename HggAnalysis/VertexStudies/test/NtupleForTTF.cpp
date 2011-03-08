@@ -111,7 +111,7 @@ int main(int argc, char** argv)
   outTree -> Branch("trackPVIndex",         trackPVIndex,           "trackPVIndex[nTracks]/I");
 
   outTree -> Branch("isSig",                isSig,                  "isSig[nVertices]/I");
-  outTree -> Branch("closestIndex",         closestIndex,            "closestIndex/I");
+  outTree -> Branch("closestIndex",         &closestIndex,            "closestIndex/I");
 
 
   //Chain + histos
