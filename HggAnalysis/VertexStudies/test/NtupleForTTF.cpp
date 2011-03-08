@@ -89,15 +89,15 @@ int main(int argc, char** argv)
   outTree -> Branch("deltaPhi_HSumPt",      deltaPhi_HSumPt,        "deltaPhi_HSumPt[nVertices]/F");
   outTree -> Branch("sum2PhoPt",            &sum2PhoPt,              "sum2PhoPt/F");
 
-  outTree -> Branch("photons_eta",           photons_eta,              "photons_eta/F");
-  outTree -> Branch("photons_phi",           photons_phi,              "photons_phi/F");
-  outTree -> Branch("photons_E",             photons_E,                "photons_E/F");
-  outTree -> Branch("photonsSC_eta",         photonsSC_eta,            "photonsSC_eta/F");
-  outTree -> Branch("photonsSC_phi",         photonsSC_phi,            "photonsSC_phi/F");
-  outTree -> Branch("photonsSC_E",           photonsSC_E,              "photonsSC_E/F");
-  outTree -> Branch("photonsMC_eta",         photonsMC_eta,            "photonsMC_eta/F");
-  outTree -> Branch("photonsMC_phi",         photonsMC_phi,            "photonsMC_phi/F");
-  outTree -> Branch("photonsMC_E",           photonsMC_E,              "photonsMC_E/F");
+  outTree -> Branch("photons_eta",           photons_eta,              "photons_eta[2]/F");
+  outTree -> Branch("photons_phi",           photons_phi,              "photons_phi[2]/F");
+  outTree -> Branch("photons_E",             photons_E,                "photons_E[2]/F");
+  outTree -> Branch("photonsSC_eta",         photonsSC_eta,            "photonsSC_eta[2]/F");
+  outTree -> Branch("photonsSC_phi",         photonsSC_phi,            "photonsSC_phi[2]/F");
+  outTree -> Branch("photonsSC_E",           photonsSC_E,              "photonsSC_E[2]/F");
+  outTree -> Branch("photonsMC_eta",         photonsMC_eta,            "photonsMC_eta[2]/F");
+  outTree -> Branch("photonsMC_phi",         photonsMC_phi,            "photonsMC_phi[2]/F");
+  outTree -> Branch("photonsMC_E",           photonsMC_E,              "photonsMC_E[2]/F");
 
   outTree -> Branch("sum2PhoPt",            &sum2PhoPt,              "sum2PhoPt/F");
   outTree -> Branch("nPVTracks",            nPVTracks,              "nPVTracks[nVertices]/I");
@@ -110,7 +110,7 @@ int main(int argc, char** argv)
   outTree -> Branch("trackDz",              trackDz,                "trackDz[nTracks]/F");
   outTree -> Branch("trackPVIndex",         trackPVIndex,           "trackPVIndex[nTracks]/I");
 
-  outTree -> Branch("isSig", &isSig, "isSig[nVertices]/I");
+  outTree -> Branch("isSig",                isSig,                  "isSig[nVertices]/I");
 
 
   //Chain + histos
