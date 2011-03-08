@@ -285,6 +285,41 @@ int main(int argc, char** argv)
 	   if ( ngood != 2){continue;}
 
 	   sum2pho = electrons->at(indele1) + electrons->at(indele2);
+
+	   if (electrons->at(indele1).E() > electrons->at(indele2).E())
+	     {
+	       photons_eta[0] = electrons->at(indele1).eta();
+	       photons_eta[1] = electrons->at(indele2).eta();
+	       photons_phi[0] = electrons->at(indele1).phi();
+	       photons_phi[1] = electrons->at(indele2).phi();
+	       photons_E[0] = electrons->at(indele1).E();
+	       photons_E[1] = electrons->at(indele2).E();
+
+	       photonsSC_eta[0] = electrons_SC->at(indele1).eta();
+	       photonsSC_eta[1] = electrons_SC->at(indele2).eta();
+	       photonsSC_phi[0] = electrons_SC->at(indele1).phi();
+	       photonsSC_phi[1] = electrons_SC->at(indele2).phi();
+	       photonsSC_E[0] = electrons_SC->at(indele1).E();
+	       photonsSC_E[1] = electrons_SC->at(indele2).E();
+	     }
+	   else
+	     {
+	       photons_eta[1] = electrons->at(indele1).eta();
+	       photons_eta[0] = electrons->at(indele2).eta();
+	       photons_phi[1] = electrons->at(indele1).phi();
+	       photons_phi[0] = electrons->at(indele2).phi();
+	       photons_E[1] = electrons->at(indele1).E();
+	       photons_E[0] = electrons->at(indele2).E();
+
+	       photonsSC_eta[1] = electrons_SC->at(indele1).eta();
+	       photonsSC_eta[0] = electrons_SC->at(indele2).eta();
+	       photonsSC_phi[1] = electrons_SC->at(indele1).phi();
+	       photonsSC_phi[0] = electrons_SC->at(indele2).phi();
+	       photonsSC_E[1] = electrons_SC->at(indele1).E();
+	       photonsSC_E[0] = electrons_SC->at(indele2).E();
+	     }
+
+
 	   if ( fabs(sum2pho.M() - 91) > 8 ) continue;
 
 	   TrueVertex_Z = PV_z->at(0) + (electrons_dz_PV_noEle->at(indele1) + electrons_dz_PV_noEle->at(indele2))/2.;
@@ -321,6 +356,26 @@ int main(int argc, char** argv)
 
 
 	   sum2pho = muons->at(indmu1) + muons->at(indmu2);
+
+	   if (muons->at(indmu1).E() > muons->at(indmu2).E())
+	     {
+	       photons_eta[0] = muons->at(indmu1).eta();
+	       photons_eta[1] = muons->at(indmu2).eta();
+	       photons_phi[0] = muons->at(indmu1).phi();
+	       photons_phi[1] = muons->at(indmu2).phi();
+	       photons_E[0] = muons->at(indmu1).E();
+	       photons_E[1] = muons->at(indmu2).E();
+	     }
+	   else
+	     {
+	       photons_eta[1] = muons->at(indmu1).eta();
+	       photons_eta[0] = muons->at(indmu2).eta();
+	       photons_phi[1] = muons->at(indmu1).phi();
+	       photons_phi[0] = muons->at(indmu2).phi();
+	       photons_E[1] = muons->at(indmu1).E();
+	       photons_E[0] = muons->at(indmu2).E();
+	     }
+
 	   if ( fabs(sum2pho.M() - 91) > 8 ) continue;
 
 	   TrueVertex_Z = PV_z->at(0) + (muons_dz_PV_noMuon->at(indmu1) + muons_dz_PV_noMuon->at(indmu2))/2.;
