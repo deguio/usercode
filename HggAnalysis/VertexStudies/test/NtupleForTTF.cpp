@@ -73,7 +73,8 @@ int main(int argc, char** argv)
 
   int nVertices, nPVTracks[100];
   float vertexZ[100], sumPt2[100], modSumPt[100], modSumPtInCone_30[100], modSumPtInCone_45[100], deltaPhi_HSumPt[100], sum2PhoPt, normalizedChi2[100], sumModPt[100];
-  
+  float photons_eta[2], photons_phi[2], photons_E[2], photonsSC_eta[2], photonsSC_phi[2], photonsSC_E[2], photonsMC_eta[2], photonsMC_phi[2], photonsMC_E[2];
+
   int nTracks, trackPVIndex[1000];
   float trackPx[1000], trackPy[1000], trackPz[1000], trackDz[1000];
 
@@ -86,6 +87,18 @@ int main(int argc, char** argv)
   outTree -> Branch("modSumPtInCone_30",    modSumPtInCone_30,      "modSumPtInCone_30[nVertices]/F");
   outTree -> Branch("modSumPtInCone_45",    modSumPtInCone_45,      "modSumPtInCone_45[nVertices]/F");
   outTree -> Branch("deltaPhi_HSumPt",      deltaPhi_HSumPt,        "deltaPhi_HSumPt[nVertices]/F");
+  outTree -> Branch("sum2PhoPt",            &sum2PhoPt,              "sum2PhoPt/F");
+
+  outTree -> Branch("photons_eta",           photons_eta,              "photons_eta/F");
+  outTree -> Branch("photons_phi",           photons_phi,              "photons_phi/F");
+  outTree -> Branch("photons_E",             photons_E,                "photons_E/F");
+  outTree -> Branch("photonsSC_eta",         photonsSC_eta,            "photonsSC_eta/F");
+  outTree -> Branch("photonsSC_phi",         photonsSC_phi,            "photonsSC_phi/F");
+  outTree -> Branch("photonsSC_E",           photonsSC_E,              "photonsSC_E/F");
+  outTree -> Branch("photonsMC_eta",         photonsMC_eta,            "photonsMC_eta/F");
+  outTree -> Branch("photonsMC_phi",         photonsMC_phi,            "photonsMC_phi/F");
+  outTree -> Branch("photonsMC_E",           photonsMC_E,              "photonsMC_E/F");
+
   outTree -> Branch("sum2PhoPt",            &sum2PhoPt,              "sum2PhoPt/F");
   outTree -> Branch("nPVTracks",            nPVTracks,              "nPVTracks[nVertices]/I");
 
@@ -147,6 +160,30 @@ int main(int argc, char** argv)
 	   std::vector<ROOT::Math::XYZVector>* TrueVertex = reader.Get3V("mc_H_vertex");
 	   std::vector<ROOT::Math::XYZTVector>* mcH = reader.Get4V("mc_H");
 
+	   std::vector<ROOT::Math::XYZTVector>* mcV1 = reader.Get4V("mcV1");
+	   std::vector<ROOT::Math::XYZTVector>* mcV2 = reader.Get4V("mcV2");
+
+	   if ( mcV1->size() != 1 ||  mcV2->size() != 1) continue;
+	   if (mcV1->at(0).E() > mcV2->at(0).E())
+	     {
+	       photonsMC_eta[0] = mcV1->at(0).Eta();
+	       photonsMC_eta[1] = mcV2->at(0).Eta();
+	       photonsMC_phi[0] = mcV1->at(0).Phi();
+	       photonsMC_phi[1] = mcV2->at(0).Phi();
+	       photonsMC_E[0]   = mcV1->at(0).E();
+	       photonsMC_E[1]   = mcV2->at(0).E();
+	     }
+	   else
+	     {
+	       photonsMC_eta[1] = mcV1->at(0).Eta();
+	       photonsMC_eta[0] = mcV2->at(0).Eta();
+	       photonsMC_phi[1] = mcV1->at(0).Phi();
+	       photonsMC_phi[0] = mcV2->at(0).Phi();
+	       photonsMC_E[1]   = mcV1->at(0).E();
+	       photonsMC_E[0]   = mcV2->at(0).E();
+	     }
+	   
+
 	   if (TrueVertex->size() != 1) continue;
 	   TrueVertex_Z = TrueVertex->at(0).Z();
 	   
@@ -178,6 +215,40 @@ int main(int argc, char** argv)
 	   if ( ngood != 2) continue;
 	   
 	   sum2pho = photons->at(indpho1)+ photons->at(indpho2);
+
+	   if (photons->at(indpho1).E() > photons->at(indpho2).E())
+	     {
+	       photons_eta[0] = photons->at(indpho1).eta();
+	       photons_eta[1] = photons->at(indpho2).eta();
+	       photons_phi[0] = photons->at(indpho1).phi();
+	       photons_phi[1] = photons->at(indpho2).phi();
+	       photons_E[0] = photons->at(indpho1).E();
+	       photons_E[1] = photons->at(indpho2).E();
+
+	       photonsSC_eta[0] = photons_SC->at(indpho1).eta();
+	       photonsSC_eta[1] = photons_SC->at(indpho2).eta();
+	       photonsSC_phi[0] = photons_SC->at(indpho1).phi();
+	       photonsSC_phi[1] = photons_SC->at(indpho2).phi();
+	       photonsSC_E[0] = photons_SC->at(indpho1).E();
+	       photonsSC_E[1] = photons_SC->at(indpho2).E();
+	     }
+	   else
+	     {
+	       photons_eta[1] = photons->at(indpho1).eta();
+	       photons_eta[0] = photons->at(indpho2).eta();
+	       photons_phi[1] = photons->at(indpho1).phi();
+	       photons_phi[0] = photons->at(indpho2).phi();
+	       photons_E[1] = photons->at(indpho1).E();
+	       photons_E[0] = photons->at(indpho2).E();
+
+	       photonsSC_eta[1] = photons_SC->at(indpho1).eta();
+	       photonsSC_eta[0] = photons_SC->at(indpho2).eta();
+	       photonsSC_phi[1] = photons_SC->at(indpho1).phi();
+	       photonsSC_phi[0] = photons_SC->at(indpho2).phi();
+	       photonsSC_E[1] = photons_SC->at(indpho1).E();
+	       photonsSC_E[0] = photons_SC->at(indpho2).E();
+	     }
+
 	   if ( fabs(sum2pho.M() - 120) > 4 ) continue;
 
 	 }//Hgg
