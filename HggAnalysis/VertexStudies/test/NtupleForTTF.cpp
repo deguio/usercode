@@ -69,7 +69,7 @@ int main(int argc, char** argv)
 
 
   //Filling the ntuple
-  int isSig[100];
+  int isSig[100], closestIndex;
 
   int nVertices, nPVTracks[100];
   float vertexZ[100], sumPt2[100], modSumPt[100], modSumPtInCone_30[100], modSumPtInCone_45[100], deltaPhi_HSumPt[100], sum2PhoPt, normalizedChi2[100], sumModPt[100];
@@ -111,6 +111,7 @@ int main(int argc, char** argv)
   outTree -> Branch("trackPVIndex",         trackPVIndex,           "trackPVIndex[nTracks]/I");
 
   outTree -> Branch("isSig",                isSig,                  "isSig[nVertices]/I");
+  outTree -> Branch("closestIndex",         closestIndex,            "closestIndex/I");
 
 
   //Chain + histos
@@ -351,6 +352,9 @@ int main(int argc, char** argv)
 	   if ( distt < 0.3 )   { Vmatched++; }
 	   if ( distt < dmin)   { dmin = distt; iClosest = uu; }
 	 }
+       closestIndex = iClosest;
+       
+       
        
        //vertices loop
        for ( unsigned int uu = 0; uu < PV_z->size(); uu++)
