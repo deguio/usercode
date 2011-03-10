@@ -186,6 +186,10 @@ std::vector<ROOT::Math::XYZTVector>* photons_SC = reader.Get4V("photons_SC");
  std::vector<float>* PV_noMuon_d0 = reader.GetFloat("PV_noMuon_d0");
  std::vector<float>* PV_noMuon_SumPt2 = reader.GetFloat("PV_noMuon_SumPt2");
 
+//single tracks info
  std::vector<ROOT::Math::XYZVector>* tracks = reader.Get3V("tracks");
+
  std::vector<int>* tracks_PVindex = reader.GetInt("tracks_PVindex");
  std::vector<float>* tracks_PVtracks_dR = reader.GetFloat("tracks_PVtracks_dR");
+ std::vector<float>* tracks_dz = reader.GetFloat("tracks_dz");
+

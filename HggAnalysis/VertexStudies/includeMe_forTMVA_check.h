@@ -1,5 +1,6 @@
 //=====================+++AUTO-Reader+++============================
  std::vector<ROOT::Math::XYZTVector>* electrons = reader.Get4V("electrons");
+ std::vector<ROOT::Math::XYZTVector>* electrons_SC = reader.Get4V("electrons_SC");
 /*
  std::vector<float>* eidLoose = reader.GetFloat("eidLoose");
  std::vector<float>* eidRobustLoose = reader.GetFloat("eidRobustLoose");
