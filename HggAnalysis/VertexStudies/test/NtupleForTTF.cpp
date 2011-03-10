@@ -424,17 +424,18 @@ int main(int argc, char** argv)
 
 	   //PV tracks loop
 	   for (unsigned int kk = 0; kk < PVtracks->size(); ++kk)
-	     {
-	       if ( PVtracks->at(kk).perp2() < trackThr*trackThr ) continue;
-	       sumTracks     += PVtracks->at(kk);
-	       sumModPt[uu]  += sqrt((PVtracks->at(kk)).perp2());
-	       sumPt2[uu]    += PVtracks->at(kk).perp2();
-	       if ( deltaPhi(PVtracks->at(kk).phi(), sum2pho.phi()) > PI*11./12. ) sumTracksInCone_30 += PVtracks->at(kk);
-	       if ( deltaPhi(PVtracks->at(kk).phi(), sum2pho.phi()) > PI*7./8. )   sumTracksInCone_45   += PVtracks->at(kk);
-	       
-	       nPVTracks[uu] ++;
-	       
-	     }//PV tracks loop
+	     if (PVtracks_PVindex->at(kk) == uu)
+	       {
+		 if ( PVtracks->at(kk).perp2() < trackThr*trackThr ) continue;
+		 sumTracks     += PVtracks->at(kk);
+		 sumModPt[uu]  += sqrt((PVtracks->at(kk)).perp2());
+		 sumPt2[uu]    += PVtracks->at(kk).perp2();
+		 if ( deltaPhi(PVtracks->at(kk).phi(), sum2pho.phi()) > PI*11./12. ) sumTracksInCone_30 += PVtracks->at(kk);
+		 if ( deltaPhi(PVtracks->at(kk).phi(), sum2pho.phi()) > PI*7./8. )   sumTracksInCone_45   += PVtracks->at(kk);
+		 
+		 nPVTracks[uu] ++;
+		 
+	       }//PV tracks loop
 	   
 	   vertexZ[uu]            = PV_z->at(uu);
 	   deltaPhi_HSumPt[uu]    = deltaPhi( sumTracks.phi(),sum2pho.phi());
