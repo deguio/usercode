@@ -233,6 +233,7 @@ int main(int argc, char** argv)
 	   
 	   //if ( ngood != 2) continue;
 	   if(dR_1_min > 0.15 || dR_2_min > 0.15) continue;
+	   if(photons_r9->at(indpho1) < 0.93 || photons_r9->at(indpho2) < 0.93) continue;
 	   
 	   sum2pho = photons->at(indpho1)+ photons->at(indpho2);
 
@@ -279,7 +280,7 @@ int main(int argc, char** argv)
 	       photonsSC_E[0] = photons_SC->at(indpho2).E();
 	     }
 
-	   if ( fabs(sum2pho.M() - 120) > 4 ) continue;
+	   if ( fabs(sum2pho.M() - 120) > 10. ) continue;
 
 	 }//Hgg
        //---------------------------
