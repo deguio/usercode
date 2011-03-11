@@ -209,17 +209,30 @@ int main(int argc, char** argv)
 
 	   int indpho1 = -100, indpho2 = -100;
 	   int ngood = 0;
+
+	   double dR_1_min = 10000.;
+	   double dR_2_min = 10000.;
 	   for(unsigned int u=0; u < photons->size(); u++)
 	     {
-	       bool id =  PhotonId( photons->at(u).pt(), photons_SC->at(u).eta() , photons_ecalIso->at(u), photons_hcalIso->at(u), photons_hadronicOverEm->at(u), photons_trkSumPtHollowConeDR04->at(u), photons_sigmaIetaIeta->at(u) );
-	       if( id && photons->at(u).pt() > 10 && indpho1 < 0 )
-		 {ngood++; indpho1 = u;}
-	       else if(id && photons->at(u).pt() > 10 && indpho2 < 0)
-		 {ngood++; indpho2 = u;}
-	       else if(id && photons->at(u).pt() > 10 )
-		 {ngood++;}
+	       double dR_1 = deltaR( photonsMC_eta[0], photonsMC_phi[0], photons_SC->at(u).eta(), photons_SC->at(u).phi() );
+	       if (dR_1 < dR_1_min) { dR_1_min = dR_1; indpho1 = u; }
+	       
+	       double dR_2 = deltaR( photonsMC_eta[1], photonsMC_phi[1], photons_SC->at(u).eta(), photons_SC->at(u).phi() );
+	       if (dR_2 < dR_2_min) { dR_2_min = dR_2; indpho2 = u; }
+	       
+
+
+	       // bool id =  PhotonId( photons->at(u).pt(), photons_SC->at(u).eta() , photons_ecalIso->at(u), photons_hcalIso->at(u), photons_hadronicOverEm->at(u), photons_trkSumPtHollowConeDR04->at(u), photons_sigmaIetaIeta->at(u) );
+	       // if( id && photons->at(u).pt() > 10 && indpho1 < 0 )
+	       // 	 {ngood++; indpho1 = u;}
+	       // else if(id && photons->at(u).pt() > 10 && indpho2 < 0)
+	       // 	 {ngood++; indpho2 = u;}
+	       // else if(id && photons->at(u).pt() > 10 )
+	       // 	 {ngood++;}
 	     }
-	   if ( ngood != 2) continue;
+	   
+	   //if ( ngood != 2) continue;
+	   if(dR_1_min > 0.15 || dR_2_min > 0.15) continue;
 	   
 	   sum2pho = photons->at(indpho1)+ photons->at(indpho2);
 
