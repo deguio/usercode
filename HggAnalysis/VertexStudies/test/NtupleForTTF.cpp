@@ -74,6 +74,7 @@ int main(int argc, char** argv)
   int nVertices, nPVTracks[100];
   float vertexZ[100], sumPt2[100], modSumPt[100], modSumPtInCone_30[100], modSumPtInCone_45[100], deltaPhi_HSumPt[100], sum2PhoPt, normalizedChi2[100], sumModPt[100];
   float photons_eta[2], photons_phi[2], photons_E[2], photonsSC_eta[2], photonsSC_phi[2], photonsSC_E[2], photonsMC_eta[2], photonsMC_phi[2], photonsMC_E[2];
+  float photons_seedE[2], photons_seedTime[2];
 
   int nTracks, trackPVIndex[1000];
   float trackPx[1000], trackPy[1000], trackPz[1000], trackDz[1000];
@@ -98,6 +99,9 @@ int main(int argc, char** argv)
   outTree -> Branch("photonsMC_eta",         photonsMC_eta,            "photonsMC_eta[2]/F");
   outTree -> Branch("photonsMC_phi",         photonsMC_phi,            "photonsMC_phi[2]/F");
   outTree -> Branch("photonsMC_E",           photonsMC_E,              "photonsMC_E[2]/F");
+
+  outTree -> Branch("photons_seedE",         photons_seedE,             "photons_seedE[2]/F");
+  outTree -> Branch("photons_seedTime",      photons_seedTime,          "photons_seedTime[2]/F");
 
   outTree -> Branch("sum2PhoPt",            &sum2PhoPt,              "sum2PhoPt/F");
   outTree -> Branch("nPVTracks",            nPVTracks,              "nPVTracks[nVertices]/I");
@@ -150,7 +154,6 @@ int main(int argc, char** argv)
        std::vector<int>* PVtracks_numberOfValidHits;
        std::vector<float>* PVtracks_normalizedChi2;
        
-
        ROOT::Math::XYZTVector sum2pho;
        //---------------------------
        //--- set up Hgg branches ---
@@ -163,6 +166,9 @@ int main(int argc, char** argv)
 
 	   std::vector<ROOT::Math::XYZTVector>* mcV1 = reader.Get4V("mcV1");
 	   std::vector<ROOT::Math::XYZTVector>* mcV2 = reader.Get4V("mcV2");
+
+	   TClonesArray* rechit_E = reader.GetTClonesArray("photons_rechitE");    
+	   TClonesArray* rechit_Time = reader.GetTClonesArray("photons_rechitTime");
 
 	   if ( mcV1->size() != 1 ||  mcV2->size() != 1) continue;
 	   if (mcV1->at(0).E() > mcV2->at(0).E())
@@ -217,6 +223,16 @@ int main(int argc, char** argv)
 	   
 	   sum2pho = photons->at(indpho1)+ photons->at(indpho2);
 
+	   TMatrix* energy1 = (TMatrix *) rechit_E->At(indpho1);
+	   photons_seedE[0] = (*energy1)[1][1];
+	   TMatrix* energy2 = (TMatrix *) rechit_E->At(indpho2);
+	   photons_seedE[1] = (*energy2)[1][1];
+
+	   TMatrix* time1 = (TMatrix *) rechit_Time->At(indpho1);
+	   photons_seedTime[0] = (*time1)[1][1];
+	   TMatrix* time2 = (TMatrix *) rechit_Time->At(indpho2);
+	   photons_seedTime[1] = (*time2)[1][1];
+
 	   if (photons->at(indpho1).E() > photons->at(indpho2).E())
 	     {
 	       photons_eta[0] = photons->at(indpho1).eta();
@@ -261,6 +277,9 @@ int main(int argc, char** argv)
 	   //taking Zee variables
 	   std::vector<float>* eleid = reader.GetFloat("simpleEleId95cIso");
 
+	   TClonesArray* rechit_E = reader.GetTClonesArray("electrons_rechitE");    
+	   TClonesArray* rechit_Time = reader.GetTClonesArray("electrons_rechitTime");
+
 	   PV_normalizedChi2 = reader.GetFloat("PV_noEle_normalizedChi2");
 	   PV_ndof = reader.GetInt("PV_noEle_ndof");
 	   PV_nTracks = reader.GetInt("PV_noEle_nTracks");
@@ -285,6 +304,16 @@ int main(int argc, char** argv)
 	   if ( ngood != 2){continue;}
 
 	   sum2pho = electrons->at(indele1) + electrons->at(indele2);
+
+	   TMatrix* energy1 = (TMatrix *) rechit_E->At(indele1);
+	   photons_seedE[0] = (*energy1)[1][1];
+	   TMatrix* energy2 = (TMatrix *) rechit_E->At(indele2);
+	   photons_seedE[1] = (*energy2)[1][1];
+
+	   TMatrix* time1 = (TMatrix *) rechit_Time->At(indele1);
+	   photons_seedTime[0] = (*time1)[1][1];
+	   TMatrix* time2 = (TMatrix *) rechit_Time->At(indele2);
+	   photons_seedTime[1] = (*time2)[1][1];
 
 	   if (electrons->at(indele1).E() > electrons->at(indele2).E())
 	     {
