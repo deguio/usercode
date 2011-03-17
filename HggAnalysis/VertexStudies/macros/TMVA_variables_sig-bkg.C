@@ -59,6 +59,34 @@
   ptRatio_bkg.SetFillColor(4);
   ptRatio_bkg.SetFillStyle(3002);
 
+  TH1F ptbal_sig("ptbal_sig","ptbal",100,0.,5.);
+  ptbal_sig.GetXaxis()->SetTitle("|SumPt|/p^{T}_{H}");
+  ptbal_sig.GetYaxis()->SetTitle("a.u.");
+  ptbal_sig.SetLineColor(2);  
+  ptbal_sig.SetFillColor(2);  
+  ptbal_sig.SetFillStyle(3002);
+  
+  TH1F ptbal_bkg("ptbal_bkg","ptbal",100,0.,5.);
+  ptbal_bkg.GetXaxis()->SetTitle("|SumPt|/p^{T}_{H}");
+  ptbal_bkg.GetYaxis()->SetTitle("a.u.");
+  ptbal_bkg.SetLineColor(4);
+  ptbal_bkg.SetFillColor(4);
+  ptbal_bkg.SetFillStyle(3002);
+
+  TH1F ptasymm_sig("ptasymm_sig","ptasymm",100,0.,5.);
+  ptasymm_sig.GetXaxis()->SetTitle("|SumPt|/p^{T}_{H}");
+  ptasymm_sig.GetYaxis()->SetTitle("a.u.");
+  ptasymm_sig.SetLineColor(2);  
+  ptasymm_sig.SetFillColor(2);  
+  ptasymm_sig.SetFillStyle(3002);
+  
+  TH1F ptasymm_bkg("ptasymm_bkg","ptasymm",100,0.,5.);
+  ptasymm_bkg.GetXaxis()->SetTitle("|SumPt|/p^{T}_{H}");
+  ptasymm_bkg.GetYaxis()->SetTitle("a.u.");
+  ptasymm_bkg.SetLineColor(4);
+  ptasymm_bkg.SetFillColor(4);
+  ptasymm_bkg.SetFillStyle(3002);
+
   ntu->Draw("TMath::Log(sumPt2) >> logSumPt2_sig","isSig == 1 && sumPt2>0","goff");
   ntu->Draw("TMath::Log(sumPt2) >> logSumPt2_bkg","isSig == 0 && sumPt2>0","goff");
 
@@ -70,6 +98,12 @@
 
   ntu->Draw("modSumPt / sum2PhoPt >> ptRatio_sig","isSig == 1 ","goff");
   ntu->Draw("modSumPt / sum2PhoPt >> ptRatio_bkg","isSig == 0 ","goff");
+
+  ntu->Draw("ptbal >> ptbal_sig","isSig == 1 ","goff");
+  ntu->Draw("ptbal >> ptbal_bkg","isSig == 0 ","goff");
+
+  ntu->Draw("ptasym >> ptasymm_sig","isSig == 1 ","goff");
+  ntu->Draw("ptasym >> ptasymm_bkg","isSig == 0 ","goff");
 
   TLegend leg (0.5, 0.7,0.8,0.89);
   leg->SetFillColor(0);
@@ -95,6 +129,17 @@
   TCanvas c4("c4","c4",500,500);
   ptRatio_bkg.DrawNormalized();
   ptRatio_sig.DrawNormalized("sames");
+  leg->Draw("same");  
+
+
+  TCanvas c5("c5","c5",500,500);
+  ptbal_bkg.DrawNormalized();
+  ptbal_sig.DrawNormalized("sames");
+  leg->Draw("same");  
+
+  TCanvas c6("c6","c6",500,500);
+  ptasymm_bkg.DrawNormalized();
+  ptasymm_sig.DrawNormalized("sames");
   leg->Draw("same");  
 
 }
