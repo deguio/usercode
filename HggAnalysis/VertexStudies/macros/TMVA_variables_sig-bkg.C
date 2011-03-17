@@ -59,28 +59,28 @@
   ptRatio_bkg.SetFillColor(4);
   ptRatio_bkg.SetFillStyle(3002);
 
-  TH1F ptbal_sig("ptbal_sig","ptbal",100,0.,5.);
+  TH1F ptbal_sig("ptbal_sig","ptbal",100,-100.,200.);
   ptbal_sig.GetXaxis()->SetTitle("|SumPt|/p^{T}_{H}");
   ptbal_sig.GetYaxis()->SetTitle("a.u.");
   ptbal_sig.SetLineColor(2);  
   ptbal_sig.SetFillColor(2);  
   ptbal_sig.SetFillStyle(3002);
   
-  TH1F ptbal_bkg("ptbal_bkg","ptbal",100,0.,5.);
+  TH1F ptbal_bkg("ptbal_bkg","ptbal",100,-100.,200.);
   ptbal_bkg.GetXaxis()->SetTitle("|SumPt|/p^{T}_{H}");
   ptbal_bkg.GetYaxis()->SetTitle("a.u.");
   ptbal_bkg.SetLineColor(4);
   ptbal_bkg.SetFillColor(4);
   ptbal_bkg.SetFillStyle(3002);
 
-  TH1F ptasymm_sig("ptasymm_sig","ptasymm",100,0.,5.);
+  TH1F ptasymm_sig("ptasymm_sig","ptasymm",100,-1.,1.);
   ptasymm_sig.GetXaxis()->SetTitle("|SumPt|/p^{T}_{H}");
   ptasymm_sig.GetYaxis()->SetTitle("a.u.");
   ptasymm_sig.SetLineColor(2);  
   ptasymm_sig.SetFillColor(2);  
   ptasymm_sig.SetFillStyle(3002);
   
-  TH1F ptasymm_bkg("ptasymm_bkg","ptasymm",100,0.,5.);
+  TH1F ptasymm_bkg("ptasymm_bkg","ptasymm",100,-1.,1.);
   ptasymm_bkg.GetXaxis()->SetTitle("|SumPt|/p^{T}_{H}");
   ptasymm_bkg.GetYaxis()->SetTitle("a.u.");
   ptasymm_bkg.SetLineColor(4);
