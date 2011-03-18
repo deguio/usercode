@@ -102,7 +102,7 @@
 
 
 
-   int nMBMax =12;
+   int nMBMax = 25;
 
    TLegend legend1(0.68, 0.78, 0.99, 0.99);
    legend1.SetFillColor(kWhite);
@@ -153,16 +153,16 @@
    c2.SetGridx();
    c2.SetGridy();
 
-   TCanvas c3;
-   eff2D_Pt_1 -> SetTitle("SumPt2 Zee MC");
-   eff2D_Pt_1 -> Draw("colz");
-   TCanvas c4;
-   eff2D_BDT_1 -> SetTitle("BDT Zee MC");
-   eff2D_BDT_1 -> Draw("colz");
-   TCanvas c5;
-   eff2D_Pt_2 -> SetTitle("SumPt2 Hgg");   
-   eff2D_Pt_2 -> Draw("colz");
-   TCanvas c6;
-   eff2D_BDT_2 -> SetTitle("BDT Hgg");
-   eff2D_BDT_2 -> Draw("colz");
+   // TCanvas c3;
+   // eff2D_Pt_1 -> SetTitle("SumPt2 Zee MC");
+   // eff2D_Pt_1 -> Draw("colz");
+   // TCanvas c4;
+   // eff2D_BDT_1 -> SetTitle("BDT Zee MC");
+   // eff2D_BDT_1 -> Draw("colz");
+   // TCanvas c5;
+   // eff2D_Pt_2 -> SetTitle("SumPt2 Hgg");   
+   // eff2D_Pt_2 -> Draw("colz");
+   // TCanvas c6;
+   // eff2D_BDT_2 -> SetTitle("BDT Hgg");
+   // eff2D_BDT_2 -> Draw("colz");
 }
