@@ -404,7 +404,7 @@ int main(int argc, char** argv)
        for ( unsigned int uu = 0; uu < PV_z->size(); uu++)
 	 {
 	   float distt = fabs( PV_z->at(uu) - TrueVertex_Z );
-	   if ( distt < 1 )   { Vmatched++; }
+	   if ( distt < 0.6 )   { Vmatched++; }
 	   if ( distt < dmin)   { dmin = distt; iClosest = uu; }
 	 }
        nmatched.Fill(Vmatched);
@@ -443,9 +443,9 @@ int main(int argc, char** argv)
 	   
 	   
 	   //TMVA variables per vertex
-	   sumPt2_TMVA[uu]              = log(sumpt2);
-	   tracksNum_TMVA[uu]           = ngoodTracks;
-	   deltaPhi_HSumPt_TMVA[uu]     = deltaPhi( sumTracks.phi(),sum2pho.phi() );
+	   sumPt2_TMVA[uu]                = log(sumpt2);
+	   tracksNum_TMVA[uu]             = ngoodTracks;
+	   deltaPhi_HSumPt_TMVA[uu]       = deltaPhi( sumTracks.phi(),sum2pho.phi() );
 	   sumPtModOversum2PhoPt_TMVA[uu] = sqrt( sumTracks.perp2() ) / sum2pho.pt();
 
 	   ptbal_TMVA[uu]  = -(vtxPx*sum2pho.X() + vtxPy*sum2pho.Y())/sum2pho.pt(); 
@@ -466,12 +466,12 @@ int main(int argc, char** argv)
        //--- evaluate TMVA ---
        //---------------------
        Double_t mva = TMVAreader->EvaluateMVA( "MLPmethod" ); 
-       int TMVAind = round(mva);
+       int TMVAind  = round(mva);
 
        //std::cout << "TMVAind = " << TMVAind << "; mva = " << mva << std::endl;
 
-       if (TMVAind < 0 )            TMVAind == 0;
-       if (TMVAind > PV_z->size())  TMVAind == 3; //la risposta della mva potrebbe essere molto sbagliata
+       if (TMVAind < 0 )  TMVAind = 0;
+       if (TMVAind > 3 )  TMVAind = 3; //la risposta della mva potrebbe essere molto sbagliata
 	   
 
        //-----------------------------------
@@ -495,7 +495,7 @@ int main(int argc, char** argv)
 	 }
        
 
-       if( fabs(PV_z->at(TMVAind) - TrueVertex_Z ) < 1. )
+       if( fabs(PV_z->at(TMVAind) - TrueVertex_Z ) < 0.6 )
 	 {
 	   PtGood_BDT.Fill( sum2pho.pt());
 	   NvtGood_BDT.Fill( PV_z->size() );
