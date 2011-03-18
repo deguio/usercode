@@ -32,8 +32,6 @@
 #define etaEB 1.444
 #define etaEE 1.560
 
-#define matchingCut 0.6
-
 bool PhotonId( float et, float eta, float Eiso, float Hiso, float HoE, float Tiso, float setaeta);
 
 
@@ -70,19 +68,25 @@ int main(int argc, char** argv)
   std::cout << std::endl;
 
 
-  //Chain + histos
+  //Chain
   TChain* chain = new TChain(treeName.c_str());
   chain->Add((baseDir+inputFile).c_str());
 
   treeReader reader((TTree*)(chain));
   
-  TH1F PtAll("PtAll","Pt of boson all",40,0,200);
-  TH1F PtGood("PtGood","Pt of boson good",40,0,200);
-  TH1F PtGood_BDT("PtGood_BDT","Pt of boson good BDT",40,0,200);
+  //sumpt2 correction
+  TFile correctionFile("correction.root","READ");
+  TH1F* correction = (TH1F*)correctionFile.Get("Hgg_overZee");
+
+
+  //histos
+  TH1F PtAll("PtAll","Pt of boson all",80,0,400);
+  TH1F PtGood("PtGood","Pt of boson good",80,0,400);
+  TH1F PtGood_BDT("PtGood_BDT","Pt of boson good BDT",80,0,400);
   
-  TH1F NvtAll("NvtAll","number of PV all",20,0,20);
-  TH1F NvtGood("NvtGood","number of PV good",20,0,20);
-  TH1F NvtGood_BDT("NvtGood_BDT","number of PV good BDT",20,0,20);
+  TH1F NvtAll("NvtAll","number of PV all",50,0,50);
+  TH1F NvtGood("NvtGood","number of PV good",50,0,50);
+  TH1F NvtGood_BDT("NvtGood_BDT","number of PV good BDT",50,0,50);
 
   TH2F PtAll_vsNvtAll   ("PtAll_vsNvtAll","PtAll_vsNvtAll",20,0,20,40,0,200);
   TH2F PtGood_vsNvtGood ("PtGood_vsNvtGood","PtGood_vsNvtGood",20,0,20,40,0,200);
@@ -98,39 +102,6 @@ int main(int argc, char** argv)
 
   TH1F sum2Pho_overMC("sum2Pho_overMC","Sum2Pho/mcH",180,-3.,3.);
 
-  /// histos with average distance and rms in  nvt vs ptH bins
-  // (these TH2F histos are just a way to save number as in a table)
-  TH1F* hDistSumpt2[10][15];
-  TH1F* hDistBDT[10][15];
-  double ptlim[10]={0,5,10,15,20,30,40,60,90,120};
-
-
-  TH2F distSumPt2("distSumPt2","average distance of mainPV - Boson vertex",9,ptlim ,15,0,15);
-  TH2F distBDT("distBDT","average distance of mainPV - Boson vertex",9,ptlim ,15,0,15);
-
-  TH2F rmsSumPt2("rmsSumPt2","rms of the distance of mainPV - Boson vertex",9,ptlim ,15,0,15);
-  TH2F rmsBDT("rmsBDT","rms of the distance mainPV - Boson vertex",9,ptlim ,15,0,15);
-  /////////////////////////////
-
-  TH2F distVsPt_SumPt2("distVsPt_SumPt2","distance Vs boson Pt, SumPt2",40,0,200,300,0,30);
-  TH2F distVsPt_BDT("distVsPt_BDT","distance Vs boson Pt, BDT",40,0,200,300,0,30);
-
-  TH2F distVsNv_SumPt2("distVsNv_SumPt2","distance Vs Nv, SumPt2",20,0,20,300,0,30);
-  TH2F distVsNv_BDT("distVsNv_BDT","distance Vs Nv, BDT",20,0,20,300,0,30);
-
-  TH1F selections("sele"," events surving selections",10,0,10);
-  TH1F minDist("minDist","distance from the true vtx of the closest reco vtx",5000,0,10);
-
-  for(int i=0; i<10;i++){
-    for(int j=0;j<15;j++){
-      char hnamespt2[500],hnamebdt[500];
-      sprintf(hnamespt2,"spt2%d%d",i,100+j);
-      sprintf(hnamebdt,"bdt%d%d",i,100+j);
-      hDistSumpt2[i][j] = new TH1F(hnamespt2,hnamespt2,300,0,30);
-      hDistBDT[i][j] = new TH1F(hnamebdt,hnamebdt,300,0,30);
-    }
-  }
-  
    std::cout<<"found "<< reader.GetEntries() <<" entries"<<std::endl;
    
     //
@@ -141,12 +112,18 @@ int main(int argc, char** argv)
    // - the variable names must corresponds in name and type to 
    // those given in the weight file(s) that you use
 
-   Float_t sumPt2_TMVA, tracksNum_TMVA, deltaPhi_HSumPt_TMVA, sumPtModOversum2PhoPt_TMVA, sum2PhoPt_TMVA;
-   TMVAreader->AddVariable( "sumPt2"          , &sumPt2_TMVA);
-   TMVAreader->AddVariable( "tracksNum"       , &tracksNum_TMVA);
-   TMVAreader->AddVariable( "deltaPhi_HSumPt" , &deltaPhi_HSumPt_TMVA);
-   TMVAreader->AddVariable( "sum2PhoPt"       , &sum2PhoPt_TMVA);
-   TMVAreader->AddVariable( "sumPtMod/sum2PhoPt" , &sumPtModOversum2PhoPt_TMVA);
+   float photons_eta[2], photons_phi[2], photons_E[2], photons_pt[2], photonsSC_eta[2], photonsSC_phi[2], photonsSC_E[2], photonsMC_eta[2], photonsMC_phi[2], photonsMC_E[2];
+   Float_t sumPt2_TMVA, ptbal_TMVA, ptasym_TMVA, tracksNum_TMVA, deltaPhi_HSumPt_TMVA, sumPtModOversum2PhoPt_TMVA, sum2PhoPt_TMVA;
+   TMVAreader->AddVariable( "log(sumPt2)"          , &sumPt2_TMVA);
+   TMVAreader->AddVariable( "ptbal"                , &ptbal_TMVA);
+   TMVAreader->AddVariable( "ptasym"               , &ptasym_TMVA);
+
+
+   // TMVAreader->AddVariable( "log(sumPt2)"          , &sumPt2_TMVA);
+   // TMVAreader->AddVariable( "tracksNum"       , &tracksNum_TMVA);
+   // TMVAreader->AddVariable( "deltaPhi_HSumPt" , &deltaPhi_HSumPt_TMVA);
+   // //TMVAreader->AddVariable( "sum2PhoPt"       , &sum2PhoPt_TMVA);
+   // TMVAreader->AddVariable( "sumPtMod/sum2PhoPt" , &sumPtModOversum2PhoPt_TMVA);
 
 
    TMVAreader->BookMVA( "BDTmethod", weights.c_str() ); 
@@ -179,17 +156,36 @@ int main(int argc, char** argv)
        std::vector<float>* PVtracks_normalizedChi2;
        
 
+       float photonsMC_eta[2], photonsMC_phi[2];
+
        ROOT::Math::XYZTVector sum2pho;
        //---------------------------
        //--- set up Hgg branches ---
        //---------------------------
-       selections.Fill(0.5);
-
        if ( isHiggs )
 	 {
 	   //taking H variables
 	   std::vector<ROOT::Math::XYZVector>* TrueVertex = reader.Get3V("mc_H_vertex");
 	   std::vector<ROOT::Math::XYZTVector>* mcH = reader.Get4V("mc_H");
+
+	   std::vector<ROOT::Math::XYZTVector>* mcV1 = reader.Get4V("mcV1");
+	   std::vector<ROOT::Math::XYZTVector>* mcV2 = reader.Get4V("mcV2");
+
+	   if ( mcV1->size() != 1 ||  mcV2->size() != 1) continue;
+	   if (mcV1->at(0).E() > mcV2->at(0).E())
+	     {
+	       photonsMC_eta[0] = mcV1->at(0).Eta();
+	       photonsMC_eta[1] = mcV2->at(0).Eta();
+	       photonsMC_phi[0] = mcV1->at(0).Phi();
+	       photonsMC_phi[1] = mcV2->at(0).Phi();
+	     }
+	   else
+	     {
+	       photonsMC_eta[1] = mcV1->at(0).Eta();
+	       photonsMC_eta[0] = mcV2->at(0).Eta();
+	       photonsMC_phi[1] = mcV1->at(0).Phi();
+	       photonsMC_phi[0] = mcV2->at(0).Phi();
+	     }
 
 	   if (TrueVertex->size() != 1) continue;
 	   TrueVertex_Z = TrueVertex->at(0).Z();
@@ -209,22 +205,74 @@ int main(int argc, char** argv)
 
 	   int indpho1 = -100, indpho2 = -100;
 	   int ngood = 0;
+
+	   double dR_1_min = 10000.;
+	   double dR_2_min = 10000.;
 	   for(unsigned int u=0; u < photons->size(); u++)
 	     {
-	       bool id =  PhotonId( photons->at(u).pt(), photons_SC->at(u).eta() , photons_ecalIso->at(u), photons_hcalIso->at(u), photons_hadronicOverEm->at(u), photons_trkSumPtHollowConeDR04->at(u), photons_sigmaIetaIeta->at(u) );
-	       if( id && photons->at(u).pt() > 10 && indpho1 < 0 )
-		 {ngood++; indpho1 = u;}
-	       else if(id && photons->at(u).pt() > 10 && indpho2 < 0)
-		 {ngood++; indpho2 = u;}
-	       else if(id && photons->at(u).pt() > 10 )
-		 {ngood++;}
+	       double dR_1 = deltaR( photonsMC_eta[0], photonsMC_phi[0], photons_SC->at(u).eta(), photons_SC->at(u).phi() );
+	       if (dR_1 < dR_1_min) { dR_1_min = dR_1; indpho1 = u; }
+	       
+	       double dR_2 = deltaR( photonsMC_eta[1], photonsMC_phi[1], photons_SC->at(u).eta(), photons_SC->at(u).phi() );
+	       if (dR_2 < dR_2_min) { dR_2_min = dR_2; indpho2 = u; }
+
+
+	       // bool id =  PhotonId( photons->at(u).pt(), photons_SC->at(u).eta() , photons_ecalIso->at(u), photons_hcalIso->at(u), photons_hadronicOverEm->at(u), photons_trkSumPtHollowConeDR04->at(u), photons_sigmaIetaIeta->at(u) );
+	       // if( id && photons->at(u).pt() > 10 && indpho1 < 0 )
+	       // 	 {ngood++; indpho1 = u;}
+	       // else if(id && photons->at(u).pt() > 10 && indpho2 < 0)
+	       // 	 {ngood++; indpho2 = u;}
+	       // else if(id && photons->at(u).pt() > 10 )
+	       // 	 {ngood++;}
 	     }
-	   if ( ngood != 2) continue;
-	   selections.Fill(1.5);
+	   //if ( ngood != 2) continue;	   
+	   if(dR_1_min > 0.15 || dR_2_min > 0.15) continue;
+	   if(photons_r9->at(indpho1) < 0.93 || photons_r9->at(indpho2) < 0.93) continue;
+
+
+	   if (photons->at(indpho1).E() > photons->at(indpho2).E())
+	     {
+	       photons_eta[0] = photons->at(indpho1).eta();
+	       photons_eta[1] = photons->at(indpho2).eta();
+	       photons_phi[0] = photons->at(indpho1).phi();
+	       photons_phi[1] = photons->at(indpho2).phi();
+	       photons_E[0] = photons->at(indpho1).E();
+	       photons_E[1] = photons->at(indpho2).E();
+	       photons_pt[0] = photons->at(indpho1).pt();
+	       photons_pt[1] = photons->at(indpho2).pt();
+
+	       photonsSC_eta[0] = photons_SC->at(indpho1).eta();
+	       photonsSC_eta[1] = photons_SC->at(indpho2).eta();
+	       photonsSC_phi[0] = photons_SC->at(indpho1).phi();
+	       photonsSC_phi[1] = photons_SC->at(indpho2).phi();
+	       photonsSC_E[0] = photons_SC->at(indpho1).E();
+	       photonsSC_E[1] = photons_SC->at(indpho2).E();
+	     }
+	   else
+	     {
+	       photons_eta[1] = photons->at(indpho1).eta();
+	       photons_eta[0] = photons->at(indpho2).eta();
+	       photons_phi[1] = photons->at(indpho1).phi();
+	       photons_phi[0] = photons->at(indpho2).phi();
+	       photons_E[1] = photons->at(indpho1).E();
+	       photons_E[0] = photons->at(indpho2).E();
+	       photons_pt[1] = photons->at(indpho1).pt();
+	       photons_pt[0] = photons->at(indpho2).pt();
+
+	       photonsSC_eta[1] = photons_SC->at(indpho1).eta();
+	       photonsSC_eta[0] = photons_SC->at(indpho2).eta();
+	       photonsSC_phi[1] = photons_SC->at(indpho1).phi();
+	       photonsSC_phi[0] = photons_SC->at(indpho2).phi();
+	       photonsSC_E[1] = photons_SC->at(indpho1).E();
+	       photonsSC_E[0] = photons_SC->at(indpho2).E();
+	     }
+
 	   sum2pho = photons->at(indpho1)+ photons->at(indpho2);
 
-	   if ( fabs(sum2pho.M() - 120) > 4 ) continue;
-	   selections.Fill(2.5);
+	   if (photons_pt[0] < 40. || photons_pt[1] < 30.) continue;
+
+	   //if ( fabs(sum2pho.M() - 120) > 4 ) continue;
+
 	   if (mcH->at(0).Pt() > 5.) sum2Pho_overMC.Fill( sum2pho.Pt()/mcH->at(0).Pt() );
 
 	 }//Hgg
@@ -258,10 +306,10 @@ int main(int argc, char** argv)
 	       else if( eleid->at(uu) == 7 )                  { ngood++;}
 	     }
 	   if ( ngood != 2){continue;}
-	   selections.Fill(1.5);
+
 	   sum2pho = electrons->at(indele1) + electrons->at(indele2);
 	   if ( fabs(sum2pho.M() - 91) > 8 ) continue;
-	   selections.Fill(2.5);
+
 	   TrueVertex_Z = PV_z->at(0) + (electrons_dz_PV_noEle->at(indele1) + electrons_dz_PV_noEle->at(indele2))/2.;
 	   
 	 }//Zee end
@@ -293,11 +341,11 @@ int main(int argc, char** argv)
 	       else if ( muons->at(uu).pt() > 10 )                 { ngood++;}
 	     }
 	   if ( ngood != 2){continue;}
-	   selections.Fill(1.5);
+
 
 	   sum2pho = muons->at(indmu1) + muons->at(indmu2);
 	   if ( fabs(sum2pho.M() - 91) > 8 ) continue;
-	   selections.Fill(2.5);
+
 	   TrueVertex_Z = PV_z->at(0) + (muons_dz_PV_noMuon->at(indmu1) + muons_dz_PV_noMuon->at(indmu2))/2.;
 	   
 	 }//Zmumu end
@@ -306,26 +354,13 @@ int main(int argc, char** argv)
        std::vector<int> goodIndex;
        for (unsigned int vItr = 0; vItr < PV_z->size(); ++vItr)
 	 {
-	   if (PV_nTracks->at(vItr) > 3 || PV_SumPt2->at(vItr) > 10.) goodIndex.push_back(vItr);
+	   //if (PV_nTracks->at(vItr) > 3 || PV_SumPt2->at(vItr) > 10.) goodIndex.push_back(vItr);
+	   goodIndex.push_back(vItr);
 	 }
 
        int npv = goodIndex.size();
        if (npv == 0 ){continue;}
-       selections.Fill(3.5);
-
-       PtAll.Fill( sum2pho.pt() );
-       NvtAll.Fill(npv);
-       PtAll_vsNvtAll.Fill(npv,sum2pho.pt());
-
-       //is sumPt2 the good choice?
-       if( fabs(PV_z->at(goodIndex[0]) - TrueVertex_Z ) < matchingCut )
-	 {
-	   PtGood.Fill( sum2pho.pt() );
-	   NvtGood.Fill(npv);
-	   PtGood_vsNvtGood.Fill(npv,sum2pho.pt());
-	 }
-       
-       
+              
        
        //look if the H vertex matches one of the PV vertices
        float dmin = 10000;
@@ -334,15 +369,14 @@ int main(int argc, char** argv)
        for ( int uu = 0; uu < npv; uu++)
 	 {
 	   float distt = fabs( PV_z->at(goodIndex[uu]) - TrueVertex_Z );
-	   if ( distt < matchingCut )   { Vmatched++; }
+	   if ( distt < 0.6 )   { Vmatched++; }
 	   if ( distt < dmin)   { dmin = distt; iClosest = uu; }
 	 }
        nmatched.Fill(Vmatched);
-       minDist.Fill(dmin);
-
+       
        int TMVAind = -1;
        float TMVAmax = -1000.;
-       
+
        //pt balance for vertexId
        for ( int uu = 0; uu < npv; uu++)
 	 {
@@ -350,13 +384,22 @@ int main(int argc, char** argv)
 	   ROOT::Math::XYZVector sumTracks;
 	   float summodpt = 0;
 	   float sumpt2 = 0;
-	   //  ROOT::Math::XYZVector sumTracksWrong;
-	   
+
+	   float vtxPx = 0;
+	   float vtxPy = 0;
+	   float vtxPz = 0;
+	   float vtxPt = 0;
+
 	   for (unsigned int kk = 0; kk < PVtracks->size(); ++kk)
 	     {
 	       if (PVtracks_PVindex->at(kk) == goodIndex[uu])
 		 {
 		   if ( PVtracks->at(kk).perp2() < trackThr*trackThr ) continue;
+
+		   vtxPx += PVtracks->at(kk).X();
+		   vtxPy += PVtracks->at(kk).Y();
+		   vtxPz += PVtracks->at(kk).Z();
+
 		   sumTracks += PVtracks->at(kk);
 		   summodpt += sqrt((PVtracks->at(kk)).perp2());
 		   sumpt2 += PVtracks->at(kk).perp2();
@@ -366,11 +409,15 @@ int main(int argc, char** argv)
 	   
 	   
 	   //TMVA variables
-	   sumPt2_TMVA = sumpt2;
+	   sumPt2_TMVA = log(sumpt2);
 	   tracksNum_TMVA = ngoodTracks;
 	   deltaPhi_HSumPt_TMVA = deltaPhi( sumTracks.phi(),sum2pho.phi() );
 	   sum2PhoPt_TMVA = sum2pho.pt();
 	   sumPtModOversum2PhoPt_TMVA = sqrt( sumTracks.perp2() ) / sum2pho.pt();
+
+	   ptbal_TMVA  = -(vtxPx*sum2pho.X() + vtxPy*sum2pho.Y())/sum2pho.pt(); 
+	   vtxPt       = sqrt(vtxPx*vtxPx+vtxPy*vtxPy);
+	   ptasym_TMVA = (vtxPt - sum2pho.pt())/ (vtxPt + sum2pho.pt());
 	   
 	   //Evaluate TMVA
 	   Double_t mva = TMVAreader->EvaluateMVA( "BDTmethod" ); 
@@ -396,48 +443,42 @@ int main(int argc, char** argv)
 	   
 	 }//vertex loop
        
-       if( fabs(PV_z->at(goodIndex[TMVAind]) - TrueVertex_Z ) <  matchingCut)
+
+       //-----------------------------------
+       //--- fill spectra for efficiency ---
+       //-----------------------------------
+
+       //get correction for given sumpt2
+       double ratio = correction->Interpolate( PV_SumPt2->at(goodIndex[0]) );
+       //double ratio = 1.;
+
+
+       PtAll.Fill( sum2pho.pt());
+       NvtAll.Fill(npv);
+       PtAll_vsNvtAll.Fill(npv,sum2pho.pt());
+
+       //is sumPt2 the good choice?
+       //if( fabs(PV_z->at(goodIndex[0]) - TrueVertex_Z ) < 1. )
+       if( iClosest == 0 )
 	 {
-	   PtGood_BDT.Fill( sum2pho.pt() );
+	   ratio = correction->Interpolate( PV_SumPt2->at(goodIndex[0]) );
+	   PtGood.Fill( sum2pho.pt());
+	   NvtGood.Fill(npv);
+	   PtGood_vsNvtGood.Fill(npv,sum2pho.pt());
+	 }
+       
+
+       if( fabs(PV_z->at(goodIndex[TMVAind]) - TrueVertex_Z ) < 0.6 )
+	 {
+	   ratio = correction->Interpolate(PV_SumPt2->at(goodIndex[TMVAind]) );
+	   PtGood_BDT.Fill( sum2pho.pt());
 	   NvtGood_BDT.Fill( npv );
 	   PtBDT_vsNvtBDT.Fill( npv,sum2pho.pt() );
 	 }
-
-      
-       //// filling the distance histos
-       float ptH=sum2pho.pt();
-       distVsPt_SumPt2.Fill(ptH, fabs( PV_z->at(goodIndex[0]) - TrueVertex_Z  ) );
-       distVsPt_BDT.Fill( ptH, fabs( PV_z->at(goodIndex[TMVAind]) - TrueVertex_Z ) );
-
-       distVsNv_SumPt2.Fill(npv, fabs( PV_z->at(goodIndex[0]) - TrueVertex_Z  ) );
-       distVsNv_BDT.Fill( npv, fabs( PV_z->at(goodIndex[TMVAind]) - TrueVertex_Z ) );
-       //// 
-       // finding the H pt 2bin"
-       int ptbin=0;
-       for( ptbin=0; ptbin<9; ptbin++){
-	 if( ptH > ptlim[ptbin] && ptH < ptlim[ptbin+1] ) {break;}
-       }
-       if (ptH > ptlim[9] ) {ptbin=9;}
-       //findinf the number of vertex bin
-       int vbin = npv-1;
-       if(vbin > 14) {vbin=14;}
        
-       hDistBDT[ptbin][vbin]->Fill(fabs( PV_z->at(goodIndex[TMVAind]) - TrueVertex_Z ));
-       hDistSumpt2[ptbin][vbin]->Fill(fabs( PV_z->at(goodIndex[0]) - TrueVertex_Z  ));
+       
      } //evt loop
    
-   //setting the content of the table-histos for distance and RMS 
-  for(int i=0; i<10;i++){
-    for(int j=0;j<15;j++){
-      distSumPt2.SetBinContent(i,j,hDistSumpt2[i][j]->GetMean() );
-      distBDT.SetBinContent(i,j,hDistBDT[i][j]->GetMean() );
-      rmsSumPt2.SetBinContent(i,j,hDistSumpt2[i][j]->GetRMS() );
-      rmsBDT.SetBinContent(i,j,hDistBDT[i][j]->GetRMS() );
-    }
-  }
-  
-
-
    
    TFile ff( (outputRootFilePath+outputRootFileName).c_str(),"recreate");
    
@@ -462,22 +503,6 @@ int main(int argc, char** argv)
    nmatched.Write();
 
    sum2Pho_overMC.Write();
-
-   distSumPt2.Write();
-   distBDT.Write();
-   rmsSumPt2.Write();
-   rmsBDT.Write();
-
-   distVsPt_SumPt2.Write();
-   distVsPt_BDT.Write();
-
-   distVsNv_SumPt2.Write();
-   distVsNv_BDT.Write();
-
-   minDist.Write();
-   selections.Write();
-
-
    ff.Close();
    return 0;
    
