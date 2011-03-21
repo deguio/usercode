@@ -73,6 +73,8 @@ int main(int argc, char** argv)
   //Filling the ntuple
   int isSig, evtNumber, nVertices, nTracks, nTracksPt05, nTracksPt4;
   float sumPt2, modSumPt, modSumPtInCone_30, modSumPtInCone_45, deltaPhi_HSumPt, sum2PhoPt, normalizedChi2, sumModPt;
+  float ptbal, ptasym;
+  float photons_eta[2], photons_phi[2], photons_E[2], photons_pt[2], photonsSC_eta[2], photonsSC_phi[2], photonsSC_E[2], photonsMC_eta[2], photonsMC_phi[2], photonsMC_E[2];
   
   float trackPx[500], trackPy[500], trackPz[500];
 
@@ -90,16 +92,33 @@ int main(int argc, char** argv)
   outTree -> Branch("nTracks",&nTracks, "nTracks/I");
   outTree -> Branch("nTracksPt05",&nTracksPt05, "nTracksPt05/I");
   outTree -> Branch("nTracksPt4",&nTracksPt4, "nTracksPt4/I");
+  outTree -> Branch("ptbal",  &ptbal,   "ptbal/F");
+  outTree -> Branch("ptasym",  &ptasym,   "ptasym/F");
   outTree -> Branch("normalizedChi2",&normalizedChi2, "normalizedChi2/F");
   
+  outTree -> Branch("photons_eta",           photons_eta,              "photons_eta[2]/F");
+  outTree -> Branch("photons_phi",           photons_phi,              "photons_phi[2]/F");
+  outTree -> Branch("photons_E",             photons_E,                "photons_E[2]/F");
+  outTree -> Branch("photons_pt",            photons_pt,               "photons_pt[2]/F");
+  outTree -> Branch("photonsSC_eta",         photonsSC_eta,            "photonsSC_eta[2]/F");
+  outTree -> Branch("photonsSC_phi",         photonsSC_phi,            "photonsSC_phi[2]/F");
+  outTree -> Branch("photonsSC_E",           photonsSC_E,              "photonsSC_E[2]/F");
+  outTree -> Branch("photonsMC_eta",         photonsMC_eta,            "photonsMC_eta[2]/F");
+  outTree -> Branch("photonsMC_phi",         photonsMC_phi,            "photonsMC_phi[2]/F");
+  outTree -> Branch("photonsMC_E",           photonsMC_E,              "photonsMC_E[2]/F");
+
   outTree -> Branch("trackPx",trackPx, "trackPx[nTracks]/F");
   outTree -> Branch("trackPy",trackPy, "trackPy[nTracks]/F");
   outTree -> Branch("trackPz",trackPz, "trackPz[nTracks]/F");
 
   outTree -> Branch("isSig", &isSig, "isSig/I");
 
+  //histos
 
-  //Chain + histos
+
+
+
+  //Chain
   TChain* chain = new TChain(treeName.c_str());
   chain->Add((baseDir+inputFile).c_str());
 
@@ -146,6 +165,30 @@ int main(int argc, char** argv)
 	   std::vector<ROOT::Math::XYZVector>* TrueVertex = reader.Get3V("mc_H_vertex");
 	   std::vector<ROOT::Math::XYZTVector>* mcH = reader.Get4V("mc_H");
 
+	   std::vector<ROOT::Math::XYZTVector>* mcV1 = reader.Get4V("mcV1");
+	   std::vector<ROOT::Math::XYZTVector>* mcV2 = reader.Get4V("mcV2");
+
+	   if ( mcV1->size() != 1 ||  mcV2->size() != 1) continue;
+	   if (mcV1->at(0).E() > mcV2->at(0).E())
+	     {
+	       photonsMC_eta[0] = mcV1->at(0).Eta();
+	       photonsMC_eta[1] = mcV2->at(0).Eta();
+	       photonsMC_phi[0] = mcV1->at(0).Phi();
+	       photonsMC_phi[1] = mcV2->at(0).Phi();
+	       photonsMC_E[0]   = mcV1->at(0).E();
+	       photonsMC_E[1]   = mcV2->at(0).E();
+	     }
+	   else
+	     {
+	       photonsMC_eta[1] = mcV1->at(0).Eta();
+	       photonsMC_eta[0] = mcV2->at(0).Eta();
+	       photonsMC_phi[1] = mcV1->at(0).Phi();
+	       photonsMC_phi[0] = mcV2->at(0).Phi();
+	       photonsMC_E[1]   = mcV1->at(0).E();
+	       photonsMC_E[0]   = mcV2->at(0).E();
+	     }
+	   
+
 	   if (TrueVertex->size() != 1) continue;
 	   TrueVertex_Z = TrueVertex->at(0).Z();
 	   
@@ -164,20 +207,68 @@ int main(int argc, char** argv)
 
 	   int indpho1 = -100, indpho2 = -100;
 	   int ngood = 0;
+
+	   double dR_1_min = 10000.;
+	   double dR_2_min = 10000.;
 	   for(unsigned int u=0; u < photons->size(); u++)
 	     {
-	       bool id =  PhotonId( photons->at(u).pt(), photons_SC->at(u).eta() , photons_ecalIso->at(u), photons_hcalIso->at(u), photons_hadronicOverEm->at(u), photons_trkSumPtHollowConeDR04->at(u), photons_sigmaIetaIeta->at(u) );
-	       if( id && photons->at(u).pt() > 10 && indpho1 < 0 )
-		 {ngood++; indpho1 = u;}
-	       else if(id && photons->at(u).pt() > 10 && indpho2 < 0)
-		 {ngood++; indpho2 = u;}
-	       else if(id && photons->at(u).pt() > 10 )
-		 {ngood++;}
+	       double dR_1 = deltaR( photonsMC_eta[0], photonsMC_phi[0], photons_SC->at(u).eta(), photons_SC->at(u).phi() );
+	       if (dR_1 < dR_1_min) { dR_1_min = dR_1; indpho1 = u; }
+	       
+	       double dR_2 = deltaR( photonsMC_eta[1], photonsMC_phi[1], photons_SC->at(u).eta(), photons_SC->at(u).phi() );
+	       if (dR_2 < dR_2_min) { dR_2_min = dR_2; indpho2 = u; }
+
+	       // bool id =  PhotonId( photons->at(u).pt(), photons_SC->at(u).eta() , photons_ecalIso->at(u), photons_hcalIso->at(u), photons_hadronicOverEm->at(u), photons_trkSumPtHollowConeDR04->at(u), photons_sigmaIetaIeta->at(u) );
+	       // if( id && photons->at(u).pt() > 10 && indpho1 < 0 )
+	       // 	 {ngood++; indpho1 = u;}
+	       // else if(id && photons->at(u).pt() > 10 && indpho2 < 0)
+	       // 	 {ngood++; indpho2 = u;}
+	       // else if(id && photons->at(u).pt() > 10 )
+	       // 	 {ngood++;}
 	     }
-	   if ( ngood != 2) continue;
-	   
+	   //if ( ngood != 2) continue;
+	   if(dR_1_min > 0.15 || dR_2_min > 0.15) continue;
+	   if(photons_r9->at(indpho1) < 0.93 || photons_r9->at(indpho2) < 0.93) continue;
+
 	   sum2pho = photons->at(indpho1)+ photons->at(indpho2);
-	   if ( fabs(sum2pho.M() - 120) > 4 ) continue;
+
+	   if (photons->at(indpho1).E() > photons->at(indpho2).E())
+	     {
+	       photons_eta[0] = photons->at(indpho1).eta();
+	       photons_eta[1] = photons->at(indpho2).eta();
+	       photons_phi[0] = photons->at(indpho1).phi();
+	       photons_phi[1] = photons->at(indpho2).phi();
+	       photons_E[0] = photons->at(indpho1).E();
+	       photons_E[1] = photons->at(indpho2).E();
+	       photons_pt[0] = photons->at(indpho1).pt();
+	       photons_pt[1] = photons->at(indpho2).pt();
+
+	       photonsSC_eta[0] = photons_SC->at(indpho1).eta();
+	       photonsSC_eta[1] = photons_SC->at(indpho2).eta();
+	       photonsSC_phi[0] = photons_SC->at(indpho1).phi();
+	       photonsSC_phi[1] = photons_SC->at(indpho2).phi();
+	       photonsSC_E[0] = photons_SC->at(indpho1).E();
+	       photonsSC_E[1] = photons_SC->at(indpho2).E();
+	     }
+	   else
+	     {
+	       photons_eta[1] = photons->at(indpho1).eta();
+	       photons_eta[0] = photons->at(indpho2).eta();
+	       photons_phi[1] = photons->at(indpho1).phi();
+	       photons_phi[0] = photons->at(indpho2).phi();
+	       photons_E[1] = photons->at(indpho1).E();
+	       photons_E[0] = photons->at(indpho2).E();
+	       photons_pt[1] = photons->at(indpho1).pt();
+	       photons_pt[0] = photons->at(indpho2).pt();
+
+	       photonsSC_eta[1] = photons_SC->at(indpho1).eta();
+	       photonsSC_eta[0] = photons_SC->at(indpho2).eta();
+	       photonsSC_phi[1] = photons_SC->at(indpho1).phi();
+	       photonsSC_phi[0] = photons_SC->at(indpho2).phi();
+	       photonsSC_E[1] = photons_SC->at(indpho1).E();
+	       photonsSC_E[0] = photons_SC->at(indpho2).E();
+	     }
+	   //if ( fabs(sum2pho.M() - 120) > 4 ) continue;
 
 	 }//Hgg
        //---------------------------
@@ -258,7 +349,8 @@ int main(int argc, char** argv)
        std::vector<int> goodIndex;
        for (unsigned int vItr = 0; vItr < PV_z->size(); ++vItr)
 	 {
-	   if (PV_nTracks->at(vItr) > 3 || PV_SumPt2->at(vItr) > 10.) goodIndex.push_back(vItr);
+	   //if (PV_nTracks->at(vItr) > 3 || PV_SumPt2->at(vItr) > 10.) goodIndex.push_back(vItr);
+	   goodIndex.push_back(vItr);
 	 }
 
        int npv = goodIndex.size();
@@ -294,6 +386,10 @@ int main(int argc, char** argv)
 	   ROOT::Math::XYZVector sumTracks;
 	   ROOT::Math::XYZVector sumTracksInCone_30;
 	   ROOT::Math::XYZVector sumTracksInCone_45;
+	   float vtxPx = 0;
+	   float vtxPy = 0;
+	   float vtxPz = 0;
+	   float vtxPt = 0;
 
 	   sumModPt = 0;
 	   sumPt2 = 0;
@@ -303,6 +399,11 @@ int main(int argc, char** argv)
 	       if (PVtracks_PVindex->at(kk) == goodIndex[uu])
 		 {
 		   if ( PVtracks->at(kk).perp2() < trackThr*trackThr ) continue;
+
+		   vtxPx += PVtracks->at(kk).X();
+		   vtxPy += PVtracks->at(kk).Y();
+		   vtxPz += PVtracks->at(kk).Z();
+
 		   sumTracks += PVtracks->at(kk);
 		   sumModPt += sqrt((PVtracks->at(kk)).perp2());
 		   sumPt2 += PVtracks->at(kk).perp2();
@@ -319,13 +420,17 @@ int main(int argc, char** argv)
 
 		 }
 	     }//tracks loop
-	   
+
 	   deltaPhi_HSumPt = deltaPhi( sumTracks.phi(),sum2pho.phi());
 	   modSumPt = sqrt( sumTracks.perp2() );
 	   modSumPtInCone_30 = sqrt( sumTracksInCone_30.perp2() );
 	   modSumPtInCone_45 = sqrt( sumTracksInCone_45.perp2() );
 	   sum2PhoPt = sum2pho.pt();	   
 	   normalizedChi2 = PV_normalizedChi2->at(goodIndex[uu]);
+	   
+	   ptbal  = -(vtxPx*sum2pho.X() + vtxPy*sum2pho.Y())/sum2pho.pt(); 
+	   vtxPt = sqrt(vtxPx*vtxPx+vtxPy*vtxPy);
+	   ptasym = (vtxPt - sum2PhoPt)/ (vtxPt + sum2PhoPt);
 	   
 
 	   isSig = 0.;
