@@ -37,7 +37,7 @@
 #include "TROOT.h"
 #include "TPluginManager.h"
 
-//#include "/Applications/root/tmva/test/TMVAGui.C"
+#include "/Applications/root/tmva/test/TMVAGui.C"
 
 #if not defined(__CINT__) || defined(__MAKECINT__)
 // needs to be included when makecint runs (ACLIC)
@@ -129,8 +129,7 @@ void TMVA_training( TString myMethodList = "" )
    if (myMethodList != "") {
       for (std::map<std::string,int>::iterator it = Use.begin(); it != Use.end(); it++) it->second = 0;
 
-      //std::vector<TString> mlist = TMVA::gTools().SplitString( myMethodList, ',' );
-      std::vector<TString> mlist; mlist.push_back("BDT");// = TMVA::gTools().SplitString( myMethodList, ',' );
+      std::vector<TString> mlist = TMVA::gTools().SplitString( myMethodList, ',' );
       for (UInt_t i=0; i<mlist.size(); i++) {
          std::string regMethod(mlist[i]);
 
@@ -145,7 +144,7 @@ void TMVA_training( TString myMethodList = "" )
    }
 
    // Create a new root output file.
-   TString outfileName( "TMVA_Vertex.root" );
+   TString outfileName( "TMVA_Vertex_HggAVE18.root" );
    TFile* outputFile = TFile::Open( outfileName, "RECREATE" );
 
    // Create the factory object. Later you can choose the methods
@@ -158,7 +157,7 @@ void TMVA_training( TString myMethodList = "" )
    // The second argument is the output file for the training results
    // All TMVA output can be suppressed by removing the "!" (not) in
    // front of the "Silent" argument in the option string
-   TMVA::Factory *factory = new TMVA::Factory( "TMVAClassification_GoodVertex_kk", outputFile,
+   TMVA::Factory *factory = new TMVA::Factory( "TMVAClassification", outputFile,
 					       "!V:!Silent:Color:DrawProgressBar:Transformations=I;D;P;G,D:AnalysisType=Classification" );
 
    // If you wish to modify default settings
@@ -171,21 +170,27 @@ void TMVA_training( TString myMethodList = "" )
    // [all types of expressions that can also be parsed by TTree::Draw( "expression" )]
 
    
-   factory->AddVariable( "sumPt2" , 'F');
+   factory->AddVariable( "log(sumPt2)"        , 'F');
+   factory->AddVariable( "ptbal"              , 'F');
+   factory->AddVariable( "ptasym"             , 'F');
+
+
+   // factory->AddVariable( "tracksNum"          , 'F');
+   // factory->AddVariable( "deltaPhi_HSumPt"    , 'F');
+   // factory->AddVariable( "sumPtMod/sum2PhoPt" , 'F');
+
+   //factory->AddVariable( "sum2PhoPt" , 'F');
    //factory->AddVariable( "sumPt" , 'F');
    //factory->AddVariable( "sumPtMod" , 'F');
-
-   factory->AddVariable( "tracksNum" , 'F');
-   factory->AddVariable( "deltaPhi_HSumPt" , 'F');
-
-   factory->AddVariable( "sum2PhoPt" , 'F');
-   factory->AddVariable( "sumPtMod/sum2PhoPt" , 'F');
-   //factory->AddVariable( "sumPtMod" , 'F');
+   //factory->AddVariable( "sumPtModInCone_30" , 'F');
+   //factory->AddVariable( "sumPtModInCone_45" , 'F');
+   //factory->AddVariable( "sumPtModInCone_30/sum2PhoPt" , 'F');
+   //factory->AddVariable( "normalizedChi2" , 'F');
    
 
 
    // load the signal and background event samples from ROOT trees
-   TFile *input = TFile::Open("output/NtupleForTMVA.root");
+   TFile *input = TFile::Open("TMVA_variables_HggAVE18.root");
 
    TTree *ntu     = (TTree*)input->Get("TMVA_vertexTree");
 
@@ -200,7 +205,38 @@ void TMVA_training( TString myMethodList = "" )
    factory->AddSignalTree    ( ntu,     signalWeight     );
    factory->AddBackgroundTree( ntu,     backgroundWeight );
    
+   // To give different trees for training and testing, do as follows:
+   //    factory->AddSignalTree( signalTrainingTree, signalTrainWeight, "Training" );
+   //    factory->AddSignalTree( signalTestTree,     signalTestWeight,  "Test" );
    
+   // Use the following code instead of the above two or four lines to add signal and background
+   // training and test events "by hand"
+   // NOTE that in this case one should not give expressions (such as "var1+var2") in the input
+   //      variable definition, but simply compute the expression before adding the event
+   //
+   //    // --- begin ----------------------------------------------------------
+   //    std::vector<Double_t> vars( 4 ); // vector has size of number of input variables
+   //    Float_t  treevars[4];
+   //    for (Int_t ivar=0; ivar<4; ivar++) signal->SetBranchAddress( Form( "var%i", ivar+1 ), &(treevars[ivar]) );
+   //    for (Int_t i=0; i<signal->GetEntries(); i++) {
+   //       signal->GetEntry(i);
+   //       for (Int_t ivar=0; ivar<4; ivar++) vars[ivar] = treevars[ivar];
+   //       // add training and test events; here: first half is training, second is testing
+   //       // note that the weight can also be event-wise
+   //       if (i < signal->GetEntries()/2) factory->AddSignalTrainingEvent( vars, signalWeight );
+   //       else                            factory->AddSignalTestEvent    ( vars, signalWeight );
+   //    }
+   //
+   //    for (Int_t ivar=0; ivar<4; ivar++) background->SetBranchAddress( Form( "var%i", ivar+1 ), &(treevars[ivar]) );
+   //    for (Int_t i=0; i<background->GetEntries(); i++) {
+   //       background->GetEntry(i);
+   //       for (Int_t ivar=0; ivar<4; ivar++) vars[ivar] = treevars[ivar];
+   //       // add training and test events; here: first half is training, second is testing
+   //       // note that the weight can also be event-wise
+   //       if (i < background->GetEntries()/2) factory->AddBackgroundTrainingEvent( vars, backgroundWeight );
+   //       else                                factory->AddBackgroundTestEvent    ( vars, backgroundWeight );
+   //    }
+   //    // --- end ------------------------------------------------------------
    //
    // ====== end of register trees ==============================================
    
@@ -212,8 +248,8 @@ void TMVA_training( TString myMethodList = "" )
    //factory->SetBackgroundWeightExpression("weight");
    
    // Apply additional cuts on the signal and background samples (can be different)
-   TCut mycuts = "isSig == 1 && sumPt2<7000"; // for example: TCut mycuts = "abs(var1)<0.5 && abs(var2-0.5)<1";
-   TCut mycutb = "isSig == 0 && sumPt2<7000"; // for example: TCut mycutb = "abs(var1)<0.5";
+   TCut mycuts = "isSig == 1 && photons_pt[0] > 40 && photons_pt[1] > 30"; // for example: TCut mycuts = "abs(var1)<0.5 && abs(var2-0.5)<1";
+   TCut mycutb = "isSig == 0 && photons_pt[0] > 40 && photons_pt[1] > 30"; // for example: TCut mycutb = "abs(var1)<0.5";
 
    // tell the factory to use all remaining events in the trees after training for testing:
    factory->PrepareTrainingAndTestTree( mycuts, mycutb,
@@ -398,6 +434,11 @@ void TMVA_training( TString myMethodList = "" )
 
    // For an example of the category classifier, see: TMVAClassificationCategory
 
+   // --------------------------------------------------------------------------------------------------                                                                  
+   // ---- Now you can optimize the setting (configuration) of the MVAs using the set of training events                                                                 
+   // factory->OptimizeAllMethods("SigEffAt001","Scan");
+   // factory->OptimizeAllMethods("ROCIntegral","GA");
+   // --------------------------------------------------------------------------------------------------                     
 
    // ---- Now you can tell the factory to train, test, and evaluate the MVAs
 
@@ -421,5 +462,5 @@ void TMVA_training( TString myMethodList = "" )
    delete factory;
 
    // Launch the GUI for the root macros
-   //if (!gROOT->IsBatch()) TMVAGui( outfileName );
+   if (!gROOT->IsBatch()) TMVAGui( outfileName );
 }
