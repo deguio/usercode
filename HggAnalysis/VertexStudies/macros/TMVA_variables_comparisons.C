@@ -1,8 +1,6 @@
 {
-  gROOT->SetStyle("Plain");
-  gStyle->SetOptStat(0);
-  gStyle->SetPalette(1);
 
+  std::string cutString = "isSig == 1 && sum2PhoPt > 0 && sum2PhoPt < 2000 && photons_pt[0]>0 && photons_pt[1]>0";
 
   TTree* ntu1 = (TTree*)_file0->Get("TMVA_vertexTree");
   TTree* ntu2 = (TTree*)_file1->Get("TMVA_vertexTree");
@@ -116,29 +114,29 @@
   SumPt2_vs_BosonPt_2.GetYaxis()->SetTitle("SumPt2");
 
 
-  ntu1->Draw("TMath::Log(sumPt2) >> logSumPt2_1","isSig == 1 && sum2PhoPt > 10 && sum2PhoPt < 40 && photons_pt[0]>0 && photons_pt[1]>0","goff");
-  ntu2->Draw("TMath::Log(sumPt2) >> logSumPt2_2","isSig == 1 && sum2PhoPt > 10 && sum2PhoPt < 40 && photons_pt[0]>0 && photons_pt[1]>0","goff");
+  ntu1->Draw("TMath::Log(sumPt2) >> logSumPt2_1",cutString.c_str(),"goff");
+  ntu2->Draw("TMath::Log(sumPt2) >> logSumPt2_2",cutString.c_str(),"goff");
 
-  ntu1->Draw("nTracks >> tracksNum1","isSig == 1 && sum2PhoPt > 10 && sum2PhoPt < 40 && photons_pt[0]>0 && photons_pt[1]>0","goff");
-  ntu2->Draw("nTracks >> tracksNum2","isSig == 1 && sum2PhoPt > 10 && sum2PhoPt < 40 && photons_pt[0]>0 && photons_pt[1]>0","goff");
+  ntu1->Draw("nTracks >> tracksNum1",cutString.c_str(),"goff");
+  ntu2->Draw("nTracks >> tracksNum2",cutString.c_str(),"goff");
 
-  ntu1->Draw("deltaPhi_HSumPt >> deltaPhi1","isSig == 1 && sum2PhoPt > 10 && sum2PhoPt < 40 && photons_pt[0]>0 && photons_pt[1]>0","goff");
-  ntu2->Draw("deltaPhi_HSumPt >> deltaPhi2","isSig == 1 && sum2PhoPt > 10 && sum2PhoPt < 40 && photons_pt[0]>0 && photons_pt[1]>0","goff");
+  ntu1->Draw("deltaPhi_HSumPt >> deltaPhi1",cutString.c_str(),"goff");
+  ntu2->Draw("deltaPhi_HSumPt >> deltaPhi2",cutString.c_str(),"goff");
 
-  ntu1->Draw("modSumPt / sum2PhoPt >> ptRatio1","isSig == 1 && sum2PhoPt > 10 && sum2PhoPt < 40 && photons_pt[0]>0 && photons_pt[1]>0","goff");
-  ntu2->Draw("modSumPt / sum2PhoPt >> ptRatio2","isSig == 1 && sum2PhoPt > 10 && sum2PhoPt < 40 && photons_pt[0]>0 && photons_pt[1]>0","goff");
+  ntu1->Draw("modSumPt / sum2PhoPt >> ptRatio1",cutString.c_str(),"goff");
+  ntu2->Draw("modSumPt / sum2PhoPt >> ptRatio2",cutString.c_str(),"goff");
 
-  ntu1->Draw("ptbal >> ptbal1","isSig == 1 && sum2PhoPt > 10 && sum2PhoPt < 40 && photons_pt[0]>0 && photons_pt[1]>0","goff");
-  ntu2->Draw("ptbal >> ptbal2","isSig == 1 && sum2PhoPt > 10 && sum2PhoPt < 40 && photons_pt[0]>0 && photons_pt[1]>0","goff");
+  ntu1->Draw("ptbal >> ptbal1",cutString.c_str(),"goff");
+  ntu2->Draw("ptbal >> ptbal2",cutString.c_str(),"goff");
 
-  ntu1->Draw("ptasym >> ptasymm1","isSig == 1 && sum2PhoPt > 10 && sum2PhoPt < 40 && photons_pt[0]>0 && photons_pt[1]>0","goff");
-  ntu2->Draw("ptasym >> ptasymm2","isSig == 1 && sum2PhoPt > 10 && sum2PhoPt < 40 && photons_pt[0]>0 && photons_pt[1]>0","goff");
+  ntu1->Draw("ptasym >> ptasymm1",cutString.c_str(),"goff");
+  ntu2->Draw("ptasym >> ptasymm2",cutString.c_str(),"goff");
   
-  ntu1->Draw("sumPt2 >> SumPt2_1","isSig == 1 && sum2PhoPt > 10 && sum2PhoPt < 40 && photons_pt[0]>0 && photons_pt[1]>0","goff");
-  ntu2->Draw("sumPt2 >> SumPt2_2","isSig == 1 && sum2PhoPt > 10 && sum2PhoPt < 40 && photons_pt[0]>0 && photons_pt[1]>0","goff");
+  ntu1->Draw("sumPt2 >> SumPt2_1",cutString.c_str(),"goff");
+  ntu2->Draw("sumPt2 >> SumPt2_2",cutString.c_str(),"goff");
 
-  ntu1->Draw("sumPt2:sum2PhoPt >> SumPt2_vs_BosonPt_1","isSig == 1 && sum2PhoPt > 10 && sum2PhoPt < 40 && photons_pt[0]>0 && photons_pt[1]>0","goff");
-  ntu2->Draw("sumPt2:sum2PhoPt >> SumPt2_vs_BosonPt_2","isSig == 1 && sum2PhoPt > 10 && sum2PhoPt < 40 && photons_pt[0]>0 && photons_pt[1]>0","goff");
+  ntu1->Draw("sumPt2:sum2PhoPt >> SumPt2_vs_BosonPt_1",cutString.c_str(),"goff");
+  ntu2->Draw("sumPt2:sum2PhoPt >> SumPt2_vs_BosonPt_2",cutString.c_str(),"goff");
 
 
 
