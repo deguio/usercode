@@ -7,14 +7,14 @@
   TTree* ntu1 = (TTree*)_file0->Get("TMVA_vertexTree");
   TTree* ntu2 = (TTree*)_file1->Get("TMVA_vertexTree");
   
-  TH1F logSumPt2_1("logSumPt2_1","log(sumPt2)",400,-10.,30.);
+  TH1F logSumPt2_1("logSumPt2_1","log(sumPt2)",200,-10.,30.);
   logSumPt2_1.GetXaxis()->SetTitle("log(SumPt2)");
   logSumPt2_1.GetYaxis()->SetTitle("a.u.");
   logSumPt2_1.SetLineColor(2);
   logSumPt2_1.SetFillColor(2);  
   logSumPt2_1.SetFillStyle(3005);
 
-  TH1F logSumPt2_2("logSumPt2_2","log(sumPt2)",400,-10.,30.);
+  TH1F logSumPt2_2("logSumPt2_2","log(sumPt2)",200,-10.,30.);
   logSumPt2_2.GetXaxis()->SetTitle("log(SumPt2)");
   logSumPt2_2.GetYaxis()->SetTitle("a.u.");
   logSumPt2_2.SetLineColor(kGreen+2);
@@ -63,6 +63,36 @@
   ptRatio2.SetFillColor(kGreen+2);  
   ptRatio2.SetFillStyle(3004);
 
+
+  TH1F ptbal1("ptbal1","ptbal1",400,-200.,200.);
+  ptbal1.GetXaxis()->SetTitle("ptbal");
+  ptbal1.GetYaxis()->SetTitle("a.u.");
+  ptbal1.SetLineColor(2);  
+  ptbal1.SetFillColor(2);  
+  ptbal1.SetFillStyle(3005);
+  
+  TH1F ptbal2("ptbal2","ptbal",400,-200.,200.);
+  ptbal2.GetXaxis()->SetTitle("ptbal");
+  ptbal2.GetYaxis()->SetTitle("a.u.");
+  ptbal2.SetLineColor(kGreen+2);
+  ptbal2.SetFillColor(kGreen+2);
+  ptbal2.SetFillStyle(3004);
+
+  TH1F ptasymm1("ptasymm1","ptasymm",100,-1.,1.);
+  ptasymm1.GetXaxis()->SetTitle("ptasymm");
+  ptasymm1.GetYaxis()->SetTitle("a.u.");
+  ptasymm1.SetLineColor(2);  
+  ptasymm1.SetFillColor(2);  
+  ptasymm1.SetFillStyle(3005);
+  
+  TH1F ptasymm2("ptasymm2","ptasymm",100,-1.,1.);
+  ptasymm2.GetXaxis()->SetTitle("ptasymm");
+  ptasymm2.GetYaxis()->SetTitle("a.u.");
+  ptasymm2.SetLineColor(kGreen+2);
+  ptasymm2.SetFillColor(kGreen+2);
+  ptasymm2.SetFillStyle(3004);
+
+
   TH1F SumPt2_1("SumPt2_1","sumPt2",200,0.,2000.);
   SumPt2_1.GetXaxis()->SetTitle("SumPt2");
   SumPt2_1.GetYaxis()->SetTitle("a.u.");
@@ -86,23 +116,31 @@
   SumPt2_vs_BosonPt_2.GetYaxis()->SetTitle("SumPt2");
 
 
-  ntu1->Draw("TMath::Log(sumPt2) >> logSumPt2_1","isSig == 1 && sum2PhoPt > 0 && sum2PhoPt < 1500 ","goff");
-  ntu2->Draw("TMath::Log(sumPt2) >> logSumPt2_2","isSig == 1 && sum2PhoPt > 0 && sum2PhoPt < 1500 ","goff");
+  ntu1->Draw("TMath::Log(sumPt2) >> logSumPt2_1","isSig == 1 && sum2PhoPt > 10 && sum2PhoPt < 40 && photons_pt[0]>0 && photons_pt[1]>0","goff");
+  ntu2->Draw("TMath::Log(sumPt2) >> logSumPt2_2","isSig == 1 && sum2PhoPt > 10 && sum2PhoPt < 40 && photons_pt[0]>0 && photons_pt[1]>0","goff");
+
+  ntu1->Draw("nTracks >> tracksNum1","isSig == 1 && sum2PhoPt > 10 && sum2PhoPt < 40 && photons_pt[0]>0 && photons_pt[1]>0","goff");
+  ntu2->Draw("nTracks >> tracksNum2","isSig == 1 && sum2PhoPt > 10 && sum2PhoPt < 40 && photons_pt[0]>0 && photons_pt[1]>0","goff");
+
+  ntu1->Draw("deltaPhi_HSumPt >> deltaPhi1","isSig == 1 && sum2PhoPt > 10 && sum2PhoPt < 40 && photons_pt[0]>0 && photons_pt[1]>0","goff");
+  ntu2->Draw("deltaPhi_HSumPt >> deltaPhi2","isSig == 1 && sum2PhoPt > 10 && sum2PhoPt < 40 && photons_pt[0]>0 && photons_pt[1]>0","goff");
+
+  ntu1->Draw("modSumPt / sum2PhoPt >> ptRatio1","isSig == 1 && sum2PhoPt > 10 && sum2PhoPt < 40 && photons_pt[0]>0 && photons_pt[1]>0","goff");
+  ntu2->Draw("modSumPt / sum2PhoPt >> ptRatio2","isSig == 1 && sum2PhoPt > 10 && sum2PhoPt < 40 && photons_pt[0]>0 && photons_pt[1]>0","goff");
+
+  ntu1->Draw("ptbal >> ptbal1","isSig == 1 && sum2PhoPt > 10 && sum2PhoPt < 40 && photons_pt[0]>0 && photons_pt[1]>0","goff");
+  ntu2->Draw("ptbal >> ptbal2","isSig == 1 && sum2PhoPt > 10 && sum2PhoPt < 40 && photons_pt[0]>0 && photons_pt[1]>0","goff");
+
+  ntu1->Draw("ptasym >> ptasymm1","isSig == 1 && sum2PhoPt > 10 && sum2PhoPt < 40 && photons_pt[0]>0 && photons_pt[1]>0","goff");
+  ntu2->Draw("ptasym >> ptasymm2","isSig == 1 && sum2PhoPt > 10 && sum2PhoPt < 40 && photons_pt[0]>0 && photons_pt[1]>0","goff");
   
-  ntu1->Draw("nTracks >> tracksNum1","isSig == 1 && sum2PhoPt > 0 && sum2PhoPt < 1500","goff");
-  ntu2->Draw("nTracks >> tracksNum2","isSig == 1 && sum2PhoPt > 0 && sum2PhoPt < 1500","goff");
+  ntu1->Draw("sumPt2 >> SumPt2_1","isSig == 1 && sum2PhoPt > 10 && sum2PhoPt < 40 && photons_pt[0]>0 && photons_pt[1]>0","goff");
+  ntu2->Draw("sumPt2 >> SumPt2_2","isSig == 1 && sum2PhoPt > 10 && sum2PhoPt < 40 && photons_pt[0]>0 && photons_pt[1]>0","goff");
 
-  ntu1->Draw("deltaPhi_HSumPt >> deltaPhi1","isSig == 1 && sum2PhoPt > 0 && sum2PhoPt < 1500 ","goff");
-  ntu2->Draw("deltaPhi_HSumPt >> deltaPhi2","isSig == 1 && sum2PhoPt > 0 && sum2PhoPt < 1500","goff");
+  ntu1->Draw("sumPt2:sum2PhoPt >> SumPt2_vs_BosonPt_1","isSig == 1 && sum2PhoPt > 10 && sum2PhoPt < 40 && photons_pt[0]>0 && photons_pt[1]>0","goff");
+  ntu2->Draw("sumPt2:sum2PhoPt >> SumPt2_vs_BosonPt_2","isSig == 1 && sum2PhoPt > 10 && sum2PhoPt < 40 && photons_pt[0]>0 && photons_pt[1]>0","goff");
 
-  ntu1->Draw("modSumPt / sum2PhoPt >> ptRatio1","isSig == 1 && sum2PhoPt > 0 && sum2PhoPt < 1500","goff");
-  ntu2->Draw("modSumPt / sum2PhoPt >> ptRatio2","isSig == 1 && sum2PhoPt > 0 && sum2PhoPt < 1500","goff");
 
-  ntu1->Draw("sumPt2 >> SumPt2_1","isSig == 1 && sum2PhoPt > 0 && sum2PhoPt < 1500 ","goff");
-  ntu2->Draw("sumPt2 >> SumPt2_2","isSig == 1 && sum2PhoPt > 0 && sum2PhoPt < 1500 ","goff");
-
-  ntu1->Draw("sumPt2:sum2PhoPt >> SumPt2_vs_BosonPt_1","isSig == 1 && sum2PhoPt > 0 && sum2PhoPt < 1500 ","goff");
-  ntu2->Draw("sumPt2:sum2PhoPt >> SumPt2_vs_BosonPt_2","isSig == 1 && sum2PhoPt > 0 && sum2PhoPt < 1500 ","goff");
 
   TLegend leg (0.5, 0.7,0.8,0.89);
   leg->SetFillColor(0);
@@ -115,8 +153,8 @@
   leg ->Draw("same");
 
   TCanvas c2("c2","c2",500,500);
-  deltaPhi2.DrawNormalized();
-  deltaPhi1.DrawNormalized("sames");
+  deltaPhi1.DrawNormalized();
+  deltaPhi2.DrawNormalized("sames");
   leg ->Draw("same");
 
   TCanvas c3("c3","c3",500,500);
@@ -129,26 +167,35 @@
   ptRatio1.DrawNormalized("sames");
   leg->Draw("same");  
 
+  TCanvas c5("c5","c5",500,500);
+  ptbal2.DrawNormalized();
+  ptbal1.DrawNormalized("sames");
+  leg->Draw("same");  
 
-  
-  SumPt2_1.Scale(1./SumPt2_1.GetEntries());
-  SumPt2_2.Scale(1./SumPt2_2.GetEntries());
+  TCanvas c6("c6","c6",500,500);
+  ptasymm1.DrawNormalized();
+  ptasymm2.DrawNormalized("sames");
+  leg->Draw("same");  
 
-  new TCanvas();
-  TH1F *hRatio = (TH1F*)SumPt2_1->Clone("hRatio");
-  hRatio->Divide(hRatio,&SumPt2_2);
-  hRatio->Draw();
+
+ //  SumPt2_1.Scale(1./SumPt2_1.GetEntries());
+//   SumPt2_2.Scale(1./SumPt2_2.GetEntries());
+
+//   new TCanvas();
+//   TH1F *hRatio = (TH1F*)SumPt2_1->Clone("hRatio");
+//   hRatio->Divide(hRatio,&SumPt2_2);
+//   hRatio->Draw();
  
-  TFile *fout = new TFile("correction.root","create");
+//   TFile *fout = new TFile("correction.root","create");
  
-  new TCanvas();
-  SumPt2_vs_BosonPt_1.Draw("colz");
+//   new TCanvas();
+//   SumPt2_vs_BosonPt_1.Draw("colz");
 
-  new TCanvas();
-  SumPt2_vs_BosonPt_2.Draw("colz");
+//   new TCanvas();
+//   SumPt2_vs_BosonPt_2.Draw("colz");
 
  
-  SumPt2_vs_BosonPt_1.Write("SumPt2_vs_BosonPt_Hgg");
-  SumPt2_vs_BosonPt_2.Write("SumPt2_vs_BosonPt_Zee");
+//   SumPt2_vs_BosonPt_1.Write("SumPt2_vs_BosonPt_Hgg");
+//   SumPt2_vs_BosonPt_2.Write("SumPt2_vs_BosonPt_Zee");
   
 }
