@@ -138,7 +138,7 @@ void zeeSelection (std::vector<ROOT::Math::XYZTVector>* electrons ,
   
 
   ROOT::Math::XYZTVector v = electrons->at(index1) + electrons->at(index2);
-  bool pass_mcut      = (fabs( v.M()  - 91. ) > 8. ) ;
+  bool pass_mcut      = (fabs( v.M()  - 91. ) < 8. ) ;
   //bool pass_kincuts   = (electrons->at(index1).pt()> 30.) && ( electrons->at(index2).pt() > 24.) ;  
   bool pass_kincuts   = (electrons->at(index1).pt()> 0.) && ( electrons->at(index2).pt() > 0.) ;
   
@@ -188,7 +188,7 @@ void zmumuSelection (std::vector<ROOT::Math::XYZTVector>* muons ,
   
 
   ROOT::Math::XYZTVector v = muons->at(index1) + muons->at(index2);
-  bool pass_mcut      = (fabs( v.M() - 91. ) > 8. ) ;
+  bool pass_mcut      = (fabs( v.M() - 91. ) < 8. ) ;
   //bool pass_kincuts   = (muons->at(index1).pt()> 30.) && ( muons->at(index2).pt() > 24.) ;
   bool pass_kincuts   = (muons->at(index1).pt()> 0.) && ( muons->at(index2).pt() > 0.) ;
   
