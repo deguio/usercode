@@ -70,7 +70,7 @@ int main (int argc, char ** argv)
   //==== get input files list ====
   //==============================
   std::string fileName(argv[1]);
-  boost::shared_ptr<edm::ProcessDesc> processDesc = edm::readConfigFile(fileName);
+  boost::shared_ptr<edm::ProcessDesc> processDesc = edm::readConfig(fileName);
   boost::shared_ptr<edm::ParameterSet> parameterSet = processDesc->getProcessPSet();
   edm::ParameterSet subPSetSelections =  parameterSet -> getParameter<edm::ParameterSet>("selections");
   int nEvents_ = subPSetSelections.getUntrackedParameter<int>("nEvents", -1);
