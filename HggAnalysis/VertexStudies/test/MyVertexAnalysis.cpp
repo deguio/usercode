@@ -73,15 +73,36 @@ int main(int argc, char** argv)
 
   double trackThr = gConfigParser -> readDoubleOption("Options::trackThr");
 
+  int useWeights  = gConfigParser -> readIntOption("Options::useWeights");
+
   std::cout << std::endl;
   std::cout << std::endl;
   
+  //------ use weights for MC
+  float nmax;
+  float w[50];
+  TRandom *gRandom = new TRandom();
+  
+  if (useWeights){
+    TFile weightsFile("testPUweights.root","READ");
+    TH1F* hweights = (TH1F*)weightsFile.Get("hwdata");
+    nmax = hweights ->GetMaximum();
+    std::cout << nmax << std::endl;
+    
+    for (int ibin = 1; ibin < hweights->GetNbinsX()+1; ibin++){
+      w[ibin-1] = hweights->GetBinContent(ibin);  // bin 1 --> nvtx = 0 
+    }
+    weightsFile.Close();
+  }
+  
+
+
   // Chain
   TChain* chain = new TChain(treeName.c_str());
   chain->Add((baseDir+inputFile).c_str());
-
   treeReader reader((TTree*)(chain));
   
+
   //histos
 
   TH1F PtAll("PtAll","Pt of boson all",80,0,400);
@@ -120,6 +141,9 @@ int main(int argc, char** argv)
   // variables order matters to resolve ties
   rankVariables_.push_back("ptbal"), rankVariables_.push_back("ptasym"),rankVariables_.push_back("logsumpt2");  
 
+
+  float ww = 1;
+
   //start loop over entries
   for (int u = 0; u < reader.GetEntries(); u++ )
     {
@@ -128,14 +152,26 @@ int main(int argc, char** argv)
       if(u%10000 == 0) std::cout<<"reading event "<< u <<std::endl;
       reader.GetEntry(u);
       
-      //setup common branches
+      //--- use weights
+      if (useWeights){
+	std::vector<float>* PU_z       = reader.GetFloat("PU_z");
+	int npu = PU_z->size(); // number of sim PU vtx
+	float myrnd = gRandom->Uniform(0,nmax);
+	if (myrnd > w[npu]) continue;
+      }
       
+
+
+      //setup common branches
       std::vector<int>* PV_nTracks;
       std::vector<float>* PV_z;
       std::vector<float>* PV_d0;
       std::vector<ROOT::Math::XYZVector>* PVtracks;
       std::vector<int>* PVtracks_PVindex;
+      std::vector<int>* tracks_PVindex;
       std::vector<float>* tracks_dz ; //?
+      std::vector<float>* tracks_dz_PV ; //?
+      std::vector<float>* tracks_dxy_PV ; //?
       std::vector<ROOT::Math::XYZTVector>* sc; // supercluster
 
 
@@ -164,6 +200,9 @@ int main(int argc, char** argv)
 	PV_d0            = reader.GetFloat("PV_d0");
 	PVtracks         = reader.Get3V("PVtracks");
 	PVtracks_PVindex = reader.GetInt("PVtracks_PVindex");
+	tracks_PVindex   = reader.GetInt("tracks_PVindex");
+	tracks_dxy_PV    = reader.GetFloat("tracks_dxy_PV");
+	tracks_dz_PV     = reader.GetFloat("tracks_dz_PV");
 	tracks_dz        = reader.GetFloat("tracks_dz");
 	sc               = reader.Get4V("photons_SC");
 
@@ -188,7 +227,10 @@ int main(int argc, char** argv)
 	PV_d0            = reader.GetFloat("PV_noEle_d0");
 	PVtracks         = reader.Get3V("PVEleLessTracks");
 	PVtracks_PVindex = reader.GetInt("PVEleLessTracks_PVindex");
-	tracks_dz        = reader.GetFloat("tracks_dz");
+	tracks_PVindex   = reader.GetInt("tracks_PVindex");
+	tracks_dxy_PV    = reader.GetFloat("tracks_dxy_PV");
+	tracks_dz_PV     = reader.GetFloat("tracks_dz_PV");
+	tracks_dz     = reader.GetFloat("tracks_dz");
 	sc               = reader.Get4V("electrons_SC");
 	
 	zeeSelection(electrons, eleid, accept, indpho1, indpho2);
@@ -198,8 +240,6 @@ int main(int argc, char** argv)
 	etaMaxSC = sc->at(indpho1).eta();
 	sum2pho  = electrons->at(indpho1)+ electrons->at(indpho2);
 	TrueVertex_Z = PV_z->at(0) + (electrons_dz_PV_noEle->at(indpho1) + electrons_dz_PV_noEle->at(indpho2))/2.;
-	
-	
       }
 
       // selections for Zmumu
@@ -207,12 +247,15 @@ int main(int argc, char** argv)
 	 {
 	   std::vector<ROOT::Math::XYZTVector>* muons = reader.Get4V("muons");
 	   std::vector<float>* muons_dz_PV_noMuon = reader.GetFloat("muons_dz_PV_noMuon");
- 
+	  
 	   PV_nTracks       = reader.GetInt("PV_noMuon_nTracks");
 	   PV_z             = reader.GetFloat("PV_noMuon_z");
 	   PV_d0            = reader.GetFloat("PV_noMuon_d0");
 	   PVtracks         = reader.Get3V("PVMuonLessTracks");
 	   PVtracks_PVindex = reader.GetInt("PVMuonLessTracks_PVindex");
+	   tracks_PVindex   = reader.GetInt("tracks_PVindex");
+	   tracks_dxy_PV    = reader.GetFloat("tracks_dxy_PV");
+	   tracks_dz_PV     = reader.GetFloat("tracks_dz_PV");
 	   tracks_dz        = reader.GetFloat("tracks_dz");
 	   sc               = reader.Get4V("muons");  // use muon info for SC
 	   
@@ -223,7 +266,7 @@ int main(int argc, char** argv)
 	   etaMaxSC = muons->at(indpho1).eta();
 	   sum2pho  = muons->at(indpho1)+ muons->at(indpho2);
 	   TrueVertex_Z = PV_z->at(0) + (muons_dz_PV_noMuon->at(indpho1) + muons_dz_PV_noMuon->at(indpho2))/2.;
-	   
+	  	   
 	 }//Zmumu end
 
 
@@ -257,12 +300,24 @@ int main(int argc, char** argv)
 	tkpz_[itrk]    = PVtracks->at(itrk).Z();
 	tkPtErr_[itrk] = 0;
 	tkVtxId_[itrk] = PVtracks_PVindex->at(itrk);
+
 	tkWeight_[itrk]= 1.;
 	tkd0_[itrk]    = 0;
 	tkd0Err_[itrk] = 0;
-	tkdz_[itrk]    = tracks_dz->at(itrk);
+	tkdz_[itrk]    = 0;
 	tkdzErr_[itrk] = 0;
 	tkIsHighPurity_[itrk]= 1.;
+
+// 	for (int ii = 0 ; ii < tracks_dz_PV->size(); ii++){
+// 	  if ( tracks_PVindex->at(ii) == PVtracks_PVindex->at(itrk)){
+// 	    tkWeight_[itrk]= 1.;
+// 	    tkd0_[itrk]    = 1;
+// 	    tkd0Err_[itrk] = 1;
+// 	    tkdz_[itrk]    = 1;
+// 	    tkdzErr_[itrk] = 1;
+// 	    tkIsHighPurity_[itrk]= 1.;
+// 	  }
+// 	}
       }
       
       //photons
@@ -293,10 +348,8 @@ int main(int argc, char** argv)
       }
 
 
-
-
-      if ( (fabs(sc->at(indpho1).eta()) > etaEB && fabs(sc->at(indpho1).eta()) < etaEE) || fabs(sc->at(indpho1).eta()) > 2.5) continue;
-      if ( (fabs(sc->at(indpho2).eta()) > etaEB && fabs(sc->at(indpho2).eta()) < etaEE) || fabs(sc->at(indpho2).eta()) > 2.5) continue;
+      //if ( (fabs(sc->at(indpho1).eta()) > etaEB && fabs(sc->at(indpho1).eta()) < etaEE) || fabs(sc->at(indpho1).eta()) > 2.5) continue;
+      //if ( (fabs(sc->at(indpho2).eta()) > etaEB && fabs(sc->at(indpho2).eta()) < etaEE) || fabs(sc->at(indpho2).eta()) > 2.5) continue;
    
 
       TupleVertexInfo vinfo( nvtx_, vtxx_ , vtxy_, vtxz_, ntracks_, tkpx_, tkpy_, tkpz_, tkPtErr_, tkVtxId_, tkWeight_, tkd0_, tkd0Err_,tkdz_, tkdzErr_ , tkIsHighPurity_);
@@ -317,7 +370,7 @@ int main(int argc, char** argv)
       vAna.preselection(presel);
       
 
-
+      
       //look if the H vertex matches one of the PV vertices
       float dmin = 10000;
       int iClosest = -1;
@@ -329,36 +382,36 @@ int main(int argc, char** argv)
 
       
       //fill histos
-      PtAll.Fill( sum2pho.pt() );
-      EtaAll.Fill( etaMaxSC );
-      NvtAll.Fill( nvtx_ );
+      PtAll.Fill( sum2pho.pt(),ww );
+      EtaAll.Fill( etaMaxSC ,ww);
+      NvtAll.Fill( nvtx_,ww );
        
 
       // sumpt2 criterion
       if( iClosest == 0 ) {
-	PtGood.Fill( sum2pho.pt() );
-	EtaGood.Fill( etaMaxSC );
-	NvtGood.Fill( nvtx_ );
+	PtGood.Fill( sum2pho.pt(),ww );
+	EtaGood.Fill( etaMaxSC ,ww);
+	NvtGood.Fill( nvtx_ ,ww);
       }
               
 
       // ranking 
       vector<int> rankprod = vAna.rankprod(rankVariables_);
       if ( iClosest == rankprod[0]){
-	PtGood_RANK.Fill( sum2pho.pt() );
-	EtaGood_RANK.Fill( etaMaxSC );
-	NvtGood_RANK.Fill( nvtx_ );
+	PtGood_RANK.Fill( sum2pho.pt(),ww );
+	EtaGood_RANK.Fill( etaMaxSC ,ww);
+	NvtGood_RANK.Fill( nvtx_,ww );
       }
 
       // BDT - FIXME : this is a placeholder
-      //vecto<int> ranktmva = vAna.rankprod(*tmvaReader_,tmvaMethod_);//
+      //vector<int> ranktmva = vAna.rankprod(*tmvaReader_,tmvaMethod_);//
       if ( iClosest == rankprod[0]){
-	PtGood_BDT.Fill( sum2pho.pt() );
-	EtaGood_BDT.Fill( etaMaxSC );
-	NvtGood_BDT.Fill( nvtx_ );
+	PtGood_BDT.Fill( sum2pho.pt(),ww );
+	EtaGood_BDT.Fill( etaMaxSC ,ww);
+	NvtGood_BDT.Fill( nvtx_ ,ww);
       }
       
-    
+
    
     }// end loop over entries
   
@@ -385,7 +438,8 @@ int main(int argc, char** argv)
   pt2bkg.Write();
   pt2h.Write();
    
-  
+
+
   ff.Close();
   return 0; 
   
