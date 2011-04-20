@@ -4,11 +4,11 @@ setenv LD_LIBRARY_PATH ${LD_LIBRARY_PATH}:${THISDIR}/lib
 setenv LD_LIBRARY_PATH ${LD_LIBRARY_PATH}:${THISDIR}/../NtuplePackage/lib
 setenv LD_LIBRARY_PATH ${LD_LIBRARY_PATH}:${THISDIR}/../VertexAnalysis/lib
 
-if [ -n "${DYLD_LIBRARY_PATH}" ] ; then
+if (${?DYLD_LIBRARY_PATH}) then
 setenv DYLD_LIBRARY_PATH ${DYLD_LIBRARY_PATH}:${THISDIR}/lib
 setenv DYLD_LIBRARY_PATH ${DYLD_LIBRARY_PATH}:${THISDIR}/../NtuplePackage/lib
 setenv DYLD_LIBRARY_PATH ${DYLD_LIBRARY_PATH}:${THISDIR}/../VertexAnalysis/lib
-fi
+endif
 
 setenv PATH ${PATH}:${THISDIR}/bin
 setenv PATH ${PATH}:${THISDIR}/../NtuplePackage/bin
