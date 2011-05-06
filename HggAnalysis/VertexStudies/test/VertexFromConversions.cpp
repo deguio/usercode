@@ -149,10 +149,10 @@ int main(int argc, char** argv)
     EtaGood[i] = new TH1F(hname, hname, 50,-5,5);
 
     sprintf(hname,"R9All_cat%d",i+1);
-    R9All[i] = new TH1F(hname, hname, 50,0,1);
+    R9All[i] = new TH1F(hname, hname, 100,0,1);
 
     sprintf(hname,"R9Good_cat%d",i+1);
-    R9Good[i] = new TH1F(hname, hname, 50,0,1);
+    R9Good[i] = new TH1F(hname, hname, 100,0,1);
     
   }
 
@@ -189,7 +189,7 @@ int main(int argc, char** argv)
   vtxAlgoParams_.highPurityOnly     = false;
   vtxAlgoParams_.maxD0Signif        = 9999999.;
   vtxAlgoParams_.maxDzSignif        = 9999999.;
-  vtxAlgoParams_.removeTracksInCone = 0;
+  vtxAlgoParams_.removeTracksInCone = 1;
   vtxAlgoParams_.coneSize           = 0.05;
 
   vtxAlgoParams_.sigmaPix  = 0.06;
@@ -316,8 +316,8 @@ int main(int argc, char** argv)
       nvtx_    = (int) PV_z->size();
       
       for ( int iv = 0; iv < nvtx_; iv++){
-	vtxx_[iv] =  0;
-	vtxy_[iv] =  0;
+	vtxx_[iv] =  0; //FIXME
+	vtxy_[iv] =  0; //FIXME
 	vtxz_[iv] =  PV_z->at(iv) ;
       }
       
@@ -343,11 +343,18 @@ int main(int argc, char** argv)
       	phocalox_[ipho] = photons_SCpos->at(ipho).x();
 	phocaloy_[ipho] = photons_SCpos->at(ipho).y();
 	phocaloz_[ipho] = photons_SCpos->at(ipho).z();
+	phoen_[ipho]    = sc->at(ipho).E();
       } 
 
       if ( (fabs(sc->at(indpho1).eta()) > etaEB && fabs(sc->at(indpho1).eta()) < etaEE) || fabs(sc->at(indpho1).eta()) > 2.5) continue;
       if ( (fabs(sc->at(indpho2).eta()) > etaEB && fabs(sc->at(indpho2).eta()) < etaEE) || fabs(sc->at(indpho2).eta()) > 2.5) continue;
    
+
+
+
+      // set vtx info
+      TupleVertexInfo vinfo( nvtx_, vtxx_ , vtxy_, vtxz_, ntracks_, tkpx_, tkpy_, tkpz_, tkPtErr_, tkVtxId_, tkWeight_, tkd0_, tkd0Err_,tkdz_, tkdzErr_ , tkIsHighPurity_);
+
 
       // set all variables needed for conversions
       const TVector3 bs(BS_x0->at(0),BS_y0->at(0),BS_z0->at(0));
@@ -374,8 +381,7 @@ int main(int argc, char** argv)
 		      convProb1,
 		      photons_convEoverP->at(indpho1)		      
 		      ); 
-      
-      
+            
       PhotonInfo pho2(TVector3(phocalox_[indpho2],phocaloy_[indpho2],phocaloz_[indpho2]),
 		      bs,
 		      convVtx2,
@@ -433,26 +439,10 @@ int main(int argc, char** argv)
       }
       
 
-
-      
-
-
       //--------------------------------------------------------------------------------------
-
-//       std::cout << " entry " << u << "  nvtx " << nvtx_ << std::endl;
-//       std::cout << "indpho1 = " << indpho1 << "   indpho2 = " << indpho2 << std::endl;
-//       std::cout << " photon energy " << pho1.energy() << "  nvtx " << nvtx_ << std::endl;
-
-      std::cout << "Pipparolo 1 " << std::endl;
-      PhotonInfo pipparolo1(TVector3(phocalox_[indpho1],phocaloy_[indpho1],phocaloz_[indpho1]),
-			    phoen_[indpho1]
-			    ); 
-
-
-      TupleVertexInfo vinfo( nvtx_, vtxx_ , vtxy_, vtxz_, ntracks_, tkpx_, tkpy_, tkpz_, tkPtErr_, tkVtxId_, tkWeight_, tkd0_, tkd0Err_,tkdz_, tkdzErr_ , tkIsHighPurity_);
       
+
       HggVertexAnalyzer vAna(vtxAlgoParams_,nvtx_);
-      
       vAna.analyze(vinfo,pho1,pho2);
       
       
