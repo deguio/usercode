@@ -88,16 +88,21 @@ int main(int argc, char** argv)
   float w[50];
   TRandom *gRandom = new TRandom();
   
+
+
   if (useWeights){
   
+    // weights obatined from n_vtxreco distribution
     //TFile weightsFile("PUweightsFromReco.root","READ");
     //TH1F* hweights = (TH1F*)weightsFile.Get("hWeightsReco");
 
-    //TFile weightsFile("testPUweights.root","READ");
-    //TH1F* hweights = (TH1F*)weightsFile.Get("hwdata");
-    
-    TFile weightsFile("PUweightsFromUnfolding.root","READ");
-    TH1F* hweights = (TH1F*)weightsFile.Get("hWeightsUnfolded");
+    // weights obatined from unfolding n_vtxreco distribution
+    //TFile weightsFile("PUweightsFromUnfolding.root","READ");
+    //TH1F* hweights = (TH1F*)weightsFile.Get("hWeightsUnfolded");
+
+    // weights for poisson distribution of npu
+    TFile weightsFile("PoissonWeights.root","READ");  
+    TH1F* hweights = (TH1F*)weightsFile.Get("hwmc6");
 
     nmax = hweights ->GetMaximum();
     std::cout << nmax << std::endl;
@@ -115,12 +120,16 @@ int main(int argc, char** argv)
   treeReader reader((TTree*)(chain));
 
 
-  //histos  - NB 3 categories
+  //histos  - NB 4 categories
+  // 0 : no categories
+  // 1 : 
+  // 2 :
+  // 3 : 
 
-  TH1F *NvtAll[3];
-  TH1F *PtAll[3];
-  TH1F *EtaAll[3];
-  TH1F *R9All[3];
+  TH1F *NvtAll[4];
+  TH1F *PtAll[4];
+  TH1F *EtaAll[4];
+  TH1F *R9All[4];
 
   TH1F *NvtGood[3];
   TH1F *PtGood[3];
@@ -129,33 +138,34 @@ int main(int argc, char** argv)
   
   char hname[100];
 
-  for (int i=0; i< 3; i++){
-    sprintf(hname,"NvtAll_cat%d",i+1);
+  for (int i=0; i< 4; i++){
+    sprintf(hname,"NvtAll_cat%d",i);
     NvtAll[i] = new TH1F(hname, hname, 50,0,50);
 
-    sprintf(hname,"NvtGood_cat%d",i+1);
+    sprintf(hname,"NvtGood_cat%d",i);
     NvtGood[i] = new TH1F(hname, hname, 50,0,50);
 
-    sprintf(hname,"PtAll_cat%d",i+1);
+    sprintf(hname,"PtAll_cat%d",i);
     PtAll[i] = new TH1F(hname, hname, 80,0,400);
 
-    sprintf(hname,"PtGood_cat%d",i+1);
+    sprintf(hname,"PtGood_cat%d",i);
     PtGood[i] = new TH1F(hname, hname, 80,0,400);
 
-    sprintf(hname,"EtaAll_cat%d",i+1);
+    sprintf(hname,"EtaAll_cat%d",i);
     EtaAll[i] = new TH1F(hname, hname, 50,-5,5);
 
-    sprintf(hname,"EtaGood_cat%d",i+1);
+    sprintf(hname,"EtaGood_cat%d",i);
     EtaGood[i] = new TH1F(hname, hname, 50,-5,5);
 
-    sprintf(hname,"R9All_cat%d",i+1);
-    R9All[i] = new TH1F(hname, hname, 100,0,1);
+    sprintf(hname,"R9All_cat%d",i);
+    R9All[i] = new TH1F(hname, hname, 50,0,1);
 
-    sprintf(hname,"R9Good_cat%d",i+1);
-    R9Good[i] = new TH1F(hname, hname, 100,0,1);
+    sprintf(hname,"R9Good_cat%d",i);
+    R9Good[i] = new TH1F(hname, hname, 50,0,1);
     
   }
 
+ 
 
   TH1F *hrankConv = new TH1F("hrankConv","hrankConv",50,0,50);
 
@@ -211,7 +221,7 @@ int main(int argc, char** argv)
 
   float ww = 1;
 
-  
+  float nn = 1;
 
   //start loop over entries
   for (int u = 0; u < reader.GetEntries(); u++ )
@@ -222,16 +232,34 @@ int main(int argc, char** argv)
       reader.GetEntry(u);
       
       //--- use weights
+
+      // from POISSON DISTR.
       if (useWeights){
-	std::vector<float>* PU_z       = reader.GetFloat("PU_z");
-	//std::vector<float>* PU_z       = reader.GetFloat("PV_noMuon_z");
-	int npu = PU_z->size(); // number of sim PU vtx
+	std::vector<int>* mc_PUit_NumInteractions  = reader.GetInt("mc_PUit_NumInteractions");
+	int npu = mc_PUit_NumInteractions->at(0);
 	float myrnd = gRandom->Uniform(0,nmax);
-	//if (myrnd > w[npu]) continue;
-	if (myrnd > w[npu+1]) continue;
+       	if (myrnd > w[npu]) continue;
       }
       
+      // from RECO
+      //       if (useWeights){
+      // 	std::vector<float>* PV_z       = reader.GetFloat("PV_z");
+      // 	int npu = PV_z->size(); // number of reco vtx
+      // 	float myrnd = gRandom->Uniform(0,nmax);
+      // 	if (myrnd > w[npu]) continue;
+      //       }
+      
 
+      // from UNFOLDING
+      //       if (useWeights){
+      //       std::vector<float>* PU_z       = reader.GetFloat("PU_z");
+      //       int npu = PV_z->size(); // number of PU vtx
+      //       float myrnd = gRandom->Uniform(0,nmax);
+      //       if (myrnd > w[npu+1]) continue;
+      //       }
+      
+
+      
 
       //setup common branches
       std::vector<int>* PV_nTracks;
@@ -458,14 +486,21 @@ int main(int argc, char** argv)
 	}
 
 
+      //---- category 0 : no categories
+      PtAll[0]->Fill( sum2pho.pt(),ww );
+      EtaAll[0]->Fill( etaMaxSC ,ww);
+      NvtAll[0]->Fill( nvtx_,ww );
+      R9All[0]->Fill( photons_r9->at(indpho1) ,ww );
+
+
       //---- category 1 : R9 > 0.93 for both photons
       
       if (photons_r9->at(indpho1) >0.93 && photons_r9->at(indpho2) >0.93) {
 	
-	PtAll[0]->Fill( sum2pho.pt(),ww );
-	EtaAll[0]->Fill( etaMaxSC ,ww);
-	NvtAll[0]->Fill( nvtx_,ww );
-	R9All[0]->Fill( photons_r9->at(indpho1) ,ww );
+	PtAll[1]->Fill( sum2pho.pt(),ww );
+	EtaAll[1]->Fill( etaMaxSC ,ww);
+	NvtAll[1]->Fill( nvtx_,ww );
+	R9All[1]->Fill( photons_r9->at(indpho1) ,ww );
 	
 	// preselect vertexes 
 	std::vector<int> presel;
@@ -477,10 +512,16 @@ int main(int argc, char** argv)
        	// rankprod criterion
 	vector<int> rankprod = vAna.rankprod(rankVariables_);
 	if ( iClosest == rankprod[0]){
+
 	  PtGood[0]->Fill( sum2pho.pt(),ww );
 	  EtaGood[0]->Fill( etaMaxSC ,ww);
 	  NvtGood[0]->Fill( nvtx_ ,ww);
 	  R9Good[0]->Fill( photons_r9->at(indpho1) ,ww );
+
+	  PtGood[1]->Fill( sum2pho.pt(),ww );
+	  EtaGood[1]->Fill( etaMaxSC ,ww);
+	  NvtGood[1]->Fill( nvtx_ ,ww);
+	  R9Good[1]->Fill( photons_r9->at(indpho1) ,ww );
 	}
       }	
 
@@ -490,10 +531,10 @@ int main(int argc, char** argv)
 	   !pho1.isAConversion() && !pho2.isAConversion())  
 	{
 
-	  PtAll[1]->Fill( sum2pho.pt(),ww );
-	  EtaAll[1]->Fill( etaMaxSC ,ww);
-	  NvtAll[1]->Fill( nvtx_,ww );
-	  R9All[1]->Fill( photons_r9->at(indpho1) ,ww );
+	  PtAll[2]->Fill( sum2pho.pt(),ww );
+	  EtaAll[2]->Fill( etaMaxSC ,ww);
+	  NvtAll[2]->Fill( nvtx_,ww );
+	  R9All[2]->Fill( photons_r9->at(indpho1) ,ww );
 	  
 	  // preselect vertexes 
 	  std::vector<int> presel;
@@ -505,10 +546,16 @@ int main(int argc, char** argv)
 	  // rankprod criterion
 	  vector<int> rankprod = vAna.rankprod(rankVariables_);
 	  if ( iClosest == rankprod[0]){
-	    PtGood[1]->Fill( sum2pho.pt(),ww );
-	    EtaGood[1]->Fill( etaMaxSC ,ww);
-	    NvtGood[1]->Fill( nvtx_ ,ww);
-	    R9Good[1]->Fill( photons_r9->at(indpho1) ,ww );
+
+	    PtGood[0]->Fill( sum2pho.pt(),ww );
+	    EtaGood[0]->Fill( etaMaxSC ,ww);
+	    NvtGood[0]->Fill( nvtx_ ,ww);
+	    R9Good[0]->Fill( photons_r9->at(indpho1) ,ww );
+
+	    PtGood[2]->Fill( sum2pho.pt(),ww );
+	    EtaGood[2]->Fill( etaMaxSC ,ww);
+	    NvtGood[2]->Fill( nvtx_ ,ww);
+	    R9Good[2]->Fill( photons_r9->at(indpho1) ,ww );
 	  }
 	  
 	}
@@ -521,10 +568,10 @@ int main(int argc, char** argv)
 	   (pho1.isAConversion() || pho2.isAConversion()) )  
 	{
 	  
-	  PtAll[2]->Fill( sum2pho.pt(),ww );
-	  EtaAll[2]->Fill( etaMaxSC ,ww);
-	  NvtAll[2]->Fill( nvtx_,ww );
-	  R9All[2]->Fill( photons_r9->at(indpho1) ,ww );
+	  PtAll[3]->Fill( sum2pho.pt(),ww );
+	  EtaAll[3]->Fill( etaMaxSC ,ww);
+	  NvtAll[3]->Fill( nvtx_,ww );
+	  R9All[3]->Fill( photons_r9->at(indpho1) ,ww );
 
 	  float zconv  = 0;
 	  float dzconv = 0;
@@ -533,6 +580,7 @@ int main(int argc, char** argv)
 	  if ( pho1.isAConversion() && pho2.isAConversion() ){
 	    zconv  = (z1 + z2)/2; // FIXME : usare la media pesata
 	    dzconv = dz1;
+	    
 	  }
 	  
 	  // 1 good conversion 
@@ -547,7 +595,7 @@ int main(int argc, char** argv)
 	    int nVtxCloseToConvVtx1 = 0;
  	    for ( int uu = 0; uu < nvtx_; uu++){
 	      float distt1 = fabs( PV_z->at(uu) - z1 );
-	      if ( distt1 < dz1)   { nVtxCloseToConvVtx1++;}
+	      if ( distt1 < nn*dz1)   { nVtxCloseToConvVtx1++;}
 	    }
 	    hNvtxInDeltaZ1->Fill(nVtxCloseToConvVtx1);
 	  
@@ -563,7 +611,7 @@ int main(int argc, char** argv)
 	    int nVtxCloseToConvVtx2 = 0;      
 	    for ( int uu = 0; uu < nvtx_; uu++){
 	      float distt2 = fabs( PV_z->at(uu) - z2 );
-	      if ( distt2 < dz2)   { nVtxCloseToConvVtx2++;}
+	      if ( distt2 < nn*dz2)   { nVtxCloseToConvVtx2++;}
 	    }
 	    
 	    hNvtxInDeltaZ2->Fill(nVtxCloseToConvVtx2 );
@@ -572,24 +620,32 @@ int main(int argc, char** argv)
 
 	  
 	  // preselect vertexes 
-	  std::vector<int> presel;
+	  std::vector<int> presel1;
+	  std::vector<int> presel2;
 	  for(int i=0; i<nvtx_; i++) {
-	    if ( fabs(zconv - PV_z->at(i)) < dzconv ) 
-	      presel.push_back(i); 
+	    presel1.push_back(i); 
+	    if ( fabs(zconv - PV_z->at(i)) < nn*dzconv ) 
+	      presel2.push_back(i); 
 	  }
-	  vAna.preselection(presel);
-	  
-	  if (presel.size()!=0) {
+	  if ( presel2.size()==0 )
+	    vAna.preselection(presel1);
+	  else 
+	    vAna.preselection(presel2);
 	  
 	  // rankprod criterion
 	  vector<int> rankprod = vAna.rankprod(rankVariables_);
-	  //std::cout << rankprod .size() << std::endl;
 	  if ( iClosest == rankprod[0]){
-	    PtGood[2]->Fill( sum2pho.pt(),ww );
-	    EtaGood[2]->Fill( etaMaxSC ,ww);
-	    NvtGood[2]->Fill( nvtx_ ,ww);
-	    R9Good[2]->Fill( photons_r9->at(indpho1) ,ww );
-	  }
+
+	    PtGood[0]->Fill( sum2pho.pt(),ww );
+	    EtaGood[0]->Fill( etaMaxSC ,ww);
+	    NvtGood[0]->Fill( nvtx_ ,ww);
+	    R9Good[0]->Fill( photons_r9->at(indpho1) ,ww );
+
+	    PtGood[3]->Fill( sum2pho.pt(),ww );
+	    EtaGood[3]->Fill( etaMaxSC ,ww);
+	    NvtGood[3]->Fill( nvtx_ ,ww);
+	    R9Good[3]->Fill( photons_r9->at(indpho1) ,ww );
+	    
 	  }
 	}
       
@@ -604,7 +660,7 @@ int main(int argc, char** argv)
   TGraphAsymmErrors *EffVsEta[3];
   TGraphAsymmErrors *EffVsR9[3];
   
-  for (int i=0; i< 3; i++){
+  for (int i=0; i< 4; i++){
     NvtAll[i]->Sumw2();
     NvtGood[i]->Sumw2();
     PtAll[i]->Sumw2();
@@ -625,43 +681,11 @@ int main(int argc, char** argv)
     EffVsR9[i]  -> BayesDivide(R9Good[i], R9All[i], "cp");
 
   }
-
-
-
-
-  /*
-  EffVsNvtx_cat1.BayesDivide(NvtGood[0], NvtAll[0], "cp"); 
-
-  TGraphAsymmErrors EffVsPt_cat1;
-  EffVsPt_cat1.BayesDivide(PtGood[0], PtAll[0], "cp"); 
-    
-  TGraphAsymmErrors EffVsEta_cat1;
-  
-   
-  TGraphAsymmErrors EffVsR9_cat1;
-  EffVsR9_cat1.BayesDivide(R9Good[0], R9All[0], "cp"); 
-
-
-  TGraphAsymmErrors EffVsNvtx_cat2;
-  EffVsNvtx_cat2.BayesDivide(NvtGood[0], NvtAll[0], "cp"); 
-
-  TGraphAsymmErrors EffVsPt_cat2;
-  EffVsPt_cat2.BayesDivide(PtGood[0], PtAll[0], "cp"); 
-    
-  TGraphAsymmErrors EffVsEta_cat2;
-  EffVsEta_cat2.BayesDivide(EtaGood[0], EtaAll[0], "cp"); 
-   
-  TGraphAsymmErrors EffVsR9_cat2;
-  EffVsR9_cat2.BayesDivide(R9Good[0], R9All[0], "cp"); 
-  */
-
-
-  
   
    
   TFile ff( (outputRootFilePath+outputRootFileName).c_str(),"recreate");
   
-  for (int i=0; i< 3; i++){
+  for (int i=0; i< 4; i++){
    
     NvtAll[i]->Write();
     NvtGood[i]->Write();
@@ -675,16 +699,16 @@ int main(int argc, char** argv)
     R9All[i]->Write();
     R9Good[i]->Write();
   
-    sprintf(hname,"EffVsNvtx_cat%d",i+1);
+    sprintf(hname,"EffVsNvtx_cat%d",i);
     EffVsNvtx[i]->Write(hname);
 
-    sprintf(hname,"EffVsPt_cat%d",i+1);
+    sprintf(hname,"EffVsPt_cat%d",i);
     EffVsPt[i]->Write(hname);
 
-    sprintf(hname,"EffVsEta_cat%d",i+1);
+    sprintf(hname,"EffVsEta_cat%d",i);
     EffVsEta[i]->Write(hname);
 
-    sprintf(hname,"EffVsR9_cat%d",i+1);
+    sprintf(hname,"EffVsR9_cat%d",i);
     EffVsR9[i]->Write(hname);
     
   }
