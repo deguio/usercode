@@ -30,6 +30,7 @@
 #endif
 
 #include "../src/selection.cc"
+#include "../src/eleId95.cc"
 
 #define etaEB 1.444
 #define etaEE 1.560
@@ -64,11 +65,49 @@ int main(int argc, char** argv)
   int isZee    = gConfigParser -> readIntOption("Options::isZee");
   int isZmumu  = gConfigParser -> readIntOption("Options::isZmumu");
   int isHiggs  = gConfigParser -> readIntOption("Options::isHiggs");
-  
-  int useWeights  = gConfigParser -> readIntOption("Options::useWeights");
+
+  int isData   = gConfigParser -> readIntOption("Options::isData");
   
   double trackThr = gConfigParser -> readDoubleOption("Options::trackThr");
+
+  int useWeights      = gConfigParser -> readIntOption("Options::useWeights");
+  int poissonWeights  = gConfigParser -> readIntOption("Options::poissonWeights");
+  int nAvePU          = gConfigParser -> readIntOption("Options::nAvePU");
   
+  std::string puweightsFileName = gConfigParser -> readStringOption("Options::puweightsFileName");  
+
+
+
+  //------ use weights for MC
+  float nmax;
+  float w[50];
+  TRandom *gRandom = new TRandom();
+  
+  if (useWeights){
+    
+    TFile weightsFile(puweightsFileName.c_str(),"READ");  
+    TH1F* hweights;
+    
+    if ( poissonWeights ){
+      std::cout << "N ave PU for Poisson PU reweighting : " << nAvePU << std::endl;
+      char hname[100];
+      sprintf(hname,"hwmc%d",nAvePU);
+      hweights = (TH1F*)weightsFile.Get(hname);
+    }
+    else {
+      hweights = (TH1F*)weightsFile.Get("hweights");
+    }
+    
+    nmax = hweights ->GetMaximum();
+    std::cout << nmax << std::endl;
+    
+    for (int ibin = 1; ibin < hweights->GetNbinsX()+1; ibin++){
+      w[ibin-1] = hweights->GetBinContent(ibin);  // bin 1 --> nvtx = 0 
+    }
+    weightsFile.Close();
+  }
+  
+
   std::cout << std::endl;
   std::cout << std::endl;
   
@@ -123,25 +162,6 @@ int main(int argc, char** argv)
   treeReader reader((TTree*)(chain));
   std::cout<<"found "<< reader.GetEntries() <<" entries"<<std::endl;
   
-
-  //------ use weights for MC
-  float nmax;
-  float w[50];
-  TRandom *gRandom = new TRandom();
-  
-  if (useWeights){
-    TFile weightsFile("testPUweights.root","READ");
-    TH1F* hweights = (TH1F*)weightsFile.Get("hwdata");
-    nmax = hweights ->GetMaximum();
-    std::cout << nmax << std::endl;
-    
-    for (int ibin = 1; ibin < hweights->GetNbinsX()+1; ibin++){
-      w[ibin-1] = hweights->GetBinContent(ibin);  // bin 1 --> nvtx = 0 
-    }
-    weightsFile.Close();
-  }
-  
-  
   
   //start loop over entries
   for (int u = 0; u < reader.GetEntries(); u++ )
@@ -152,13 +172,24 @@ int main(int argc, char** argv)
       
       //setup common branches
       #include "../includeMe_forTMVA_check.h"
+      
+      std::vector<float>*PU_z ;
+      std::vector<int>* mc_PUit_NumInteractions; 
+      int npu ;
+      
 
+      //--- use weights
       
       if (useWeights){
-	std::vector<float>* PU_z       = reader.GetFloat("PU_z");
-	int npu = PU_z->size(); // number of sim PU vtx
+	
+	//PU_z  = reader.GetFloat("PU_z");
+	//npu = PU_z->size();
+	
+	mc_PUit_NumInteractions  = reader.GetInt("mc_PUit_NumInteractions");
+	npu = mc_PUit_NumInteractions->at(0);
+	
 	float myrnd = gRandom->Uniform(0,nmax);
-	if (myrnd > w[npu]) continue;
+       	if (myrnd > w[npu]) continue;
       }
       
       
@@ -293,9 +324,36 @@ int main(int argc, char** argv)
       //---------------------------
       if ( isZee )
 	{
-	  //taking Zee variables
-	  std::vector<float>* eleid = reader.GetFloat("simpleEleId95cIso");
+	  std::vector<ROOT::Math::XYZTVector>* electrons = reader.Get4V("electrons");
+	  std::vector<ROOT::Math::XYZTVector>* electrons_SC = reader.Get4V("electrons");
 	  
+	  //taking Zee variables
+	  //	  std::vector<float>* eleid = reader.GetFloat("simpleEleId95cIso");
+	  // no eleID95 available for data 2011 --> compute it by hand
+	  std::vector<float>* eleid = new std::vector<float>;
+	  eleid->clear();
+	  if ( electrons->size() < 2) continue; 
+	  
+	  for (unsigned int iele = 0; iele < electrons->size(); iele++){
+	    
+	    float pt = electrons->at(iele).pt();
+	    float tkIso   = reader.GetFloat("electrons_tkIsoR03")->at(iele);
+	    float emIso   = reader.GetFloat("electrons_emIsoR03")->at(iele);
+	    float hadIso  = reader.GetFloat("electrons_hadIsoR03_depth1")->at(iele) + reader.GetFloat("electrons_hadIsoR03_depth2")->at(iele);
+	    float combIso = tkIso + emIso + hadIso;
+	    
+	    int isEB = reader.GetInt("electrons_isEB")->at(iele);
+	    float sigmaIetaIeta = reader.GetFloat("electrons_sigmaIetaIeta")->at(iele);
+	    float DetaIn        = reader.GetFloat("electrons_deltaEtaIn")->at(iele);
+	    float DphiIn        = reader.GetFloat("electrons_deltaPhiIn")->at(iele);
+	    float HOverE        = reader.GetFloat("electrons_hOverE")->at(iele);
+	    int mishits         = reader.GetInt("electrons_mishits")->at(iele);
+	    
+	    float id = eleId95 ( pt, tkIso, emIso, hadIso, combIso, isEB, sigmaIetaIeta, DetaIn, DphiIn, HOverE, mishits);	
+	    id *= 7.; // to emulate simpleEleId95cIso
+	    
+	    eleid->push_back( id );
+	  }
 	  PV_normalizedChi2 = reader.GetFloat("PV_noEle_normalizedChi2");
 	  PV_ndof = reader.GetInt("PV_noEle_ndof");
 	  PV_nTracks = reader.GetInt("PV_noEle_nTracks");
@@ -489,9 +547,9 @@ int main(int argc, char** argv)
 		{
 		  if ( PVtracks->at(kk).perp2() < trackThr*trackThr ) continue;
 		  
-		  // 		   double dr1 = deltaR( photonsSC_eta[0], photonsSC_phi[0], PVtracks->at(kk).eta(), PVtracks->at(kk).phi());
-		  // 		   double dr2 = deltaR( photonsSC_eta[1], photonsSC_phi[1], PVtracks->at(kk).eta(), PVtracks->at(kk).phi());
-		  // 		   if(dr1 < 0.05 || dr2 < 0.05) continue;
+// 		  double dr1 = deltaR( photonsSC_eta[0], photonsSC_phi[0], PVtracks->at(kk).eta(), PVtracks->at(kk).phi());
+// 		  double dr2 = deltaR( photonsSC_eta[1], photonsSC_phi[1], PVtracks->at(kk).eta(), PVtracks->at(kk).phi());
+// 		  if(dr1 < 0.05 || dr2 < 0.05) continue;
 		  
 		  vtxPx += PVtracks->at(kk).X();
 		  vtxPy += PVtracks->at(kk).Y();
