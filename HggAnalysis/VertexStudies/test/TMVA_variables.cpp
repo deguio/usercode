@@ -32,8 +32,8 @@
 #include "../src/selection.cc"
 #include "../src/eleId95.cc"
 
-#define etaEB 1.444
-#define etaEE 1.560
+#define etaEB 1.4442
+#define etaEE 1.566
 
 #define PI 3.141592654
 

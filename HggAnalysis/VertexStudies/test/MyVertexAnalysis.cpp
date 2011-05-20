@@ -41,8 +41,8 @@
 #define R_ECAL    129
 #define Z_ENDCAP  317
 
-#define etaEB   1.442 //?
-#define etaEE   1.560
+#define etaEB   1.4442 
+#define etaEE   1.566
 
 
 using namespace std;
@@ -151,6 +151,23 @@ int main(int argc, char** argv)
   TH1F NpuGood("NpuGood","number of PV good",50,0,50);
   TH1F NpuGood_BDT("NpuGood_BDT","number of PV good (BDT)",50,0,50);
   TH1F NpuGood_RANK("NpuGood_RANK","number of PV good (RANKING)",50,0,50);
+
+
+  TH1F PtGood_matchedClosest("PtGood_matchedClosest","Pt of boson good",80,0,400);
+  TH1F PtGood_BDT_matchedClosest("PtGood_BDT_matchedClosest","Pt of boson good (BDT)",80,0,400);
+  TH1F PtGood_RANK_matchedClosest("PtGood_RANK_matchedClosest","Pt of boson good (RANKING)",80,0,400);
+
+  TH1F EtaGood_matchedClosest("EtaGood_matchedClosest","Eta of max SC good",50,-5,5);
+  TH1F EtaGood_BDT_matchedClosest("EtaGood_BDT_matchedClosest","Eta of max SC good (BDT)",50,-5,5);
+  TH1F EtaGood_RANK_matchedClosest("EtaGood_RANK_matchedClosest","Eta of max SC good (RANKING)",50,-5,5);
+  
+  TH1F NvtGood_matchedClosest("NvtGood_matchedClosest","number of PV good",50,0,50);
+  TH1F NvtGood_BDT_matchedClosest("NvtGood_BDT_matchedClosest","number of PV good (BDT)",50,0,50);
+  TH1F NvtGood_RANK_matchedClosest("NvtGood_RANK_matchedClosest","number of PV good (RANKING)",50,0,50);
+
+  TH1F NpuGood_matchedClosest("NpuGood_matchedClosest","number of PV good",50,0,50);
+  TH1F NpuGood_BDT_matchedClosest("NpuGood_BDT_matchedClosest","number of PV good (BDT)",50,0,50);
+  TH1F NpuGood_RANK_matchedClosest("NpuGood_RANK_matchedClosest","number of PV good (RANKING)",50,0,50);
 
   TH2F hdist("hdist"," hdist",80,0,200,400,-10,10);
   TH2F hdiff_dZ_muons("hdiff_dZ_muons","hdiff_dZ_muons",80,0,200,400,-10,10);
@@ -484,37 +501,55 @@ int main(int argc, char** argv)
 
       // sumpt2 criterion
       vector<int> ranksumpt2 = vAna.rankprod(ranksumpt2_);
-      //      if ( iClosest == ranksumpt2[0]){
+      // matching 1cm
       if ( fabs( TrueVertex_Z - PV_z->at(ranksumpt2[0]) ) < 1.) {
 	PtGood.Fill( sum2pho.pt(),ww );
 	EtaGood.Fill( etaMaxSC ,ww);
 	NvtGood.Fill( nvtx_ ,ww);
 	if (!isData) NpuGood.Fill(npu,ww);
       }
-      
-           
+      // matching closest vtx
+      if ( iClosest == ranksumpt2[0]){
+	PtGood_matchedClosest.Fill( sum2pho.pt(),ww );
+	EtaGood_matchedClosest.Fill( etaMaxSC ,ww);
+	NvtGood_matchedClosest.Fill( nvtx_ ,ww);
+	if (!isData) NpuGood_matchedClosest.Fill(npu,ww);
+      }        
+
+   
       // ranking 
       vector<int> rankprod = vAna.rankprod(rankVariables_);
-      //if ( iClosest == rankprod[0]){
+       // matching 1cm
       if ( fabs( TrueVertex_Z - PV_z->at(rankprod[0]) ) < 1.) {
 	PtGood_RANK.Fill( sum2pho.pt(),ww );
 	EtaGood_RANK.Fill( etaMaxSC ,ww);
 	NvtGood_RANK.Fill( nvtx_,ww );
 	if (!isData) NpuGood_RANK.Fill(npu,ww);
       }
-
+      // matching closest vtx
+      if ( iClosest == rankprod[0]){
+	PtGood_RANK_matchedClosest.Fill( sum2pho.pt(),ww );
+	EtaGood_RANK_matchedClosest.Fill( etaMaxSC ,ww);
+	NvtGood_RANK_matchedClosest.Fill( nvtx_,ww );
+	if (!isData) NpuGood_RANK_matchedClosest.Fill(npu,ww);
+      }
       
       // BDT - FIXME : this is a placeholder
       //vector<int> ranktmva = vAna.rankprod(*tmvaReader_,tmvaMethod_);//
-      //if ( iClosest == rankprod[0]){
+       // matching 1cm
       if ( fabs( TrueVertex_Z - PV_z->at(rankprod[0]) ) < 1.) {
-	PtGood_RANK.Fill( sum2pho.pt(),ww );
 	PtGood_BDT.Fill( sum2pho.pt(),ww );
 	EtaGood_BDT.Fill( etaMaxSC ,ww);
 	NvtGood_BDT.Fill( nvtx_ ,ww);
 	if (!isData) NpuGood_BDT.Fill(npu,ww);
       }
-      
+      // matching closest vtx
+      if ( iClosest == rankprod[0]){
+	PtGood_BDT_matchedClosest.Fill( sum2pho.pt(),ww );
+	EtaGood_BDT_matchedClosest.Fill( etaMaxSC ,ww);
+	NvtGood_BDT_matchedClosest.Fill( nvtx_,ww );
+	if (!isData) NpuGood_BDT_matchedClosest.Fill(npu,ww);
+      }
       
       
       
@@ -545,6 +580,24 @@ int main(int argc, char** argv)
   NpuGood_BDT.Write(); 
   NpuGood_RANK.Write();
     
+  PtGood_matchedClosest.Write();
+  PtGood_BDT_matchedClosest.Write();
+  PtGood_RANK_matchedClosest.Write();
+  
+  EtaGood_matchedClosest.Write();
+  EtaGood_BDT_matchedClosest.Write();
+  EtaGood_RANK_matchedClosest.Write();
+  
+  NvtGood_matchedClosest.Write();
+  NvtGood_BDT_matchedClosest.Write(); 
+  NvtGood_RANK_matchedClosest.Write();
+
+
+  NpuGood_matchedClosest.Write();
+  NpuGood_BDT_matchedClosest.Write(); 
+  NpuGood_RANK_matchedClosest.Write();
+
+
   hdist.Write();
   hdiff_dZ_muons.Write();
   hdiff_dZ_electrons.Write();
