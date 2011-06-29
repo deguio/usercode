@@ -86,7 +86,8 @@ void hggSelection (std::vector<ROOT::Math::XYZTVector>* mcV1,
 
 
   bool is_mcmatched   = (dR_1_min < 0.15) && (dR_2_min < 0.15);
-  bool is_unconverted = (photons_r9->at(index1) > 0.93) &&  (photons_r9->at(index2) > 0.93);
+  //bool is_unconverted = (photons_r9->at(index1) > 0.93) &&  (photons_r9->at(index2) > 0.93);
+  bool is_unconverted = (photons_r9->at(index1) > 0.) &&  (photons_r9->at(index2) > 0.);
   bool pass_kincuts   = (photons->at(index1).pt()> 40.) && ( photons->at(index2).pt() > 30.) ;
   
   if( is_mcmatched && is_unconverted && pass_kincuts ) {
@@ -153,6 +154,8 @@ void zeeSelection (std::vector<ROOT::Math::XYZTVector>* electrons ,
 
 //---ZMM----------------------------------------------------------------------------------------------
 void zmumuSelection (std::vector<ROOT::Math::XYZTVector>* muons ,
+		     std::vector<int>* muons_global,
+		     std::vector<int>* muons_tracker,
 		     int& passSelection, int& i1, int& i2
 		     )
 
@@ -163,9 +166,13 @@ void zmumuSelection (std::vector<ROOT::Math::XYZTVector>* muons ,
 
   for( unsigned int uu = 0; uu < muons->size(); uu++)
     {
-      if ( muons->at(uu).pt() > 10 && index1 < 0 )        { index1 = uu; ngood++; }
-      else if ( muons->at(uu).pt() > 10 && index2 < 0 )   { index2 = uu; ngood++; }
-      else if ( muons->at(uu).pt() > 10 )                 { ngood++;}
+//       if ( muons->at(uu).pt() > 10 && index1 < 0 )        { index1 = uu; ngood++; }
+//       else if ( muons->at(uu).pt() > 10 && index2 < 0 )   { index2 = uu; ngood++; }
+//       else if ( muons->at(uu).pt() > 10 )                 { ngood++;}
+      bool goodmuon =  (muons->at(uu).pt() > 10 && muons_global->at(uu)==1 && muons_tracker->at(uu)==1);
+      if ( goodmuon && index1 < 0 )   { index1 = uu; ngood++; }
+      else if (goodmuon && index2 < 0 )   { index2 = uu; ngood++; }
+      else if (goodmuon)                 { ngood++;}
     }
     
   if ( ngood != 2){

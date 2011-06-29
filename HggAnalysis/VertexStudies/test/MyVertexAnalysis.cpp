@@ -137,6 +137,21 @@ int main(int argc, char** argv)
   TH1F PtGood_BDT("PtGood_BDT","Pt of boson good (BDT)",80,0,400);
   TH1F PtGood_RANK("PtGood_RANK","Pt of boson good (RANKING)",80,0,400);
 
+  TH1F PtAll_EBEB("PtAll_EBEB","Pt of boson all",80,0,400);
+  TH1F PtGood_EBEB("PtGood_EBEB","Pt of boson good",80,0,400);
+  TH1F PtGood_BDT_EBEB("PtGood_BDT_EBEB","Pt of boson good (BDT)",80,0,400);
+  TH1F PtGood_RANK_EBEB("PtGood_RANK_EBEB","Pt of boson good (RANKING)",80,0,400);
+
+  TH1F PtAll_EBEE("PtAll_EBEE","Pt of boson all",80,0,400);
+  TH1F PtGood_EBEE("PtGood_EBEE","Pt of boson good",80,0,400);
+  TH1F PtGood_BDT_EBEE("PtGood_BDT_EBEE","Pt of boson good (BDT)",80,0,400);
+  TH1F PtGood_RANK_EBEE("PtGood_RANK_EBEE","Pt of boson good (RANKING)",80,0,400);
+
+  TH1F PtAll_EEEE("PtAll_EEEE","Pt of boson all",80,0,400);
+  TH1F PtGood_EEEE("PtGood_EEEE","Pt of boson good",80,0,400);
+  TH1F PtGood_BDT_EEEE("PtGood_BDT_EEEE","Pt of boson good (BDT)",80,0,400);
+  TH1F PtGood_RANK_EEEE("PtGood_RANK_EEEE","Pt of boson good (RANKING)",80,0,400);
+
   TH1F EtaAll("EtaAll","Eta of max SC",50,-5,5);
   TH1F EtaGood("EtaGood","Eta of max SC good",50,-5,5);
   TH1F EtaGood_BDT("EtaGood_BDT","Eta of max SC good (BDT)",50,-5,5);
@@ -360,6 +375,8 @@ int main(int argc, char** argv)
       if ( isZmumu )
 	 {
 	   std::vector<ROOT::Math::XYZTVector>* muons = reader.Get4V("muons");
+	   std::vector<int>* muons_global = reader.GetInt("muons_global");
+	   std::vector<int>* muons_tracker = reader.GetInt("muons_tracker");
 	   std::vector<float>* muons_dz_PV_noMuon = reader.GetFloat("muons_dz_PV_noMuon");
 	  
 	   PV_nTracks       = reader.GetInt("PV_noMuon_nTracks");
@@ -373,7 +390,7 @@ int main(int argc, char** argv)
 	   tracks_dz        = reader.GetFloat("tracks_dz");
 	   sc               = reader.Get4V("muons");  // use muon info for SC
 	   
-	   zmumuSelection(muons, accept, indpho1, indpho2);
+	   zmumuSelection(muons,muons_global,muons_tracker, accept, indpho1, indpho2);
 
 	   if (!accept) continue;
 	   
@@ -456,8 +473,11 @@ int main(int argc, char** argv)
       }
 
 
-      if ( (fabs(sc->at(indpho1).eta()) > etaEB && fabs(sc->at(indpho1).eta()) < etaEE) || fabs(sc->at(indpho1).eta()) > 2.5) continue;
-      if ( (fabs(sc->at(indpho2).eta()) > etaEB && fabs(sc->at(indpho2).eta()) < etaEE) || fabs(sc->at(indpho2).eta()) > 2.5) continue;
+      float eta1 = sc->at(indpho1).eta();
+      float eta2 = sc->at(indpho2).eta();
+
+      if ( (fabs(eta1) > etaEB && fabs(eta1) < etaEE) || fabs(eta1) > 2.5) continue;
+      if ( (fabs(eta2) > etaEB && fabs(eta2) < etaEE) || fabs(eta2) > 2.5) continue;
    
       
       TupleVertexInfo vinfo( nvtx_, vtxx_ , vtxy_, vtxz_, ntracks_, tkpx_, tkpy_, tkpz_, tkPtErr_, tkVtxId_, tkWeight_, tkd0_, tkd0Err_,tkdz_, tkdzErr_ , tkIsHighPurity_);
@@ -493,8 +513,13 @@ int main(int argc, char** argv)
 
        
       //fill histos
+
       
       PtAll.Fill( sum2pho.pt(),ww );
+      if (fabs(eta1) < etaEB && fabs(eta2) < etaEB)  PtAll_EBEB.Fill( sum2pho.pt(),ww );
+      if (fabs(eta1) > etaEE && fabs(eta2) > etaEE)  PtAll_EEEE.Fill( sum2pho.pt(),ww );
+      if ( (fabs(eta1) < etaEB && fabs(eta2) > etaEE) || (fabs(eta2) < etaEB && fabs(eta1) > etaEE))  PtAll_EBEE.Fill( sum2pho.pt(),ww );
+
       EtaAll.Fill( etaMaxSC ,ww);
       NvtAll.Fill( nvtx_,ww );
       if (!isData) NpuAll.Fill(npu,ww);
