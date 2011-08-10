@@ -7,6 +7,7 @@
 #include "stdHisto.h"
 #include "ConfigParser.h"
 #include "ntpleUtils.h"
+#include "readJSONFile.h"
 
 #include "TH1F.h"
 #include "TH2F.h"
@@ -86,6 +87,14 @@ int main(int argc, char** argv)
   int nAvePU          = gConfigParser -> readIntOption("Options::nAvePU");
   
   std::string puweightsFileName = gConfigParser -> readStringOption("Options::puweightsFileName");  
+
+  int useJSON      = gConfigParser -> readIntOption("Options::useJSON");
+  std::string jsonFileName = gConfigParser -> readStringOption("Options::jsonFileName");  
+
+  // Get run/LS map from JSON file
+  std::cout << ">>> Gettting GOOD  run/LS from JSON file" << std::endl;
+  std::map<int, std::vector<std::pair<int, int> > > jsonMap;
+  jsonMap = readJSONFile(jsonFileName);
 
 
   std::cout << std::endl;
@@ -234,6 +243,18 @@ int main(int argc, char** argv)
       if(u%10000 == 0) std::cout<<"reading event "<< u <<std::endl;
       reader.GetEntry(u);
       
+      // filter bad runs/lumis
+      int runId = reader.GetInt("runId")->at(0);
+      int lumiId = reader.GetInt("lumiId")->at(0);
+
+      bool skipEvent = false;
+      if( isData && useJSON ){
+	if(AcceptEventByRunAndLumiSection(runId,lumiId,jsonMap) == false)
+	  skipEvent = true;
+      }
+
+      if( skipEvent == true ) continue;
+
       
       std::vector<float>*PU_z ;
       std::vector<int>* mc_PUit_NumInteractions; 
