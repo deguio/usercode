@@ -7,6 +7,7 @@
 #include "stdHisto.h"
 #include "ConfigParser.h"
 #include "ntpleUtils.h"
+#include "readJSONFile.h"
 
 #include "TH1F.h"
 #include "TH2F.h"
@@ -76,6 +77,13 @@ int main(int argc, char** argv)
   
   std::string puweightsFileName = gConfigParser -> readStringOption("Options::puweightsFileName");  
 
+  int useJSON      = gConfigParser -> readIntOption("Options::useJSON");
+  std::string jsonFileName = gConfigParser -> readStringOption("Options::jsonFileName");  
+
+  // Get run/LS map from JSON file
+  std::cout << ">>> Gettting GOOD  run/LS from JSON file" << std::endl;
+  std::map<int, std::vector<std::pair<int, int> > > jsonMap;
+  jsonMap = readJSONFile(jsonFileName);
 
 
   //------ use weights for MC
@@ -169,6 +177,19 @@ int main(int argc, char** argv)
       if(u == entryMAX) break;
       if(u%10000 == 0) std::cout<<"reading event "<< u <<std::endl;
       reader.GetEntry(u);
+
+      // filter bad runs/lumis
+      int runId = reader.GetInt("runId")->at(0);
+      int lumiId = reader.GetInt("lumiId")->at(0);
+
+      bool skipEvent = false;
+      if( isData && useJSON ){
+	if(AcceptEventByRunAndLumiSection(runId,lumiId,jsonMap) == false)
+	  skipEvent = true;
+      }
+      
+      if( skipEvent == true ) continue;
+      
       
       //setup common branches
       #include "../includeMe_forTMVA_check.h"
@@ -446,9 +467,10 @@ int main(int argc, char** argv)
 	  int ngood = 0;
 	  for( int uu = 0; uu < muons->size(); uu++)
 	    {
-	      if ( muons->at(uu).pt() > 10 && indmu1 < 0 )        { indmu1 = uu; ngood++; }
-	      else if ( muons->at(uu).pt() > 10 && indmu2 < 0 )   { indmu2 = uu; ngood++; }
-	      else if ( muons->at(uu).pt() > 10 )                 { ngood++;}
+	      bool goodmuon =  (muons->at(uu).pt() > 10 && muons_global->at(uu)==1 && muons_tracker->at(uu)==1);
+	      if (goodmuon && indmu1 < 0 )        { indmu1 = uu; ngood++; }
+	      else if ( goodmuon && indmu2 < 0 )   { indmu2 = uu; ngood++; }
+	      else if ( goodmuon  )                 { ngood++;}
 	    }
 	  
 	  if ( ngood != 2){continue;}
@@ -494,8 +516,13 @@ int main(int argc, char** argv)
 	  
 	  
 	  if ( fabs(sum2pho.M() - 91) > 8 ) continue;
+
+	  if ( fabs(muons_dz_PV_noMuon->at(indmu1) - muons_dz_PV_noMuon->at(indmu2))> 0.5) continue;
+
 	  TrueVertex_Z = PV_z->at(0) + (muons_dz_PV_noMuon->at(indmu1) + muons_dz_PV_noMuon->at(indmu2))/2.;
-	  
+
+
+
 	}//Zmumu end
       
       
