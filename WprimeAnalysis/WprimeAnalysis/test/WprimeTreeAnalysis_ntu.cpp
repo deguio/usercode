@@ -15,7 +15,6 @@
 #include "TRandom3.h"
 #include <time.h>
 #include <sstream>
-#include "MyTest.h"
 
 #include <iostream>
 
