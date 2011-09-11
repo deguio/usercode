@@ -153,13 +153,19 @@ int main (int argc, char ** argv)
 
   std::vector<std::string> HLTPathNamesMC;
 
+  //trigger Summer11
+  HLTPathNamesMC.push_back("HLT_Ele27_CaloIdVT_CaloIsoT_TrkIdT_TrkIsoT");
+  HLTPathNamesMC.push_back("HLT_Ele32_CaloIdVT_CaloIsoT_TrkIdT_TrkIsoT");
+  HLTPathNamesMC.push_back("HLT_Ele45_CaloIdVT_TrkIdT");
+
+
   //trigger Spring11
-  HLTPathNamesMC.push_back("HLT_Ele22_SW_TighterEleId_L1R_v1");
-  HLTPathNamesMC.push_back("HLT_Ele22_SW_TighterEleId_L1R_v2");
-  HLTPathNamesMC.push_back("HLT_Ele22_SW_TighterEleId_L1R_v3");
+  //HLTPathNamesMC.push_back("HLT_Ele22_SW_TighterEleId_L1R_v1");
+  //HLTPathNamesMC.push_back("HLT_Ele22_SW_TighterEleId_L1R_v2");
+  //HLTPathNamesMC.push_back("HLT_Ele22_SW_TighterEleId_L1R_v3");
 
   //trigger Fall10
-  HLTPathNamesMC.push_back("HLT_Ele12_SW_TightEleId_L1R");
+  //HLTPathNamesMC.push_back("HLT_Ele12_SW_TightEleId_L1R");
 
 
 
