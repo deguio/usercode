@@ -32,6 +32,8 @@
 
 #define PI 3.141592654
 
+bool AcceptHLTPath(const std::vector<std::string>&, const std::vector<float>&, const std::string&);
+
 
 //======================
 //==== main program ====
@@ -62,7 +64,9 @@ int main (int argc, char ** argv)
   int         dataFlag_      = gConfigParser ->  readIntOption("Options::dataFlag");
   int         nonIso_        = gConfigParser ->  readIntOption("Options::nonIso");
   int         doVBTFeleId_        = gConfigParser ->  readIntOption("Options::doVBTFeleId");
-  float crossSection_        = gConfigParser -> readFloatOption("Options::crossSection");
+  int         doRecoilCorrection_ = gConfigParser ->  readIntOption("Options::doRecoilCorrection");
+  int         doPtHatCut_    = gConfigParser ->  readIntOption("Options::doPtHatCut");
+  float       crossSection_  = gConfigParser -> readFloatOption("Options::crossSection");
 
   std::string outFile_       = gConfigParser -> readStringOption("Output::OutputFile");  
 
@@ -154,10 +158,9 @@ int main (int argc, char ** argv)
   std::vector<std::string> HLTPathNamesMC;
 
   //trigger Summer11
-  HLTPathNamesMC.push_back("HLT_Ele27_CaloIdVT_CaloIsoT_TrkIdT_TrkIsoT");
-  HLTPathNamesMC.push_back("HLT_Ele32_CaloIdVT_CaloIsoT_TrkIdT_TrkIsoT");
-  HLTPathNamesMC.push_back("HLT_Ele45_CaloIdVT_TrkIdT");
-
+  HLTPathNamesMC.push_back("HLT_Ele27_CaloIdVT_CaloIsoT_TrkIdT_TrkIsoT_v1");
+  HLTPathNamesMC.push_back("HLT_Ele27_CaloIdVT_CaloIsoT_TrkIdT_TrkIsoT_v2");
+  HLTPathNamesMC.push_back("HLT_Ele27_CaloIdVT_CaloIsoT_TrkIdT_TrkIsoT_v3");
 
   //trigger Spring11
   //HLTPathNamesMC.push_back("HLT_Ele22_SW_TighterEleId_L1R_v1");
@@ -203,6 +206,7 @@ int main (int argc, char ** argv)
     }
   else
     {
+      //da sistemare
       HLTPathNamesDATA.push_back("HLT_Photon30_CaloIdVL_v1");
       HLTPathNamesDATA.push_back("HLT_Photon30_CaloIdVL_v2");
       HLTPathNamesDATA.push_back("HLT_Photon30_CaloIdVL_v3");  //presc 500
@@ -261,6 +265,7 @@ int main (int argc, char ** argv)
       std::vector<int>* electrons_trackerDrivenSeed = reader.GetInt("electrons_trackerDrivenSeed");
       std::vector<float>* electrons_mva = reader.GetFloat("electrons_mva");
       std::vector<float>* electrons_eSC = reader.GetFloat("electrons_eSC");
+      std::vector<ROOT::Math::XYZVector>* electrons_p_atVtx = reader.Get3V("electrons_p_atVtx");
       std::vector<float>* electrons_pin = reader.GetFloat("electrons_pin");
       std::vector<float>* electrons_pout = reader.GetFloat("electrons_pout");
       std::vector<float>* electrons_pcalo = reader.GetFloat("electrons_pcalo");
@@ -301,7 +306,7 @@ int main (int argc, char ** argv)
       //==== Pt hat cut for Wenu ====
       //=============================
 
-      //if (mc_ptHat->at(0) > 100. ) continue;
+      if(doPtHatCut_ && mc_ptHat->at(0) > 100. ) continue;
 
       //=================================
       //==== step 3: All the events  ====
@@ -317,17 +322,11 @@ int main (int argc, char ** argv)
 
       if (dataFlag_ == 0) SetPUVariables(vars, reader);
       SetPVVariables(vars, reader);
-      SetMetVariables(vars, reader);
+      //if(doRecoilCorrection_ == 0) SetMetVariables(vars, reader, doRecoilCorrection_);
 
       step = 3 ;
       stepEvents[step] ++ ;
       stepName[step] = "3) after preselections";
-
-      double met    = vars.met.pt();
-      double metPhi = vars.met.phi();
-      double mex    = vars.met.px();
-      double mey    = vars.met.py();
-
 
       //========================
       //==== JSON selection ====
@@ -351,28 +350,51 @@ int main (int argc, char ** argv)
       //==== step 6: HLT selection  ====
       //================================
 
+      // skipEvent = true;
+      // if(dataFlag_ == 0)
+      // 	{
+      // 	  for(unsigned int HLTIt = 0; HLTIt < HLTPathNamesMC.size(); ++HLTIt)
+      // 	    {
+      // 	      if( AcceptHLTPath(*HLT_Names,*HLT_Accept,HLTPathNamesMC.at(HLTIt)) == true )
+      // 		skipEvent = false;
+      // 	    }
+      // 	}
+      // else
+      // 	{
+      // 	  for(unsigned int HLTIt = 0; HLTIt < HLTPathNamesDATA.size(); ++HLTIt)
+      // 	    {
+      // 	      if( AcceptHLTPath(*HLT_Names,*HLT_Accept,HLTPathNamesDATA.at(HLTIt)) == true )
+      // 		skipEvent = false;
+      // 	    }
+      // 	}
+      // if (skipEvent == true) continue;
+      // vars.hltPrescale = 1;
+
+
+      //FIXME: necessario aggiungere i prescales se giro per FAKE RATE
+      //==== get prescales ====
       int prescale = 0;
       if(dataFlag_ == 0)
-	{
-	  for(unsigned int HLTIt = 0; HLTIt < HLTPathNamesMC.size(); ++HLTIt)
-	    {
-	      if ( GetPrescale(reader, HLTPathNamesMC.at(HLTIt)) > 0)
-		prescale = GetPrescale(reader, HLTPathNamesMC.at(HLTIt));
-	    }
-	  // prescale = 1;
-   	}
+      	{
+      	  for(unsigned int HLTIt = 0; HLTIt < HLTPathNamesMC.size(); ++HLTIt)
+      	    {
+      	      if ( GetPrescale(reader, HLTPathNamesMC.at(HLTIt)) > 0)
+      		prescale = GetPrescale(reader, HLTPathNamesMC.at(HLTIt));
+      	    }
+      	  // prescale = 1;
+      	}
       else
-	{
-	  for(unsigned int HLTIt = 0; HLTIt < HLTPathNamesDATA.size(); ++HLTIt)
-	    {
-	      if ( GetPrescale(reader, HLTPathNamesDATA.at(HLTIt)) > 0)
-		prescale = GetPrescale(reader, HLTPathNamesDATA.at(HLTIt));
-	    }
-	}
+      	{
+      	  for(unsigned int HLTIt = 0; HLTIt < HLTPathNamesDATA.size(); ++HLTIt)
+      	    {
+      	      if ( GetPrescale(reader, HLTPathNamesDATA.at(HLTIt)) > 0)
+      		prescale = GetPrescale(reader, HLTPathNamesDATA.at(HLTIt));
+      	    }
+      	}
       
       if( prescale == 0 ) continue;
       vars.hltPrescale = prescale;
-
+      //==== end get prescales ====
 
       step ++ ;
       stepEvents[step] ++ ;
@@ -397,11 +419,15 @@ int main (int argc, char ** argv)
       for (unsigned int i = 0; i < reader.Get4V("electrons")->size(); ++i)
   	{
 	  
-  	  double eleEt  = electrons->at(i).pt(); //FIXME: VOGLIO ESC*COS(THETATRACCIA)
-  	  double elePt  = electrons->at(i).pt(); //FIXME: VOGLIO ESC*COS(THETATRACCIA)
+  	  // double eleEt  = electrons->at(i).pt(); //FIXME: VOGLIO ESC*COS(THETATRACCIA)
+  	  // double elePt  = electrons->at(i).pt(); //FIXME: VOGLIO ESC*COS(THETATRACCIA)
 	  
-  	  double elePhi = electrons->at(i).phi(); //FIXME: VOGLIO ETA E PHI DELLA TRACCIA
-  	  double eleEta = electrons->at(i).eta(); //FIXME: VOGLIO ETA E PHI DELLA TRACCIA
+  	  // double elePhi = electrons->at(i).phi(); //FIXME: VOGLIO ETA E PHI DELLA TRACCIA
+  	  // double eleEta = electrons->at(i).eta(); //FIXME: VOGLIO ETA E PHI DELLA TRACCIA
+	  	  
+  	  double eleEt  = electrons_p_atVtx->at(i).Rho()/electrons_p_atVtx->at(i).R()*electrons_eSC->at(i);
+  	  double elePhi = electrons_p_atVtx->at(i).phi();
+  	  double eleEta = electrons_p_atVtx->at(i).eta();
 	  	  
   	  bool eleIsEB = electrons_isEB->at(i);
 	  
@@ -505,14 +531,14 @@ int main (int argc, char ** argv)
 	  if (eleIsEB == true && doVBTFeleId_ == 1) //EB VBTF
 	    {
 	      //SOTTRARRE IL PU COME QUI: https://twiki.cern.ch/twiki/bin/viewauth/CMS/SimpleCutBasedEleID2011#ID_and_Conversion_Rejection
-	      float combIso = ( tkIso + std::max(0., emIso - 1.) + hadIso) / elePt ;
+	      float combIso = ( tkIso + std::max(0., emIso - 1.) + hadIso) / eleEt ;
 
 	      //if(  combIso      > 0.07 ) continue;
 
 	      //riproduco i tagli @ HLT level
-	      if( tkIso / elePt    > 0.09 ) continue;
-	      if( emIso / elePt    > 0.07 ) continue;
-	      if( hadIso/ elePt    > 0.10 ) continue;
+	      if( tkIso / eleEt    > 0.09 ) continue;
+	      if( emIso / eleEt    > 0.07 ) continue;
+	      if( hadIso/ eleEt    > 0.10 ) continue;
 
 	      // eleId VBTF 2011 80% 
 	      if( sigmaIetaIeta > 0.01  ) continue;
@@ -524,14 +550,14 @@ int main (int argc, char ** argv)
 	  if (eleIsEB == false && doVBTFeleId_ == 1) //EB VBTF
 	    {
 	      //SOTTRARRE IL PU COME QUI: https://twiki.cern.ch/twiki/bin/viewauth/CMS/SimpleCutBasedEleID2011#ID_and_Conversion_Rejection
-	      float combIso = ( tkIso + emIso + hadIso) / elePt ;
+	      float combIso = ( tkIso + emIso + hadIso) / eleEt ;
 
 	      //if(  combIso      > 0.06 ) continue;
 
 	      //riproduco i tagli @ HLT level
-	      if( tkIso / elePt    > 0.04 ) continue;
-	      if( emIso / elePt    > 0.05 ) continue;
-	      if( hadIso/ elePt    > 0.025 ) continue;
+	      if( tkIso / eleEt    > 0.04 ) continue;
+	      if( emIso / eleEt    > 0.05 ) continue;
+	      if( hadIso/ eleEt    > 0.025 ) continue;
 
 	      // eleId VBTF 80%
 	      if( sigmaIetaIeta > 0.03  ) continue;
@@ -564,11 +590,13 @@ int main (int argc, char ** argv)
       //=== step 9: only one ele ===
       //============================
       if ( nGoodElectrons != 1 ) continue;
-      if (electrons->at(chosenEle).pt() < minEleEt_fir_) continue;
+      double eleEt  = electrons_p_atVtx->at(chosenEle).Rho()/electrons_p_atVtx->at(chosenEle).R()*electrons_eSC->at(chosenEle);
+      if (eleEt < minEleEt_fir_) continue;
 
       vars.selectIt_ele = chosenEle;
       SetElectronVariables(vars, reader);
-      SetMetVariables(vars, reader);
+      if(doRecoilCorrection_) SetNeutrinoVariables(vars, reader);
+      SetMetVariables(vars, reader, doRecoilCorrection_);
 
       step ++ ;
       stepEvents[step] ++ ;
@@ -580,7 +608,7 @@ int main (int argc, char ** argv)
       //===============================
       //=== step 10: ele - met btob ===
       //===============================
-      
+
       if (vars.eleMet_Dphi < minEleMetDPhi_) continue; //original
       
       step ++ ;
@@ -588,12 +616,12 @@ int main (int argc, char ** argv)
       stepName[step] = "8) ele - met btob";
 
       cloneTrees[step] -> Fill();        
-      
+
       //==============================
       //=== step 12: met selection ===
       //==============================
 
-      if (vars.ele.pt()/vars.met.pt() < minEtOverMet_ || vars.ele.pt()/vars.met.pt() > maxEtOverMet_) continue;  //original
+      if (vars.ele_corr.Et()/vars.met.Et() < minEtOverMet_ || vars.ele_corr.Et()/vars.met.Et() > maxEtOverMet_) continue;  //original
       //if (met < minMET_) continue;  //original
       
       step ++ ;
@@ -635,4 +663,22 @@ int main (int argc, char ** argv)
   fout.Close(); //richiudo il file
 
   return 0;
+}
+
+
+
+bool AcceptHLTPath(const std::vector<std::string>& HLT_Names,
+                   const std::vector<float>& HLT_Accept,
+                   const std::string& HLTPathName)
+{
+  bool acceptEvent = false;
+  
+  for(unsigned int HLTIt = 0; HLTIt < HLT_Names.size(); ++HLTIt)
+    if( (HLT_Names.at(HLTIt) == HLTPathName) &&
+        (HLT_Accept.at(HLTIt) == 1) )
+      {
+	acceptEvent = true;
+      }
+  
+  return acceptEvent;
 }

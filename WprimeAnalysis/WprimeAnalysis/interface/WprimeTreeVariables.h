@@ -1,3 +1,6 @@
+#ifndef WprimeTreeVariables_h
+#define WprimeTreeVariables_h
+
 #include "treeReader.h"
 #include "ConfigParser.h"
 #include "ntpleUtils.h"
@@ -7,7 +10,7 @@
 #include "TProfile.h"
 #include "TObject.h"
 #include "TTree.h"
-
+#include "TRandom.h"
 
 
 struct WprimeVariables
@@ -28,8 +31,9 @@ struct WprimeVariables
   int hltPrescale;
   
   //PU
-  int mc_PU_NumInteractions;
-
+  //int mc_PU_NumInteractions;
+  int PUit_n;
+  int PUoot_n;
   
   // PV variables
   float PV_d0;
@@ -42,12 +46,19 @@ struct WprimeVariables
   
   ROOT::Math::XYZTVector ele;
   ROOT::Math::XYZTVector* p_ele;
+
+  ROOT::Math::XYZTVector ele_corr;
+  ROOT::Math::XYZTVector* p_ele_corr;
+
+  ROOT::Math::XYZVector ele_p_atVtx;
+  ROOT::Math::XYZVector* p_ele_p_atVtx;
   
   float pho_weight;
   float ele_eSeed;
   float ele_timeSeed;
   int ele_flagSeed;
   float ele_swissCrossSeed;
+  float ele_et;
   float ele_eSC;
   float ele_e1x5;
   float ele_e2x5;
@@ -69,6 +80,9 @@ struct WprimeVariables
   float ele_fbrem;
   float ele_EOverP;
 
+  ROOT::Math::XYZTVector nu;
+  ROOT::Math::XYZTVector* p_nu;
+
   //pho variables
   int selectIt_pho;
   
@@ -85,11 +99,27 @@ struct WprimeVariables
   float eleMet_Dphi;
   float phoMet_mt;
   float phoMet_Dphi;
+ 
+  //recoil correction
+  TRandom* u1Rand;
+  TRandom* u2Rand;
   
+  //INSERIRE PARAMETRI FUNZIONI  //valori per ~1/fb  [05Jul]
+  TF1* ZDATA_u1;
+  TF1* ZDATA_u2;
+  TF1* ZDATA_u1_res;
+  TF1* ZDATA_u2_res;
   
+  TF1* ZMC_u1;
+  TF1* ZMC_u2;
+  TF1* ZMC_u1_res;
+  TF1* ZMC_u2_res;
+  
+  TF1* WMC_u1;
+  TF1* WMC_u2;
+  TF1* WMC_u1_res;
+  TF1* WMC_u2_res;
 };
-
-
 
 void InitializeTree(WprimeVariables&, const std::string&);
 void SetBranchAddresses(WprimeVariables& vars, TTree* tree);
@@ -101,6 +131,8 @@ TTree* CloneTree(WprimeVariables& vars);
 void SetPUVariables(WprimeVariables& vars, treeReader& reader);
 void SetPVVariables(WprimeVariables& vars, treeReader& reader);
 void SetElectronVariables(WprimeVariables& vars, treeReader& reader);
+void SetNeutrinoVariables(WprimeVariables& vars, treeReader& reader);
 void SetPhotonVariables(WprimeVariables& vars, treeReader& reader);
-void SetMetVariables(WprimeVariables& vars, treeReader& reader);
+void SetMetVariables(WprimeVariables& vars, treeReader& reader, int& doRecoilCorrection);
 
+#endif

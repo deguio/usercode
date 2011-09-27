@@ -79,8 +79,10 @@ drawTStack_ntu::drawTStack_ntu(const std::string& inputDir,
     double mH;
     double crossSection;
     int color;
+    int recoil;
+    int ptHatCut;
     
-    listFile >> sample >> sumName >> dataFlag >> isDD >> mH >> crossSection >> color;
+    listFile >> sample >> sumName >> dataFlag >> isDD >> mH >> crossSection >> color >> recoil >> ptHatCut;
 
     if(sample.size() == 0)
       continue;
@@ -101,6 +103,10 @@ drawTStack_ntu::drawTStack_ntu(const std::string& inputDir,
               << crossSection << " " 
               << std::setw(8)
 	      << color << " "
+              << std::setw(8)
+	      << recoil << " "
+              << std::setw(8)
+	      << ptHatCut << " "
               << std::endl;
     
     std::pair<std::string, std::string> dummyPair(sample, sumName);
@@ -209,7 +215,7 @@ void drawTStack_ntu::Draw(std::vector<std::string>& variableNames, const std::st
       {
 	TH1F* histo_cumulative = new TH1F("histo_cumulative", "", nBins, m_xRangeMin, m_xRangeMax); 
 	for (int kk = 1; kk < histo->GetNbinsX()+1; ++kk)
-	  histo_cumulative -> SetBinContent(kk, histo->Integral(kk,histo->GetNbinsX()));
+	  histo_cumulative -> SetBinContent(kk, histo->Integral(kk,1000000));
 	histo = (TH1F*)histo_cumulative->Clone("histo");
       }
 

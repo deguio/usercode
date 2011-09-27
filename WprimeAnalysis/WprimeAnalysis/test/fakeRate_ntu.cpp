@@ -66,6 +66,7 @@ int main (int argc, char ** argv)
   int         evalFakeRate_  = gConfigParser ->  readIntOption("Options::evalFakeRate");
   int         useFakeRate_   = gConfigParser ->  readIntOption("Options::useFakeRate");
   int         doVBTFeleId_   = gConfigParser ->  readIntOption("Options::doVBTFeleId");
+  int         doRecoilCorrection_   = gConfigParser ->  readIntOption("Options::doRecoilCorrection");
   float       crossSection_  = gConfigParser -> readFloatOption("Options::crossSection");
 
   std::string outFile_       = gConfigParser -> readStringOption("Output::OutputFile");  
@@ -147,9 +148,13 @@ int main (int argc, char ** argv)
   //TF1* func_fakeRateEB = new TF1("fakeRateEB","0.005633 + 0.00007476*x");
   //TF1* func_fakeRateEE = new TF1("fakeRateEE","0.02251  + 0.00002687*x");
 
-  //fake rate fits WP80
-  TF1* func_fakeRateEB = new TF1("fakeRateEB","0.002077 + 0.0001818*x");
-  TF1* func_fakeRateEE = new TF1("fakeRateEE","0.003678 + 0.0002549*x");
+  //fake rate fits WP80 May10
+  //TF1* func_fakeRateEB = new TF1("fakeRateEB","0.002077 + 0.0001818*x");
+  //TF1* func_fakeRateEE = new TF1("fakeRateEE","0.003678 + 0.0002549*x");
+
+  //fake rate fits WP80 05Jul
+  TF1* func_fakeRateEB = new TF1("fakeRateEB","0.002943 + 0.0001625*x");
+  TF1* func_fakeRateEE = new TF1("fakeRateEE","0.006 + 0.000189*x");
 
 
 
@@ -201,7 +206,7 @@ int main (int argc, char ** argv)
   HLTPathNamesDATA.push_back("HLT_Photon30_CaloIdVL_v3");  //presc 500
   HLTPathNamesDATA.push_back("HLT_Photon30_CaloIdVL_v4");  //presc 1000
   HLTPathNamesDATA.push_back("HLT_Photon30_CaloIdVL_v5");  //presc 2000
-  HLTPathNamesDATA.push_back("HLT_Photon30_CaloIdVL_v6");  //presc 2000
+  HLTPathNamesDATA.push_back("HLT_Photon30_CaloIdVL_v6");  //presc 2000 coperto fino a fine 05Jul
 
 
   //============================
@@ -323,7 +328,7 @@ int main (int argc, char ** argv)
 
       if (dataFlag_ == 0) SetPUVariables(vars, reader);   //per i dati mi va bene l'inizializzazione a -1
       SetPVVariables(vars, reader);
-      SetMetVariables(vars, reader);
+      SetMetVariables(vars, reader, doRecoilCorrection_);
 
 
       double met    = vars.met.pt();
@@ -425,7 +430,7 @@ int main (int argc, char ** argv)
 
       vars.selectIt_pho = chosenPho;
       SetPhotonVariables(vars, reader);
-      SetMetVariables(vars, reader);  //second time to set photonBranches  (deltaPhi, Mt, ...)
+      SetMetVariables(vars, reader, doRecoilCorrection_);  //second time to set photonBranches  (deltaPhi, Mt, ...)
 
       step ++ ;  //step 7
       stepEvents[step] ++ ;
@@ -501,7 +506,7 @@ int main (int argc, char ** argv)
 	  //salvo le info dell'ele matchato con pho
 	  vars.selectIt_ele = eleIndex;
 	  SetElectronVariables(vars, reader);
-	  SetMetVariables(vars, reader); //third time to set electron deltaPhi and Mt
+	  SetMetVariables(vars, reader, doRecoilCorrection_); //third time to set electron deltaPhi and Mt
 	  
 	  step ++ ;
 	  stepEvents[step] ++ ;
@@ -615,7 +620,7 @@ int main (int argc, char ** argv)
 
 	  //FIXMEFIXMEFIXMEFIXMEFIXMEFIXMEFIXMEFIXMEFIXMEFIXMEFIXMEFIXMEFIXMEFIXMEFIXMEFIXMEFIXMEFIXMEFIXMEFIXMEFIXMEFIXMEFIXMEFIXME
 	  if (fabs(phoEta) < EtaCutEB) vars.pho_weight = func_fakeRateEB->Eval( vars.pho.Et() );
-	  else vars.pho_weight = func_fakeRateEB->Eval( vars.pho.Et() );
+	  else vars.pho_weight = func_fakeRateEE->Eval( vars.pho.Et() );
 	  
 	  //set ele variables con pho info per PrintPlot  
 	  vars.ele = vars.pho;

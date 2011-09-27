@@ -20,13 +20,15 @@ int main(int argc, char** argv)
   setTDRStyle();
     
 
-  std::string inputDir("/data2/deguio/Wprime/WprimeAnalysis/WprimeAnalysis/output/FAKERATE/evalFakeRate/");
+  std::string inputDir("/gwteraz/users/deguio/PLOTS/NTUPLES_useFakeRate/");
   //std::string inputDir("/data2/deguio/Wprime/WprimeAnalysis/WprimeAnalysis/output/FAKERATE/useFakeRate/");
-  std::string outputDir("/data2/deguio/Wprime/WprimeAnalysis/WprimeAnalysis/output/PLOTS_fakeRate/");
+  //std::string outputDir("/gwteraz/users/deguio/PLOTS/FIGURES_numFakeRate/");
+  std::string outputDir("/gwteraz/users/deguio/PLOTS/FIGURES_testFakeRate/");
 
-  //int step = 10;//numerator & useFakeRate & contamination(senza applicare FR)
-  int step = 8;//denominator
-  float lumi = 201.38; //May10
+  int step = 10;//numerator & useFakeRate & contamination(senza applicare FR)
+  //int step = 8;//denominator
+  //float lumi = 201.38; //May10
+  float lumi = 1132; //05Jul
   
 
   std::string drawMode = "eventsScaled";
@@ -34,7 +36,7 @@ int main(int argc, char** argv)
   
   
   // draw plots
-  drawTStack_ntu* stack = new drawTStack_ntu(inputDir, "config/crossSections_wPrime_Spring11_fakeRate.txt", "ntu_WprimeTreeAnalysis", outputDir);
+  drawTStack_ntu* stack = new drawTStack_ntu(inputDir, "config/crossSections_wPrime_Summer11_ntu.txt", "ntu_WprimeTreeAnalysis", outputDir);
     
   //=============
   //==== Eff ====  
@@ -64,21 +66,21 @@ int main(int argc, char** argv)
   //=============  
   variableNames.at(0) = "met.Et()";
   histoName    = "met";
-  cuts->at(0) = "PURescaleFactor(mc_PU_NumInteractions)";
+  cuts->at(0) = "hltPrescale";
   stack -> SetXaxisRange(0., 100.);
   stack -> SetXaxisTitle("PFMet (GeV)");
   stack -> Draw(variableNames, histoName, drawMode, lumi, step, 100, false, cuts);
 
   variableNames.at(0) = "met.px()";
   histoName    = "mex";
-  cuts->at(0) = "PURescaleFactor(mc_PU_NumInteractions)";
+  cuts->at(0) = "hltPrescale";
   stack -> SetXaxisRange(-500., 500.);
   stack -> SetXaxisTitle("PFMex (GeV)");
   stack -> Draw(variableNames, histoName, drawMode, lumi, step, 100, false, cuts);
 
   variableNames.at(0) = "met.py()";
   histoName    = "mey";
-  cuts->at(0) = "PURescaleFactor(mc_PU_NumInteractions)";
+  cuts->at(0) = "hltPrescale";
   stack -> SetXaxisRange(-500., 500.);
   stack -> SetXaxisTitle("PFMey (GeV)");
   stack -> Draw(variableNames, histoName, drawMode, lumi, step, 100, false, cuts);
@@ -88,14 +90,14 @@ int main(int argc, char** argv)
   //================
   variableNames.at(0) = "pho.Et()";
   histoName    = "phoEt";
-  cuts->at(0) = "PURescaleFactor(mc_PU_NumInteractions)*hltPrescale";
+  cuts->at(0) = "hltPrescale";
   stack -> SetXaxisRange(0., 150.);
   stack -> SetXaxisTitle("pho Et (GeV)");
   stack -> Draw(variableNames, histoName, drawMode, lumi, step, 200, false, cuts, false);
 
   variableNames.at(0) = "pho.Et()";
   histoName    = "phoEt_cumulative";
-  cuts->at(0) = "PURescaleFactor(mc_PU_NumInteractions)*hltPrescale";
+  cuts->at(0) = "hltPrescale";
   stack -> SetXaxisRange(0., 150.);
   stack -> SetXaxisTitle("pho Et (GeV)");
   stack -> Draw(variableNames, histoName, drawMode, lumi, step, 200, false, cuts, true);
@@ -105,14 +107,14 @@ int main(int argc, char** argv)
   //================
   variableNames.at(0) = "ele.Et()";
   histoName    = "eleEt";
-  cuts->at(0) = "PURescaleFactor(mc_PU_NumInteractions)";
+  cuts->at(0) = "hltPrescale";
   stack -> SetXaxisRange(0., 150.);
   stack -> SetXaxisTitle("ele Et (GeV)");
   stack -> Draw(variableNames, histoName, drawMode, lumi, step, 200, false, cuts, false);
 
   variableNames.at(0) = "ele.Et()";
   histoName    = "eleEt_cumulative";
-  cuts->at(0) = "PURescaleFactor(mc_PU_NumInteractions)";
+  cuts->at(0) = "hltPrescale";
   stack -> SetXaxisRange(0., 150.);
   stack -> SetXaxisTitle("ele Et (GeV)");
   stack -> Draw(variableNames, histoName, drawMode, lumi, step, 200, false, cuts, true);
@@ -122,14 +124,14 @@ int main(int argc, char** argv)
   //==============
   variableNames.at(0) = "eleMet_mt";
   histoName    = "mT";
-  cuts->at(0) = "PURescaleFactor(mc_PU_NumInteractions)";
+  cuts->at(0) = "hltPrescale";
   stack -> SetXaxisRange(0., 400.);
   stack -> SetXaxisTitle("M_{T} (GeV/c^{2})");
   stack -> Draw(variableNames, histoName, drawMode, lumi, step, 200, false, cuts, false);
 
   variableNames.at(0) = "eleMet_mt";
   histoName    = "mT_cumulative";
-  cuts->at(0) = "PURescaleFactor(mc_PU_NumInteractions)";
+  cuts->at(0) = "hltPrescale";
   stack -> SetXaxisRange(0., 1500.);
   stack -> SetXaxisTitle("M_{T} (GeV/c^{2})");
   stack -> Draw(variableNames, histoName, drawMode, lumi, step, 200, false, cuts, true);
@@ -146,7 +148,7 @@ int main(int argc, char** argv)
   // //========================
   // variableNames.at(0) = "sqrt( 2. * pho.pt() * met.pt() * ( 1 - cos(eleMet_Dphi) ) )";
   // histoName    = "mT";
-  // cuts->at(0) = "PURescaleFactor(mc_PU_NumInteractions)";
+  // cuts->at(0) = "hltPrescale";
   // stack -> SetXaxisRange(0., 1500.);
   // stack -> SetXaxisTitle("M_{T} (GeV/c^{2})");
   // stack -> Draw(variableNames, histoName, drawMode, lumi, step, 200, true, cuts, false);
@@ -156,7 +158,7 @@ int main(int argc, char** argv)
   // //==========================
   // variableNames.at(0) = "ele.Et()";
   // histoName    = "eleEt";
-  // cuts->at(0) = "PURescaleFactor(mc_PU_NumInteractions)";
+  // cuts->at(0) = "hltPrescale";
   // stack -> SetXaxisRange(0., 150.);
   // stack -> SetXaxisTitle("ele Et (GeV)");
   // stack -> Draw(variableNames, histoName, drawMode, lumi, step, 200, false, cuts, false);
