@@ -1,0 +1,9 @@
+/data2/VertexStudies/DATA/DoubleMu_Run2011B-PromptReco-v1_AOD_175832-176023_DCSONLY/DoubleMu_Run2011B-PromptReco-v1_AOD_175832-176023_DCSONLY_merged.root
+/data2/VertexStudies/DATA/DoubleMu_Run2011B-PromptReco-v1_AOD_176024-176309_DCSONLY/DoubleMu_Run2011B-PromptReco-v1_AOD_176024-176309_DCSONLY_merged.root
+/data2/VertexStudies/DATA/DoubleMu_Run2011B-PromptReco-v1_AOD_176310-177053_DCSONLY/DoubleMu_Run2011B-PromptReco-v1_AOD_176310-177053_DCSONLY_merged.root
+/data2/VertexStudies/DATA/DoubleMu_Run2011B-PromptReco-v1_AOD_177054-177515_DCSONLY/DoubleMu_Run2011B-PromptReco-v1_AOD_177054-177515_DCSONLY_merged.root
+/data2/VertexStudies/DATA/DoubleMu_Run2011B-PromptReco-v1_AOD_177516-178078_DCSONLY/DoubleMu_Run2011B-PromptReco-v1_AOD_177516-178078_DCSONLY_merged.root
+/data2/VertexStudies/DATA/DoubleMu_Run2011B-PromptReco-v1_AOD_178079-178677_DCSONLY/DoubleMu_Run2011B-PromptReco-v1_AOD_178079-178677_DCSONLY_merged.root
+
+
+
