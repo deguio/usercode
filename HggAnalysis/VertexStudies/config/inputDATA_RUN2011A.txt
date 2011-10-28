@@ -1,0 +1,11 @@
+/data2/VertexStudies/DATA/DATA_19052011/DoubleMu_Run2011A-ZMu-May10ReReco-v1_RAW-RECO_merged.root
+/data2/VertexStudies/DATA/DATA_23062011/DoubleMu_Run2011A-ZMu-PromptSkim-v4_RAW-RECO_165358-167151.root
+/data2/VertexStudies/DATA/DATA_23062011/DoubleMu_Run2011A-PromptReco-v4_AOD_167152-167913_merged.root
+/data2/VertexStudies/DATA/DoubleMu_Run2011A-PromptReco-v5_AOD_170722-171116/DoubleMu_Run2011A-PromptReco-v5_AOD_170722-171116_merged.root
+/data2/VertexStudies/DATA/DoubleMu_Run2011A-PromptReco-v5_AOD_171117-172255/DoubleMu_Run2011A-PromptReco-v5_AOD_171117-172255_merged.root
+/data2/VertexStudies/DATA/DoubleMu_Run2011A-PromptReco-v5_AOD_172256-172619_DCSONLY/DoubleMu_Run2011A-PromptReco-v5_AOD_172256-172619_DCSONLY_merged.root
+/data2/VertexStudies/DATA/DoubleMu_Run2011A-PromptReco-v6_AOD_172620-172802_DCSONLY/DoubleMu_Run2011A-PromptReco-v6_AOD_172620-172802_DCSONLY_merged.root
+/data2/VertexStudies/DATA/DoubleMu_Run2011A-PromptReco-v6_AOD_172803-175770_DCSONLY/DoubleMu_Run2011A-PromptReco-v6_AOD_172803-175770_DCSONLY_merged.root
+
+
+
