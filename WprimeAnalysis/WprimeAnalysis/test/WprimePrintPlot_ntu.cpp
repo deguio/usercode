@@ -123,11 +123,32 @@ int main(int argc, char** argv)
   //==== MET ====  
   //=============  
 
+//   variableNames.at(0) = "met.Et()";
+//   histoName    = "met";
+//   cuts->at(0) = "pho_weight*hltPrescale";
+//   stack -> SetXaxisRange(0., 500.);
+//   stack -> SetXaxisTitle("PFMet (GeV)");
+//   stack -> Draw(variableNames, histoName, drawMode, lumi, step, 100, true, cuts);
+
   variableNames.at(0) = "met.Et()";
   histoName    = "met";
-  cuts->at(0) = "pho_weight*hltPrescale";
+  cuts->at(0) = "pho_weight*hltPrescale*((ele_corr.Et()/met.Et()) > 0.4 && (ele_corr.Et()/met.Et()) < 1.5)";
   stack -> SetXaxisRange(0., 500.);
   stack -> SetXaxisTitle("PFMet (GeV)");
+  stack -> Draw(variableNames, histoName, drawMode, lumi, step, 100, true, cuts);
+
+  variableNames.at(0) = "calomet.Et()";
+  histoName    = "calomet";
+  cuts->at(0) = "pho_weight*hltPrescale*((ele_corr.Et()/calomet.Et()) > 0.4 && (ele_corr.Et()/calomet.Et()) < 1.5)";
+  stack -> SetXaxisRange(0., 500.);
+  stack -> SetXaxisTitle("CaloMet (GeV)");
+  stack -> Draw(variableNames, histoName, drawMode, lumi, step, 100, true, cuts);
+
+  variableNames.at(0) = "tcmet.Et()";
+  histoName    = "tcmet";
+  cuts->at(0) = "pho_weight*hltPrescale*((ele_corr.Et()/tcmet.Et()) > 0.4 && (ele_corr.Et()/tcmet.Et()) < 1.5)";
+  stack -> SetXaxisRange(0., 500.);
+  stack -> SetXaxisTitle("TcMet (GeV)");
   stack -> Draw(variableNames, histoName, drawMode, lumi, step, 100, true, cuts);
 
   // variableNames.at(0) = "met.px()";
@@ -259,7 +280,7 @@ int main(int argc, char** argv)
   //N-1 selection
   variableNames.at(0) = "eleMet_Dphi";
   histoName    = "eleMet_Dphi";
-  cuts->at(0) = "pho_weight*hltPrescale * (ele_corr.Et()/met.Et() > 0.4) * (ele_corr.Et()/met.Et() < 1.5)";
+  cuts->at(0) = "pho_weight*hltPrescale * ((ele_corr.Et()/met.Et()) > 0.4) * ((ele_corr.Et()/met.Et()) < 1.5)";
   stack -> SetXaxisRange(0., 3.15);
   stack -> SetXaxisTitle("#Delta#phi_{e E_{T}^{miss}}");
   stack -> Draw(variableNames, histoName, drawMode, lumi, step-2, 200, false, cuts, false);
@@ -286,21 +307,21 @@ int main(int argc, char** argv)
   //==== hMt =====  FIXME AGGIUNGERE *hltPrescale NEL CASO DI FAKERATE
   //==============
 
-  variableNames.at(0) = "eleMet_mt";
-  histoName    = "mT_outoutimeRescale";
-  cuts->at(0) = "PURescaleFactor((PUit_n+PUoot_n)/3.)*pho_weight*hltPrescale";
-  stack -> SetXaxisRange(0., 1500.);
-  stack -> SetYaxisRange(0.001, 1000000.);
-  stack -> SetXaxisTitle("M_{T} (GeV/c^{2})");
-  stack -> Draw(variableNames, histoName, drawMode, lumi, step, 200, true, cuts, false);
+//   variableNames.at(0) = "eleMet_mt";
+//   histoName    = "mT_outoftimeRescale";
+//   cuts->at(0) = "pho_weight*hltPrescale";
+//   stack -> SetXaxisRange(0., 1500.);
+//   stack -> SetYaxisRange(0.001, 1000000.);
+//   stack -> SetXaxisTitle("M_{T} (GeV/c^{2})");
+//   stack -> Draw(variableNames, histoName, drawMode, lumi, step, 200, true, cuts, false);
 
-  variableNames.at(0) = "eleMet_mt";
-  histoName    = "mT_outoutimeRescale_cumulative";
-  cuts->at(0) = "PURescaleFactor((PUit_n+PUoot_n)/3.)*pho_weight*hltPrescale";
-  stack -> SetXaxisRange(0., 1500.);
-  stack -> SetYaxisRange(0.001, 1000000.);
-  stack -> SetXaxisTitle("M_{T} (GeV/c^{2})");
-  stack -> Draw(variableNames, histoName, drawMode, lumi, step, 200, true, cuts, true);
+//   variableNames.at(0) = "eleMet_mt";
+//   histoName    = "mT_outoftimeRescale_cumulative";
+//   cuts->at(0) = "pho_weight*hltPrescale";
+//   stack -> SetXaxisRange(0., 1500.);
+//   stack -> SetYaxisRange(0.001, 1000000.);
+//   stack -> SetXaxisTitle("M_{T} (GeV/c^{2})");
+//   stack -> Draw(variableNames, histoName, drawMode, lumi, step, 200, true, cuts, true);
 
   variableNames.at(0) = "eleMet_mt";
   histoName    = "mT_intimeRescale";
