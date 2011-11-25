@@ -93,6 +93,12 @@ struct WprimeVariables
   // met variables
   ROOT::Math::XYZTVector met;
   ROOT::Math::XYZTVector* p_met;
+
+  ROOT::Math::XYZTVector tcmet;
+  ROOT::Math::XYZTVector* p_tcmet;
+
+  ROOT::Math::XYZTVector calomet;
+  ROOT::Math::XYZTVector* p_calomet;
   
   ROOT::Math::XYZTVector eleMet;
   float eleMet_mt;

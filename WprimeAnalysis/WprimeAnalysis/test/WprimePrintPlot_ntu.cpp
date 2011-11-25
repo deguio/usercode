@@ -36,10 +36,12 @@ int main(int argc, char** argv)
   //float lumi = 1091.40;//06072011
   //float lumi = 67.25;//PRv5 29072011
   //float lumi = 1466;//05Jul + 05Aug
-  float lumi = 1132;//05Jul
   //float lumi = 2129;//  Cert_160404-173692_7TeV_PromptReco_Collisions11_JSON.txt
   //float lumi = 1466;//  05Jul_bis+05Aug_bis
   
+  float lumi = 1132;//05Jul
+  //float lumi = 1000;
+
   std::string drawMode = "eventsScaled";
   //std::string drawMode = "sameAreaStack";
   //std::string drawMode = "sameAreaNoStack";
@@ -47,6 +49,7 @@ int main(int argc, char** argv)
   
   // draw plots
   drawTStack_ntu* stack = new drawTStack_ntu(inputDir, "config/crossSections_wPrime_Summer11_ntu.txt", "ntu_WprimeTreeAnalysis", outputDir);
+  //drawTStack_ntu* stack = new drawTStack_ntu(inputDir, "config/crossSections_wPrime_Summer11_ntu_test.txt", "ntu_WprimeTreeAnalysis", outputDir);
     
 
   //=============
@@ -60,7 +63,7 @@ int main(int argc, char** argv)
   stack -> DrawEvents("eventsScaledStack", lumi, step, true);
   stack -> DrawEvents("efficiencies", lumi, step, true);
   stack -> DrawEvents("efficienciesRelative", lumi, step, true);
-  //stack -> DrawEvents("significance", lumi, step, false);
+  stack -> DrawEvents("significance", lumi, step, false);
 
 
   std::vector<std::string> variableNames;
@@ -82,7 +85,7 @@ int main(int argc, char** argv)
   //===========================
   variableNames.at(0) = "eleMet_mt";
   cuts->at(0) = "pho_weight*hltPrescale";
-  stack -> numbersForLimit(variableNames,lumi,step,cuts,25.,0.,1500.);
+  stack -> numbersForLimit(variableNames,lumi,step,cuts,25.,0.,2500.);
 
   //============================
   //==== interesting events ====

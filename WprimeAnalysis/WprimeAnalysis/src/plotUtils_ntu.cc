@@ -103,9 +103,9 @@ drawTStack_ntu::drawTStack_ntu(const std::string& inputDir,
               << crossSection << " " 
               << std::setw(8)
 	      << color << " "
-              << std::setw(8)
+              << std::setw(6)
 	      << recoil << " "
-              << std::setw(8)
+              << std::setw(6)
 	      << ptHatCut << " "
               << std::endl;
     
@@ -278,7 +278,6 @@ void drawTStack_ntu::Draw(std::vector<std::string>& variableNames, const std::st
   
   
   
-  
   //---------------------------------------------
   // Define the final Stack/Histograms
   //---------------------------------------------
@@ -383,7 +382,7 @@ void drawTStack_ntu::Draw(std::vector<std::string>& variableNames, const std::st
       globalHisto->GetXaxis()->SetRangeUser(m_xRangeMin, m_xRangeMax);
     
     
-    
+
     
     if( (mode == "eventsScaled") && (dataFlag_summed[mapIt->first] == 1) )
     {
@@ -399,6 +398,8 @@ void drawTStack_ntu::Draw(std::vector<std::string>& variableNames, const std::st
       legend.AddEntry(globalHisto, (mapIt->first).c_str(), "P");
     }
     
+
+
     //scalo anche il DD per la lumi che ho provveduto a scalare al contrario
     //setto i colori solo se non sono dati
     if( (mode == "eventsScaled") && (dataFlag_summed[mapIt->first] != 1) && (m_mH_summed[mapIt->first] < 0))
@@ -415,6 +416,7 @@ void drawTStack_ntu::Draw(std::vector<std::string>& variableNames, const std::st
       legend.AddEntry(globalHisto, (mapIt->first).c_str(), "F");
     }
 
+
     if( (mode == "eventsScaled") && (dataFlag_summed[mapIt->first] != 1) && (m_mH_summed[mapIt->first] > 0))
     {
       globalHisto -> Scale(1. * lumi);
@@ -429,7 +431,7 @@ void drawTStack_ntu::Draw(std::vector<std::string>& variableNames, const std::st
       legend.AddEntry(globalHisto, (mapIt->first).c_str(), "L");
     }
     
-    
+
     
     
     if( (mode == "sameAreaNoStack") )
@@ -499,7 +501,7 @@ void drawTStack_ntu::Draw(std::vector<std::string>& variableNames, const std::st
       legend.AddEntry(globalHisto, (mapIt->first).c_str(), "L");
     }
     
-    
+
     
     if( (isFirstSample == false) && (dataFlag_summed[mapIt->first] != 1) && (m_mH_summed[mapIt->first] < 0))
     {
@@ -532,7 +534,7 @@ void drawTStack_ntu::Draw(std::vector<std::string>& variableNames, const std::st
   }
   
   
-  
+
   
   
   if( (mode != "sameAreaNoStack") )
@@ -543,10 +545,11 @@ void drawTStack_ntu::Draw(std::vector<std::string>& variableNames, const std::st
 	globalMinimum = MyGetMinimum_ntu(globalGlobalHisto, 1.E-15, binMin, binMax);
     }
   
-  
+    
   
   // draw the stack and save file
   SaveTStack(hs, histoName, histoData); //salvo l'histo in ogni caso
+
 
   TCanvas* c1 = new TCanvas();
   c1 -> cd();
@@ -560,8 +563,6 @@ void drawTStack_ntu::Draw(std::vector<std::string>& variableNames, const std::st
   p1 -> SetGridy();
   if(logy) p1 -> SetLogy();
 
-  
-  
   if( mode == "eventsScaled" )
   {
     hs -> Draw("HISTO");
@@ -1369,7 +1370,7 @@ void drawTStack_ntu::SaveTStack(THStack* hs, const std::string& histoName, TH1F*
   lastHisto -> SetMarkerSize(0);
 
   lastHisto -> Write( "histoMC" );
-  histoData -> Write( "histoData" );
+  if (histoData != NULL) histoData -> Write( "histoData" );
   
   fout -> Close();
 }

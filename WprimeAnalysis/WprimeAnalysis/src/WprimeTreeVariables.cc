@@ -74,6 +74,9 @@ void InitializeTree(WprimeVariables& vars, const std::string& outputRootFileName
 
   // met variables
   vars.m_reducedTree -> Branch("met", "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &vars.p_met);
+  vars.m_reducedTree -> Branch("tcmet", "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &vars.p_tcmet);
+  vars.m_reducedTree -> Branch("calomet", "ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >", &vars.p_calomet);
+
   vars.m_reducedTree -> Branch("eleMet_mt",    &vars.eleMet_mt,       "eleMet_mt/F");
   vars.m_reducedTree -> Branch("eleMet_Dphi",  &vars.eleMet_Dphi,   "eleMet_Dphi/F");  
   vars.m_reducedTree -> Branch("phoMet_mt",    &vars.phoMet_mt,       "phoMet_mt/F");
@@ -100,20 +103,35 @@ void InitializeTree(WprimeVariables& vars, const std::string& outputRootFileName
   // vars.WMC_u2_res = new TF1("WMC_u2_res","7.92095e+00 + 2.84784e-02*x + 2.04903e-06*x*x");
   
   //myFunc
-  vars.ZDATA_u1 = new TF1("ZDATA_u1","1.57182e+00 -9.23822e-01*x");
-  vars.ZDATA_u2 = new TF1("ZDATA_u2","-8.37020e-03 +1.09340e-03*x ");
-  vars.ZDATA_u1_res = new TF1("ZDATA_u1_res","9.53529e+00 +4.93680e-02*x -3.23196e-05*x*x");
-  vars.ZDATA_u2_res = new TF1("ZDATA_u2_res","9.36590e+00 +2.59216e-02*x -9.93958e-05*x*x");
+  // vars.ZDATA_u1 = new TF1("ZDATA_u1","1.57182e+00 -9.23822e-01*x");
+  // vars.ZDATA_u2 = new TF1("ZDATA_u2","-8.37020e-03 +1.09340e-03*x ");
+  // vars.ZDATA_u1_res = new TF1("ZDATA_u1_res","9.53529e+00 +4.93680e-02*x -3.23196e-05*x*x");
+  // vars.ZDATA_u2_res = new TF1("ZDATA_u2_res","9.36590e+00 +2.59216e-02*x -9.93958e-05*x*x");
   
-  vars.ZMC_u1 = new TF1("ZMC_u1","1.30429e+00 -9.46021e-01*x");
-  vars.ZMC_u2 = new TF1("ZMC_u2","1.28894e-02 -9.31872e-04*x");
-  vars.ZMC_u1_res = new TF1("ZMC_u1_res","8.75442e+00 +3.50141e-02*x -7.73137e-06*x*x");
-  vars.ZMC_u2_res = new TF1("ZMC_u2_res","8.55479e+00 +1.67582e-02*x -9.07514e-05*x*x");
+  // vars.ZMC_u1 = new TF1("ZMC_u1","1.30429e+00 -9.46021e-01*x");
+  // vars.ZMC_u2 = new TF1("ZMC_u2","1.28894e-02 -9.31872e-04*x");
+  // vars.ZMC_u1_res = new TF1("ZMC_u1_res","8.75442e+00 +3.50141e-02*x -7.73137e-06*x*x");
+  // vars.ZMC_u2_res = new TF1("ZMC_u2_res","8.55479e+00 +1.67582e-02*x -9.07514e-05*x*x");
   
-  vars.WMC_u1 = new TF1("WMC_u1","1.18455e+00 -8.70060e-01*x");
-  vars.WMC_u2 = new TF1("WMC_u2","-1.45668e-02 -1.05468e-03*x");
-  vars.WMC_u1_res = new TF1("WMC_u1_res","7.95291e+00 +7.95691e-02*x -4.89070e-04*x*x");
-  vars.WMC_u2_res = new TF1("WMC_u2_res","7.93079e+00 +2.75451e-02*x +1.93382e-05*x*x");
+  // vars.WMC_u1 = new TF1("WMC_u1","1.18455e+00 -8.70060e-01*x");
+  // vars.WMC_u2 = new TF1("WMC_u2","-1.45668e-02 -1.05468e-03*x");
+  // vars.WMC_u1_res = new TF1("WMC_u1_res","7.95291e+00 +7.95691e-02*x -4.89070e-04*x*x");
+  // vars.WMC_u2_res = new TF1("WMC_u2_res","7.93079e+00 +2.75451e-02*x +1.93382e-05*x*x");
+
+  vars.ZDATA_u1 = new TF1("ZDATA_u1","1.51967 + -0.919668*x");
+  vars.ZDATA_u2 = new TF1("ZDATA_u2","-0.00434754 + 0.000801114*x");
+  vars.ZDATA_u1_res = new TF1("ZDATA_u1_res","9.42347 + 0.0642544*x + -0.000286184*x*x");
+  vars.ZDATA_u2_res = new TF1("ZDATA_u2_res","9.32974 + 0.0304997*x + -0.000171816*x*x");
+
+  vars.ZMC_u1 = new TF1("ZMC_u1","1.27426 + -0.943544*x");
+  vars.ZMC_u2 = new TF1("ZMC_u2","-0.00583208 + 0.000494144*x");
+  vars.ZMC_u1_res = new TF1("ZMC_u1_res","8.65121 + 0.0492757*x + -0.000263461*x*x");
+  vars.ZMC_u2_res = new TF1("ZMC_u2_res","8.52338 + 0.0209145*x + -0.000161593*x*x");
+
+  vars.WMC_u1 = new TF1("WMC_u1","1.20953 + -0.872265*x");
+  vars.WMC_u2 = new TF1("WMC_u2","-0.0122598 + -0.00124928*x");
+  vars.WMC_u1_res = new TF1("WMC_u1_res","7.9127 + 0.085592*x + -0.000604642*x*x");
+  vars.WMC_u2_res = new TF1("WMC_u2_res","7.93049 + 0.0275684*x + 1.94546e-05*x*x");
 }
 
 void SetBranchAddresses(WprimeVariables& vars, TTree* tree)
@@ -165,6 +183,11 @@ void SetBranchAddresses(WprimeVariables& vars, TTree* tree)
   // met variables
   vars.p_met = &vars.met;
   tree -> SetBranchAddress("met",          &vars.p_met);
+  vars.p_tcmet = &vars.tcmet;
+  tree -> SetBranchAddress("tcmet",          &vars.p_tcmet);
+  vars.p_calomet = &vars.calomet;
+  tree -> SetBranchAddress("calomet",          &vars.p_calomet);
+
   tree -> SetBranchAddress("eleMet_mt",    &vars.eleMet_mt);
   tree -> SetBranchAddress("eleMet_Dphi",  &vars.eleMet_Dphi);  
   tree -> SetBranchAddress("phoMet_mt",    &vars.phoMet_mt);
@@ -244,6 +267,10 @@ void ClearWprimeVariables(WprimeVariables& vars)
   // met variables 
   vars.met = ROOT::Math::XYZTVector(0., 0., 0., 0.);
   vars.p_met = NULL;
+  vars.tcmet = ROOT::Math::XYZTVector(0., 0., 0., 0.);
+  vars.p_tcmet = NULL;  
+  vars.calomet = ROOT::Math::XYZTVector(0., 0., 0., 0.);
+  vars.p_calomet = NULL;
   
   vars.eleMet = ROOT::Math::XYZTVector(0., 0., 0., 0.);
   
@@ -343,16 +370,25 @@ void SetMetVariables(WprimeVariables& vars, treeReader& reader, int& doRecoilCor
   if(doRecoilCorrection == 0)
     {
       vars.met = reader.Get4V("PFMet")->at(0);
+      vars.tcmet = reader.Get4V("TCMet")->at(0);
+      vars.calomet = reader.Get4V("Met")->at(0);
     }
   else
     {
 
       double Wpt = (vars.ele_corr + vars.nu).pt();
-
+      
+      //original
       double mean_u1 = vars.ZDATA_u1->Eval(Wpt)/vars.ZMC_u1->Eval(Wpt) * vars.WMC_u1->Eval(Wpt);
       double mean_u2 = vars.ZDATA_u2->Eval(Wpt)/vars.ZMC_u2->Eval(Wpt) * vars.WMC_u2->Eval(Wpt);
       double sigma_u1 = vars.ZDATA_u1_res->Eval(Wpt)/vars.ZMC_u1_res->Eval(Wpt) * vars.WMC_u1_res->Eval(Wpt);
       double sigma_u2 = vars.ZDATA_u2_res->Eval(Wpt)/vars.ZMC_u2_res->Eval(Wpt) * vars.WMC_u2_res->Eval(Wpt);
+
+      //assuming WMC = DYMC
+      // double mean_u1 = vars.ZDATA_u1->Eval(Wpt);
+      // double mean_u2 = vars.ZDATA_u2->Eval(Wpt);
+      // double sigma_u1 = vars.ZDATA_u1_res->Eval(Wpt);
+      // double sigma_u2 = vars.ZDATA_u2_res->Eval(Wpt);
       
       //VETTORIALI!
       //std::cout << "mean u1 = " << mean_u1 << " sigma u1 = " << sigma_u1 << std::endl;
@@ -398,6 +434,9 @@ void SetMetVariables(WprimeVariables& vars, treeReader& reader, int& doRecoilCor
     }
 
   vars.p_met = &vars.met;
+  vars.p_tcmet = &vars.tcmet;
+  vars.p_calomet = &vars.calomet;
+
   vars.eleMet = vars.ele_corr + vars.met;
   
   vars.eleMet_Dphi = deltaPhi(vars.ele_corr.phi(), vars.met.phi());

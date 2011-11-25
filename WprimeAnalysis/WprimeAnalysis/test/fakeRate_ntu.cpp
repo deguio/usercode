@@ -152,7 +152,7 @@ int main (int argc, char ** argv)
   //TF1* func_fakeRateEB = new TF1("fakeRateEB","0.002077 + 0.0001818*x");
   //TF1* func_fakeRateEE = new TF1("fakeRateEE","0.003678 + 0.0002549*x");
 
-  //fake rate fits WP80 05Jul
+  //fake rate fits WP80 05Jul Photon20 HLT
   TF1* func_fakeRateEB = new TF1("fakeRateEB","0.002943 + 0.0001625*x");
   TF1* func_fakeRateEE = new TF1("fakeRateEE","0.006 + 0.000189*x");
 
@@ -208,6 +208,12 @@ int main (int argc, char ** argv)
   HLTPathNamesDATA.push_back("HLT_Photon30_CaloIdVL_v5");  //presc 2000
   HLTPathNamesDATA.push_back("HLT_Photon30_CaloIdVL_v6");  //presc 2000 coperto fino a fine 05Jul
 
+  HLTPathNamesDATA.push_back("HLT_Photon90_CaloIdVL_v1");
+  HLTPathNamesDATA.push_back("HLT_Photon90_CaloIdVL_v2");
+  HLTPathNamesDATA.push_back("HLT_Photon90_CaloIdVL_v3");
+  HLTPathNamesDATA.push_back("HLT_Photon90_CaloIdVL_v4");
+  HLTPathNamesDATA.push_back("HLT_Photon90_CaloIdVL_v5");
+  HLTPathNamesDATA.push_back("HLT_Photon90_CaloIdVL_v6");
 
   //============================
   //==== preselection steps ====
@@ -258,6 +264,7 @@ int main (int argc, char ** argv)
       std::vector<int>* electrons_trackerDrivenSeed = reader.GetInt("electrons_trackerDrivenSeed");
       std::vector<float>* electrons_mva = reader.GetFloat("electrons_mva");
       std::vector<float>* electrons_eSC = reader.GetFloat("electrons_eSC");
+      std::vector<ROOT::Math::XYZVector>* electrons_p_atVtx = reader.Get3V("electrons_p_atVtx");
       std::vector<float>* electrons_pin = reader.GetFloat("electrons_pin");
       std::vector<float>* electrons_pout = reader.GetFloat("electrons_pout");
       std::vector<float>* electrons_pcalo = reader.GetFloat("electrons_pcalo");
@@ -467,8 +474,8 @@ int main (int argc, char ** argv)
 	  int eleIndex = -1;
 	  for (unsigned int i = 0; i < electrons->size(); ++i)
 	    {
-	      double eleEta = electrons->at(i).eta();
-	      double elePhi = electrons->at(i).phi();
+	      double eleEta = electrons_p_atVtx->at(i).eta();
+	      double elePhi = electrons_p_atVtx->at(i).phi();
 	      
 	      double deltaR_ele_pho = deltaR(eleEta, elePhi, phoEta, phoPhi);
 	      
@@ -483,11 +490,15 @@ int main (int argc, char ** argv)
 	  
 	  
 	  //ho scelto l'elettrone matchato al photon
-	  double eleEt  = electrons->at(eleIndex).pt(); //FIXME: VOGLIO ESC*COS(THETATRACCIA)
-	  double elePt  = electrons->at(eleIndex).pt(); //FIXME: VOGLIO ESC*COS(THETATRACCIA)
+	  // double eleEt  = electrons->at(eleIndex).pt(); //FIXME: VOGLIO ESC*COS(THETATRACCIA)
+	  // double elePt  = electrons->at(eleIndex).pt(); //FIXME: VOGLIO ESC*COS(THETATRACCIA)
 
-	  double elePhi = electrons->at(eleIndex).phi(); //FIXME: VOGLIO ETA E PHI DELLA TRACCIA
-	  double eleEta = electrons->at(eleIndex).eta(); //FIXME: VOGLIO ETA E PHI DELLA TRACCIA
+	  // double elePhi = electrons->at(eleIndex).phi(); //FIXME: VOGLIO ETA E PHI DELLA TRACCIA
+	  // double eleEta = electrons->at(eleIndex).eta(); //FIXME: VOGLIO ETA E PHI DELLA TRACCIA
+
+  	  double eleEt  = electrons_p_atVtx->at(eleIndex).Rho()/electrons_p_atVtx->at(eleIndex).R()*electrons_eSC->at(eleIndex);
+  	  double elePhi = electrons_p_atVtx->at(eleIndex).phi();
+  	  double eleEta = electrons_p_atVtx->at(eleIndex).eta();
 	  
 	  bool eleIsEB = electrons_isEB->at(eleIndex);
 	  
@@ -565,14 +576,14 @@ int main (int argc, char ** argv)
 	  if (eleIsEB == true && doVBTFeleId_ == 1) //EB VBTF
 	    {
 	      //SOTTRARRE IL PU COME QUI: https://twiki.cern.ch/twiki/bin/viewauth/CMS/SimpleCutBasedEleID2011#ID_and_Conversion_Rejection
-	      float combIso = ( tkIso + std::max(0., emIso - 1.) + hadIso) / elePt ;
+	      float combIso = ( tkIso + std::max(0., emIso - 1.) + hadIso) / eleEt ;
 
 	      //if(  combIso      > 0.07 ) continue;
 
 	      //riproduco i tagli @ HLT level
-	      if( tkIso / elePt    > 0.09 ) continue;
-	      if( emIso / elePt    > 0.07 ) continue;
-	      if( hadIso/ elePt    > 0.10 ) continue;
+	      if( tkIso / eleEt    > 0.09 ) continue;
+	      if( emIso / eleEt    > 0.07 ) continue;
+	      if( hadIso/ eleEt    > 0.10 ) continue;
 
 	      // eleId VBTF 2011 80% 
 	      if( sigmaIetaIeta > 0.01  ) continue;
@@ -584,14 +595,14 @@ int main (int argc, char ** argv)
 	  if (eleIsEB == false && doVBTFeleId_ == 1) //EB VBTF
 	    {
 	      //SOTTRARRE IL PU COME QUI: https://twiki.cern.ch/twiki/bin/viewauth/CMS/SimpleCutBasedEleID2011#ID_and_Conversion_Rejection
-	      float combIso = ( tkIso + emIso + hadIso) / elePt ;
+	      float combIso = ( tkIso + emIso + hadIso) / eleEt ;
 
 	      //if(  combIso      > 0.06 ) continue;
 
 	      //riproduco i tagli @ HLT level
-	      if( tkIso / elePt    > 0.04 ) continue;
-	      if( emIso / elePt    > 0.05 ) continue;
-	      if( hadIso/ elePt    > 0.025 ) continue;
+	      if( tkIso / eleEt    > 0.04 ) continue;
+	      if( emIso / eleEt    > 0.05 ) continue;
+	      if( hadIso/ eleEt    > 0.025 ) continue;
 
 	      // eleId VBTF 80%
 	      if( sigmaIetaIeta > 0.03  ) continue;
