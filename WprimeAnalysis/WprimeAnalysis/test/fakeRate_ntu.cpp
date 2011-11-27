@@ -67,6 +67,7 @@ int main (int argc, char ** argv)
   int         useFakeRate_   = gConfigParser ->  readIntOption("Options::useFakeRate");
   int         doVBTFeleId_   = gConfigParser ->  readIntOption("Options::doVBTFeleId");
   int         doRecoilCorrection_   = gConfigParser ->  readIntOption("Options::doRecoilCorrection");
+  int         doPtHatCut_    = gConfigParser ->  readIntOption("Options::doPtHatCut");
   float       crossSection_  = gConfigParser -> readFloatOption("Options::crossSection");
 
   std::string outFile_       = gConfigParser -> readStringOption("Output::OutputFile");  
@@ -152,9 +153,13 @@ int main (int argc, char ** argv)
   //TF1* func_fakeRateEB = new TF1("fakeRateEB","0.002077 + 0.0001818*x");
   //TF1* func_fakeRateEE = new TF1("fakeRateEE","0.003678 + 0.0002549*x");
 
-  //fake rate fits WP80 05Jul Photon20 HLT
-  TF1* func_fakeRateEB = new TF1("fakeRateEB","0.002943 + 0.0001625*x");
-  TF1* func_fakeRateEE = new TF1("fakeRateEE","0.006 + 0.000189*x");
+  //fake rate fits WP80 05Jul Photon30 HLT
+  //TF1* func_fakeRateEB = new TF1("fakeRateEB","0.002943 + 0.0001625*x");
+  //TF1* func_fakeRateEE = new TF1("fakeRateEE","0.006 + 0.000189*x");
+
+  //fake rate fits WP80 05Jul Photon30 + Photon90 HLT
+  TF1* func_fakeRateEB = new TF1("fakeRateEB","0.00363903 + 0.000148383*x");
+  TF1* func_fakeRateEE = new TF1("fakeRateEE","0.00609021 + 0.000189702*x");
 
 
 
@@ -319,7 +324,7 @@ int main (int argc, char ** argv)
       //==== Pt hat cut for Wenu ====
       //=============================
 
-      //if (mc_ptHat->at(0) > 100. ) continue;
+      if(doPtHatCut_ && mc_ptHat->at(0) > 100. ) continue;
 
       //=================================
       //==== step 3: All the events  ====
@@ -634,10 +639,11 @@ int main (int argc, char ** argv)
 	  else vars.pho_weight = func_fakeRateEE->Eval( vars.pho.Et() );
 	  
 	  //set ele variables con pho info per PrintPlot  
-	  vars.ele = vars.pho;
-	  vars.p_ele = vars.p_pho;
+	  vars.ele_corr = vars.pho;
+	  vars.p_ele_corr = vars.p_pho;
 	  vars.eleMet_Dphi = vars.phoMet_Dphi;
 	  vars.eleMet_mt = vars.phoMet_mt;
+	  //AGGIUNGERE ANCHE ELE_ISEB SE VOGLIO I PLOTS SEPARATI
 	  //FIXMEFIXMEFIXMEFIXMEFIXMEFIXMEFIXMEFIXMEFIXMEFIXMEFIXMEFIXMEFIXMEFIXMEFIXMEFIXMEFIXMEFIXMEFIXMEFIXMEFIXMEFIXMEFIXMEFIXME
 
 	  step = 8 ;
