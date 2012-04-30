@@ -54,8 +54,10 @@ int main(int argc, char** argv)
   // Parse the config file
   parseConfigFile (argv[1]) ;
   
-  std::string baseDir   = gConfigParser -> readStringOption("Input::baseDir");
-  std::string inputFile = gConfigParser -> readStringOption("Input::inputFile");
+  //  std::string baseDir   = gConfigParser -> readStringOption("Input::baseDir");
+  //  std::string inputFile = gConfigParser -> readStringOption("Input::inputFile");
+  std::string inputFileList = gConfigParser -> readStringOption("Input::inputFileList");
+ 
   std::string treeName  = gConfigParser -> readStringOption("Input::treeName");
   
   std::string outputRootFilePath = gConfigParser -> readStringOption("Output::outputRootFilePath");
@@ -99,7 +101,7 @@ int main(int argc, char** argv)
     if ( poissonWeights ){
       std::cout << "N ave PU for Poisson PU reweighting : " << nAvePU << std::endl;
       char hname[100];
-      sprintf(hname,"hwmc%d",nAvePU);
+      sprintf(hname,"hwpoisson_%d",nAvePU);
       hweights = (TH1F*)weightsFile.Get(hname);
     }
     else {
@@ -119,32 +121,37 @@ int main(int argc, char** argv)
   std::cout << std::endl;
   std::cout << std::endl;
   
+  // open TH1 with tracks pt for kolmogorov test
+  TH1F *hTrackPt;
+
+  TFile ptFile("hTracksPt_PU25.root","READ"); 
+  hTrackPt = (TH1F*)ptFile.Get("hTracksPt")->Clone("hTrackPt");
+  hTrackPt->SetDirectory(0);
+  ptFile.Close();
+ 
 
   //Filling the ntuple
   int isSig, evtNumber, nVertices, nTracks, nTracksPt05, nTracksPt4;
   float sumPt2, modSumPt, modSumPtInCone_30, modSumPtInCone_45, deltaPhi_HSumPt, sum2PhoPt, normalizedChi2, sumModPt;
-  float ptbal, ptasym;
+  float ptbal, ptasym, pzasym, ptmax;
   float photons_eta[2], photons_phi[2], photons_E[2], photons_pt[2], photonsSC_eta[2], photonsSC_phi[2], photonsSC_E[2], photonsMC_eta[2], photonsMC_phi[2], photonsMC_E[2];   
   
   float trackPx[1000], trackPy[1000], trackPz[1000];
+  float trackPt[1000];
+  float dk;
 
   TTree* outTree = new TTree("TMVA_vertexTree","TMVA_vertexTree");
   outTree -> Branch("evtNumber", &evtNumber, "evtNumber/I");
   outTree -> Branch("nVertices", &nVertices, "nVertices/I");
 
-  outTree -> Branch("sumPt2",   &sumPt2,    "sumPt2/F");
-  outTree -> Branch("modSumPt", &modSumPt,  "modSumPt/F");
-  outTree -> Branch("sumModPt", &sumModPt,  "sumModPt/F");
-  outTree -> Branch("modSumPtInCone_30", &modSumPtInCone_30,  "modSumPtInCone_30/F");
-  outTree -> Branch("modSumPtInCone_45", &modSumPtInCone_45,  "modSumPtInCone_45/F");
-  outTree -> Branch("deltaPhi_HSumPt", &deltaPhi_HSumPt,  "deltaPhi_HSumPt/F");
   outTree -> Branch("sum2PhoPt",  &sum2PhoPt,   "sum2PhoPt/F");
+
+  outTree -> Branch("sumPt2",   &sumPt2,    "sumPt2/F");
   outTree -> Branch("nTracks",&nTracks, "nTracks/I");
-  outTree -> Branch("nTracksPt05",&nTracksPt05, "nTracksPt05/I");
-  outTree -> Branch("nTracksPt4",&nTracksPt4, "nTracksPt4/I");
+  outTree -> Branch("ptmax",&ptmax, "ptmax/F");
   outTree -> Branch("ptbal",  &ptbal,   "ptbal/F");
   outTree -> Branch("ptasym",  &ptasym,   "ptasym/F");
-  outTree -> Branch("normalizedChi2",&normalizedChi2, "normalizedChi2/F");
+  outTree -> Branch("pzasym",  &pzasym,   "pzasym/F");
   
   outTree -> Branch("photons_eta",           photons_eta,              "photons_eta[2]/F");
   outTree -> Branch("photons_phi",           photons_phi,              "photons_phi[2]/F");
@@ -157,16 +164,26 @@ int main(int argc, char** argv)
   outTree -> Branch("photonsMC_phi",         photonsMC_phi,            "photonsMC_phi[2]/F");
   outTree -> Branch("photonsMC_E",           photonsMC_E,              "photonsMC_E[2]/F");
 
-  outTree -> Branch("trackPx",trackPx, "trackPx[nTracks]/F");
-  outTree -> Branch("trackPy",trackPy, "trackPy[nTracks]/F");
-  outTree -> Branch("trackPz",trackPz, "trackPz[nTracks]/F");
+  //outTree -> Branch("trackPx",trackPx, "trackPx[nTracks]/F");
+  //outTree -> Branch("trackPy",trackPy, "trackPy[nTracks]/F");
+  //outTree -> Branch("trackPz",trackPz, "trackPz[nTracks]/F");
 
+  //outTree -> Branch("trackPt",trackPt, "trackPt[nTracks]/F");
   outTree -> Branch("isSig", &isSig, "isSig/I");
+  outTree -> Branch("dk", &dk, "dk/F");
 
+
+  TH2F * hAcceptedLumis = new TH2F("hAcceptedLumis","hAcceptedLumis",20000, 160000, 180000, 10000, 0, 10000);
+
+  TH1F *htemp = new TH1F("htemp","htemp",hTrackPt->GetNbinsX(),0,100);
+	
+
+  
   
   //Chain
   TChain* chain = new TChain(treeName.c_str());
-  chain->Add((baseDir+inputFile).c_str());
+  //chain->Add((baseDir+inputFile).c_str());
+  FillChain(*chain, inputFileList.c_str());
   treeReader reader((TTree*)(chain));
   std::cout<<"found "<< reader.GetEntries() <<" entries"<<std::endl;
   
@@ -174,6 +191,7 @@ int main(int argc, char** argv)
   //start loop over entries
   for (int u = 0; u < reader.GetEntries(); u++ )
     {
+      if(u < entryMIN) continue;
       if(u == entryMAX) break;
       if(u%10000 == 0) std::cout<<"reading event "<< u <<std::endl;
       reader.GetEntry(u);
@@ -190,6 +208,8 @@ int main(int argc, char** argv)
       
       if( skipEvent == true ) continue;
       
+
+      hAcceptedLumis -> Fill(runId, lumiId);
       
       //setup common branches
       #include "../includeMe_forTMVA_check.h"
@@ -199,20 +219,18 @@ int main(int argc, char** argv)
       int npu ;
       
 
-      //--- use weights
-      
-      if (useWeights){
-	
-	//PU_z  = reader.GetFloat("PU_z");
-	//npu = PU_z->size();
+      if (!isData){
 	
 	mc_PUit_NumInteractions  = reader.GetInt("mc_PUit_NumInteractions");
 	npu = mc_PUit_NumInteractions->at(0);
 	
-	float myrnd = gRandom->Uniform(0,nmax);
-       	if (myrnd > w[npu]) continue;
+	//--- use weights
+
+	if (useWeights){
+	  float myrnd = gRandom->Uniform(0,nmax);
+	  if (myrnd > w[npu]) continue;
+	}
       }
-      
       
       //global variables
       float TrueVertex_Z;
@@ -553,6 +571,9 @@ int main(int argc, char** argv)
       //pt balance for vertexId
       for ( int uu = 0; uu < npv; uu++)
 	{
+	  htemp->Reset();
+	  
+	  dk = -1;
 	  nTracks     = 0;
 	  nTracksPt05 = 0;
 	  nTracksPt4  = 0;
@@ -591,14 +612,18 @@ int main(int argc, char** argv)
 		  trackPx[nTracks] = PVtracks->at(kk).X();
 		  trackPy[nTracks] = PVtracks->at(kk).Y();
 		  trackPz[nTracks] = PVtracks->at(kk).Z();
-		  
+		  trackPt[nTracks] = sqrt(PVtracks->at(kk).perp2());
+
 		  nTracks ++;
 		  if ( PVtracks->at(kk).perp2() > 0.25 ) nTracksPt05++;
 		  if ( PVtracks->at(kk).perp2() > 16. )  nTracksPt4++;
 		  
+		  htemp ->Fill( trackPt[nTracks] );
 		}
 	    }//tracks loop
 	  
+	  	  
+
 	  deltaPhi_HSumPt = deltaPhi( sumTracks.phi(),sum2pho.phi());
 	  modSumPt = sqrt( sumTracks.perp2() );
 	  modSumPtInCone_30 = sqrt( sumTracksInCone_30.perp2() );
@@ -611,15 +636,15 @@ int main(int argc, char** argv)
 	  ptasym = (vtxPt - sum2PhoPt)/ (vtxPt + sum2PhoPt);
 	  
 	  
-	  isSig = 0.;
+	  isSig = 0;
 	  if (uu == iClosest)
 	    isSig = 1;
-	  
-	  
-	  
+	  	  
 	  evtNumber = u;
 	  nVertices = npv;
 	  
+	  if ( htemp->GetEntries()!=0 ) dk = htemp->KolmogorovTest(hTrackPt);
+
 	  outTree -> Fill();	   
 	}//vertex loop
     } //evt loop
@@ -628,7 +653,8 @@ int main(int argc, char** argv)
   TFile ff( (outputRootFilePath+outputRootFileName).c_str(),"recreate");
   
   outTree -> Write();   
-  
+  hAcceptedLumis -> Write();
+
   ff.Close();
   return 0;
   
