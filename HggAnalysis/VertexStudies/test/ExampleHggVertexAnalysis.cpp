@@ -38,16 +38,21 @@ int main(int argc, char** argv)
 
   double trackThr = gConfigParser -> readDoubleOption("Options::trackThr");
 
+  int doVBFselection = gConfigParser -> readDoubleOption("Options::doVBFselection");
+
   int useWeights      = gConfigParser -> readIntOption("Options::useWeights");
   int poissonWeights  = gConfigParser -> readIntOption("Options::poissonWeights");
   int nAvePU          = gConfigParser -> readIntOption("Options::nAvePU");
+  std::string puweightsFileName    = gConfigParser -> readStringOption("Options::puweightsFileName");  
   
-  std::string puweightsFileName = gConfigParser -> readStringOption("Options::puweightsFileName");  
+  int useKfactors                  = gConfigParser -> readIntOption("Options::useKfactors");
+  std::string kfactorsFileName     = gConfigParser -> readStringOption("Options::kfactorsFileName");  
+  std::string kfactorsHistoName    = gConfigParser -> readStringOption("Options::kfactorsHistoName");  
 
   std::cout << std::endl;
   std::cout << std::endl;
   
-  //------ use weights for MC
+  //------ use PU weights for MC
   TH1F* hweights;
   if (useWeights){
     TFile weightsFile(puweightsFileName.c_str(),"READ");  
@@ -64,10 +69,24 @@ int main(int argc, char** argv)
     }
     else {
       hweights = (TH1F*)weightsFile.Get("hweights")->Clone("hweights");
+      hweights->SetDirectory(0);
+      cout << hweights ->GetMaximum() << endl;
     }
     weightsFile.Close();
-    
   }
+
+
+  //------ use K -factors (*** only for Glu-Glu ***)
+  TH1F* hkfactors;
+  if (useKfactors){
+    TFile kfactorsFile(kfactorsFileName.c_str(),"READ");  
+    hkfactors = (TH1F*)kfactorsFile.Get(kfactorsHistoName.c_str())->Clone("hkfactors");
+    hkfactors->SetDirectory(0);
+    cout << hkfactors ->GetMaximum() << endl;
+    kfactorsFile.Close();
+  }
+
+
   
   // Chain
   TChain* chain = new TChain(treeName.c_str());
@@ -83,7 +102,8 @@ int main(int argc, char** argv)
   
   HggVertexAnalysis hggAna(reader);
   hggAna.bookHistos();
-  hggAna.analyze(nentries, isData, useWeights, hweights);
+  //  hggAna.analyze(nentries, isData, useWeights, hweights);
+  hggAna.analyze(nentries, isData, useWeights, hweights, useKfactors, hkfactors, doVBFselection);
   hggAna.saveHistos(fout);
   
   std::cout << "CIAOOOOOOO !!!" << std::endl;
