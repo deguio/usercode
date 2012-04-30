@@ -41,48 +41,67 @@ class HggVertexAnalysis {
 
   void     bookHistos();
   void     saveHistos(TFile *fout);
-  void     analyze(int nentries, int isData, int useWeights, TH1F* h);
+  void     analyze(int nentries, int isData, int useWeights, TH1F* h, int useKfactors, TH1F* hkfact, int doVBFselection);
   
   int      DiphotonCategory (float eta1, float eta2, float r9_1, float r9_2);
 
-  void     findMCHiggsPhotons( TClonesArray* gp_p4, Short_t* gp_status, Short_t* gp_pdgid, Short_t* gp_mother, int gp_n, 
-			       TClonesArray* pho_calopos, TClonesArray* pho_p4, int pho_n,
-			       int& passSelection, int& i1, int& i2  );
+  //void     findMCHiggsPhotons( TClonesArray* gp_p4, Short_t* gp_status, Short_t* gp_pdgid, Short_t* gp_mother, int gp_n, 
+  //			       TClonesArray* pho_calopos, TClonesArray* pho_p4, int pho_n,
+  //			       int& passSelection, int& mc1, int& mc2 , int& i1, int& i2  );
+
+  void     findMCHiggsPhotons( h2gglobeEventReader* ev_,
+  			       int& passSelection, int& mc1, int& mc2 , int& i1, int& i2  );
 
 
+  double   KfactorsWeight(TH1F* hkfact, TClonesArray* gp_p4, int mc1, int mc2);
+ 
+  std::pair<int, int> Select2HighestPtJets(h2gglobeEventReader* ev_, TLorentzVector& leadpho, TLorentzVector& subleadpho, float jtLMinPt, float jtTMinPt);
+  bool DijetTag(std::pair<int,int> highestPtJets, TLorentzVector& dipho);
 
   // histograms 
   
   //histos
-  TH1F* PtAll_sumpt2 ;
-  TH1F* PtGood_sumpt2;
-  TH1F* PtAll_rank ;
-  TH1F* PtGood_rank;
+  TH1F* PtGen;
+
+  TH1F* PtAll_Baseline ;
+  TH1F* PtGood_Baseline;
+  TH1F* PtAll_BDT ;
+  TH1F* PtGood_BDT;
  
-  TH1F* EtaAll_sumpt2;
-  TH1F* EtaGood_sumpt2;
-  TH1F* EtaAll_rank;
-  TH1F* EtaGood_rank;
+  TH1F* EtaAll_Baseline;
+  TH1F* EtaGood_Baseline;
+  TH1F* EtaAll_BDT;
+  TH1F* EtaGood_BDT;
   
-  TH1F* NvtAll_sumpt2;
-  TH1F* NvtGood_sumpt2;
-  TH1F* NvtAll_rank;
-  TH1F* NvtGood_rank;
+  TH1F* NvtAll_Baseline;
+  TH1F* NvtGood_Baseline;
+  TH1F* NvtAll_BDT;
+  TH1F* NvtGood_BDT;
  
-  TH1F* NpuAll_sumpt2;
-  TH1F* NpuGood_sumpt2;
-  TH1F* NpuAll_rank;
-  TH1F* NpuGood_rank;
+  TH1F* NpuAll_Baseline;
+  TH1F* NpuGood_Baseline;
+  TH1F* NpuAll_BDT;
+  TH1F* NpuGood_BDT;
 
-  TH1F* InvMassAll_sumpt2;
-  TH1F* InvMassGood_sumpt2;
-  TH1F* InvMassAll_rank;
-  TH1F* InvMassGood_rank;
+  TH1F* InvMassAll_Baseline;
+  TH1F* InvMassGood_Baseline;
+  TH1F* InvMassAll_BDT;
+  TH1F* InvMassGood_BDT;
 
-  TH1F* InvMassAll_sumpt2_cat[4];
-  TH1F* InvMassGood_sumpt2_cat[4];
-  TH1F* InvMassAll_rank_cat[4];
-  TH1F* InvMassGood_rank_cat[4];
+  TH1F* InvMassAll_Baseline_cat[4];
+  TH1F* InvMassGood_Baseline_cat[4];
+  TH1F* InvMassAll_BDT_cat[4];
+  TH1F* InvMassGood_BDT_cat[4];
+
+
+  TH1F *hsumpt2_sig;
+  TH1F *hsumpt2_bkg;
+
+  TH1F *hptasym_sig;
+  TH1F *hptasym_bkg;
+
+  TH1F *hptbal_sig;
+  TH1F *hptbal_bkg;
 
   
  private :
