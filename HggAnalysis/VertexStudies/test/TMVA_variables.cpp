@@ -122,13 +122,12 @@ int main(int argc, char** argv)
   std::cout << std::endl;
   
   // open TH1 with tracks pt for kolmogorov test
-  TH1F *hTrackPt;
-
-  TFile ptFile("hTracksPt_PU25.root","READ"); 
-  hTrackPt = (TH1F*)ptFile.Get("hTracksPt")->Clone("hTrackPt");
-  hTrackPt->SetDirectory(0);
-  ptFile.Close();
- 
+  //   TH1F *hTrackPt;
+  //   TFile ptFile("hTracksPt_PU25.root","READ"); 
+  //   hTrackPt = (TH1F*)ptFile.Get("hTracksPt")->Clone("hTrackPt");
+  //   hTrackPt->SetDirectory(0);
+  //   ptFile.Close();
+  
 
   //Filling the ntuple
   int isSig, evtNumber, nVertices, nTracks, nTracksPt05, nTracksPt4;
@@ -175,17 +174,18 @@ int main(int argc, char** argv)
 
   TH2F * hAcceptedLumis = new TH2F("hAcceptedLumis","hAcceptedLumis",20000, 160000, 180000, 10000, 0, 10000);
 
-  TH1F *htemp = new TH1F("htemp","htemp",hTrackPt->GetNbinsX(),0,100);
+  //TH1F *htemp = new TH1F("htemp","htemp",hTrackPt->GetNbinsX(),0,100);
 	
 
   
   
   //Chain
   TChain* chain = new TChain(treeName.c_str());
-  //chain->Add((baseDir+inputFile).c_str());
+  //chain->Add("/tmp/malberti/MiBiCommonNT_101_1_SkA.root");
   FillChain(*chain, inputFileList.c_str());
   treeReader reader((TTree*)(chain));
   std::cout<<"found "<< reader.GetEntries() <<" entries"<<std::endl;
+  std::cout<<"found "<< chain->GetEntries() <<" entries"<<std::endl;
   
   
   //start loop over entries
@@ -571,7 +571,7 @@ int main(int argc, char** argv)
       //pt balance for vertexId
       for ( int uu = 0; uu < npv; uu++)
 	{
-	  htemp->Reset();
+	  //htemp->Reset();
 	  
 	  dk = -1;
 	  nTracks     = 0;
@@ -618,7 +618,7 @@ int main(int argc, char** argv)
 		  if ( PVtracks->at(kk).perp2() > 0.25 ) nTracksPt05++;
 		  if ( PVtracks->at(kk).perp2() > 16. )  nTracksPt4++;
 		  
-		  htemp ->Fill( trackPt[nTracks] );
+		  //htemp ->Fill( trackPt[nTracks] );
 		}
 	    }//tracks loop
 	  
@@ -643,7 +643,7 @@ int main(int argc, char** argv)
 	  evtNumber = u;
 	  nVertices = npv;
 	  
-	  if ( htemp->GetEntries()!=0 ) dk = htemp->KolmogorovTest(hTrackPt);
+	  //if ( htemp->GetEntries()!=0 ) dk = htemp->KolmogorovTest(hTrackPt);
 
 	  outTree -> Fill();	   
 	}//vertex loop
