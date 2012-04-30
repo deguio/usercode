@@ -16,13 +16,14 @@ h2gglobeEventReader::h2gglobeEventReader(TTree *tree)
 // if parameter tree is not specified (or zero), connect the file
 // used to generate this class and read the Tree.
    if (tree == 0) {
-      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("/data2/VertexStudies/globe_V09_00_pm_11_07_01_02_red/GluGlu_M-120_FlatPU35.root");
-      if (!f) {
-         f = new TFile("/data2/VertexStudies/globe_V09_00_pm_11_07_01_02_red/GluGlu_M-120_FlatPU35.root");
-      }
+ //      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("/data2/VertexStudies/globe_V09_00_pm_11_07_01_02_red/GluGlu_M-120_FlatPU35.root");
+//       if (!f) {
+//          f = new TFile("/data2/VertexStudies/globe_V09_00_pm_11_07_01_02_red/GluGlu_M-120_FlatPU35.root");
+     //}
       tree = (TTree*)gDirectory->Get("event");
-
    }
+   
+   
    Init(tree);
 }
 
@@ -100,6 +101,7 @@ void h2gglobeEventReader::Init(TTree *tree)
    hlt_path_names_HLT1 = 0;
    hlt_p4 = 0;
    l1bits_phy = 0;
+   jet_algoPF1_p4 = 0;
    vtx_std_diphopt = 0;
    vtx_std_nch = 0;
    vtx_std_ptmax = 0;
@@ -164,9 +166,9 @@ void h2gglobeEventReader::Init(TTree *tree)
    fChain->SetBranchAddress("pho_r1x5", pho_r1x5, &b_pho_r1x5);
    fChain->SetBranchAddress("pho_r2x5", pho_r2x5, &b_pho_r2x5);
    fChain->SetBranchAddress("pho_r9", pho_r9, &b_pho_r9);
-   fChain->SetBranchAddress("pho_isEBGap", pho_isEBGap, &b_pho_isEBGap);
-   fChain->SetBranchAddress("pho_isEEGap", pho_isEEGap, &b_pho_isEEGap);
-   fChain->SetBranchAddress("pho_isEBEEGap", pho_isEBEEGap, &b_pho_isEBEEGap);
+   //fChain->SetBranchAddress("pho_isEBGap", pho_isEBGap, &b_pho_isEBGap);
+   //fChain->SetBranchAddress("pho_isEEGap", pho_isEEGap, &b_pho_isEEGap);
+   //fChain->SetBranchAddress("pho_isEBEEGap", pho_isEBEEGap, &b_pho_isEBEEGap);
    fChain->SetBranchAddress("pho_zernike20", pho_zernike20, &b_pho_zernike20);
    fChain->SetBranchAddress("pho_zernike42", pho_zernike42, &b_pho_zernike42);
    fChain->SetBranchAddress("pho_e2nd", pho_e2nd, &b_pho_e2nd);
@@ -320,6 +322,9 @@ void h2gglobeEventReader::Init(TTree *tree)
    fChain->SetBranchAddress("l1_labels", &l1_labels_, &b_l1_labels_);
    fChain->SetBranchAddress("l1_labels.first", &l1_labels_first, &b_l1_labels_first);
    fChain->SetBranchAddress("l1_labels.second", &l1_labels_second, &b_l1_labels_second);
+   fChain->SetBranchAddress("jet_algoPF1_n", &jet_algoPF1_n, &b_jet_algoPF1_n);
+   fChain->SetBranchAddress("jet_algoPF1_erescale", jet_algoPF1_erescale, &b_jet_algoPF1_erescale);
+   fChain->SetBranchAddress("jet_algoPF1_p4", &jet_algoPF1_p4, &b_jet_algoPF1_p4);
    fChain->SetBranchAddress("vtx_std_diphopt", &vtx_std_diphopt, &b_vtx_std_diphopt);
    fChain->SetBranchAddress("vtx_std_nch", &vtx_std_nch, &b_vtx_std_nch);
    fChain->SetBranchAddress("vtx_std_ptmax", &vtx_std_ptmax, &b_vtx_std_ptmax);
