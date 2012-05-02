@@ -1,8 +1,0 @@
-FileIn         /tmp/malberti/treeZee_7TeV.root
-FileOut        outputHistos_Zee_7TeV.root
-Xsec           1667.
-Lumi           100.
-GenFilterEff   1.
-SkimEff        0.5715
-NeventsDataset 2461575
-MaxJetPt       100

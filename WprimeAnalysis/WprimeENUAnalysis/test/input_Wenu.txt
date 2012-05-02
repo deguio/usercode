@@ -1,8 +1,0 @@
-FileIn         /tmp/malberti/treeWenu_7TeV.root
-FileOut        outputHistos_Wenu_7TeV.root
-Xsec           10312.
-Lumi           100.
-GenFilterEff   0.779
-SkimEff        0.813
-NeventsDataset 2087865
-MaxJetPt       100
