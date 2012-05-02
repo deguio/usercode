@@ -1,0 +1,13 @@
+DATASETPATH    = /store/cmst3/user/malberti/HIGGS/VERTEX/2012/DATA/DoubleMu_Run2012A-PromptReco-v1_AOD_190389_191859_DCSONLY/
+
+CFGTEMPLATE    = TMVA_variables_ZmumuData_TEMPLATE.cfg
+
+JOBDIR         = Var_DoubleMu_190389-191859
+
+OUTPUTDIR      = /afs/cern.ch/work/m/malberti/private/Var_DoubleMu_190389-191859/
+
+OUTPUTFILENAME = TMVA_variables_DoubleMu_190389-191859
+
+JOBMODULO      = 10
+
+QUEUE          = 8nh
