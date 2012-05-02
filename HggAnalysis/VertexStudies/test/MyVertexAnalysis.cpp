@@ -272,16 +272,22 @@ int main(int argc, char** argv)
       //*** pu weights
       std::vector<float>*PU_z ;
       std::vector<int>* mc_PUit_NumInteractions; 
+      std::vector<float>* mc_PUit_TrueNumInteractions; 
       int npu ;
+      float npuTrue;
 
       if ( !isData ){
-      	mc_PUit_NumInteractions  = reader.GetInt("mc_PUit_NumInteractions");
+	mc_PUit_NumInteractions  = reader.GetInt("mc_PUit_NumInteractions");
 	npu = mc_PUit_NumInteractions->at(0);
-      
+
+      	mc_PUit_TrueNumInteractions  = reader.GetFloat("mc_PUit_TrueNumInteractions"); // needed for 2012 PU reweighting
+	npuTrue = mc_PUit_TrueNumInteractions->at(0);
+
 	//--- use weights 
 	if (useWeights){
 	  float myrnd = gRandom->Uniform(0,nmax);
-	  if (myrnd > w[npu]) continue;
+	  //if (myrnd > w[npu]) continue; // used in 2011
+	  if (myrnd > w[int(npuTrue)]) continue; // for 2012
 	}
       }
 

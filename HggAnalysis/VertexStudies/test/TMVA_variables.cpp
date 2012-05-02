@@ -24,6 +24,7 @@
 
 #include "TClonesArray.h"
 #include "TMatrix.h"
+#include "TApplication.h"
 
 #if not defined(__CINT__) || defined(__MAKECINT__)
 #include "TMVA/Tools.h"
@@ -44,6 +45,7 @@ bool PhotonId( float et, float eta, float Eiso, float Hiso, float HoE, float Tis
 
 int main(int argc, char** argv)
 { 
+
   //Check if all nedeed arguments to parse are there
   if(argc != 2)
   {
@@ -53,9 +55,9 @@ int main(int argc, char** argv)
   
   // Parse the config file
   parseConfigFile (argv[1]) ;
-  
-  //  std::string baseDir   = gConfigParser -> readStringOption("Input::baseDir");
-  //  std::string inputFile = gConfigParser -> readStringOption("Input::inputFile");
+
+  TApplication theApp("My First App", &argc, argv); // a cosa serve ?!?!?!?!?!?
+
   std::string inputFileList = gConfigParser -> readStringOption("Input::inputFileList");
  
   std::string treeName  = gConfigParser -> readStringOption("Input::treeName");
@@ -82,12 +84,13 @@ int main(int argc, char** argv)
   int useJSON      = gConfigParser -> readIntOption("Options::useJSON");
   std::string jsonFileName = gConfigParser -> readStringOption("Options::jsonFileName");  
 
+  
   // Get run/LS map from JSON file
   std::cout << ">>> Gettting GOOD  run/LS from JSON file" << std::endl;
   std::map<int, std::vector<std::pair<int, int> > > jsonMap;
   jsonMap = readJSONFile(jsonFileName);
 
-
+  
   //------ use weights for MC
   float nmax;
   float w[50];
@@ -146,11 +149,11 @@ int main(int argc, char** argv)
   outTree -> Branch("sum2PhoPt",  &sum2PhoPt,   "sum2PhoPt/F");
 
   outTree -> Branch("sumPt2",   &sumPt2,    "sumPt2/F");
-  outTree -> Branch("nTracks",&nTracks, "nTracks/I");
-  outTree -> Branch("ptmax",&ptmax, "ptmax/F");
-  outTree -> Branch("ptbal",  &ptbal,   "ptbal/F");
-  outTree -> Branch("ptasym",  &ptasym,   "ptasym/F");
-  outTree -> Branch("pzasym",  &pzasym,   "pzasym/F");
+  outTree -> Branch("nTracks",  &nTracks, "nTracks/I");
+  outTree -> Branch("ptmax",    &ptmax, "ptmax/F");
+  outTree -> Branch("ptbal",    &ptbal,   "ptbal/F");
+  outTree -> Branch("ptasym",   &ptasym,   "ptasym/F");
+  //outTree -> Branch("pzasym",   &pzasym,   "pzasym/F");// inutile
   
   outTree -> Branch("photons_eta",           photons_eta,              "photons_eta[2]/F");
   outTree -> Branch("photons_phi",           photons_phi,              "photons_phi[2]/F");
@@ -176,16 +179,18 @@ int main(int argc, char** argv)
 
   //TH1F *htemp = new TH1F("htemp","htemp",hTrackPt->GetNbinsX(),0,100);
 	
-
+  
   
   
   //Chain
+  
   TChain* chain = new TChain(treeName.c_str());
-  //chain->Add("/tmp/malberti/MiBiCommonNT_101_1_SkA.root");
   FillChain(*chain, inputFileList.c_str());
   treeReader reader((TTree*)(chain));
-  std::cout<<"found "<< reader.GetEntries() <<" entries"<<std::endl;
+  
   std::cout<<"found "<< chain->GetEntries() <<" entries"<<std::endl;
+  std::cout<<"found "<< reader.GetEntries() <<" entries"<<std::endl;
+
   
   
   //start loop over entries
@@ -214,24 +219,29 @@ int main(int argc, char** argv)
       //setup common branches
       #include "../includeMe_forTMVA_check.h"
       
+      //*** pu weights        
       std::vector<float>*PU_z ;
-      std::vector<int>* mc_PUit_NumInteractions; 
+      std::vector<int>* mc_PUit_NumInteractions;
+      std::vector<float>* mc_PUit_TrueNumInteractions;
       int npu ;
-      
+      float npuTrue;
 
-      if (!isData){
+      if ( !isData ){
+        mc_PUit_NumInteractions  = reader.GetInt("mc_PUit_NumInteractions");
+        npu = mc_PUit_NumInteractions->at(0);
 	
-	mc_PUit_NumInteractions  = reader.GetInt("mc_PUit_NumInteractions");
-	npu = mc_PUit_NumInteractions->at(0);
-	
-	//--- use weights
+	mc_PUit_TrueNumInteractions  = reader.GetFloat("mc_PUit_TrueNumInteractions"); // needed for 2012 PU reweighting 
+	npuTrue = mc_PUit_TrueNumInteractions->at(0);
 
-	if (useWeights){
-	  float myrnd = gRandom->Uniform(0,nmax);
-	  if (myrnd > w[npu]) continue;
-	}
+        //--- use weights     
+        if (useWeights){
+          float myrnd = gRandom->Uniform(0,nmax);
+          //if (myrnd > w[npu]) continue; // used in 2011    
+	  if (myrnd > w[int(npuTrue)]) continue; // for 2012  
+
+        }
       }
-      
+
       //global variables
       float TrueVertex_Z;
       
@@ -656,6 +666,10 @@ int main(int argc, char** argv)
   hAcceptedLumis -> Write();
 
   ff.Close();
+
+
+  
+
   return 0;
   
   
