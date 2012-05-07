@@ -126,12 +126,13 @@ int main(int argc, char** argv)
     else {
       hweights = (TH1F*)weightsFile.Get("hweights");
     }
-    nmax = hweights ->GetMaximum();
-    std::cout << " Max weight " << nmax << std::endl;
-    
     for (int ibin = 1; ibin < hweights->GetNbinsX()+1; ibin++){
+      // trick to skip low lumi runs
+      if ( ibin < 6 ) hweights->SetBinContent(ibin,0.);
       w[ibin-1] = hweights->GetBinContent(ibin);  // bin 1 --> nvtx = 0 
     }
+    nmax = hweights ->GetMaximum();
+    std::cout << " Max weight " << nmax << std::endl;
     weightsFile.Close();
   }
   
@@ -157,7 +158,12 @@ int main(int argc, char** argv)
   
   //--- tmva variables
   vector<string> tmvaPerVtxVariables_;
+  //original MVA 
   tmvaPerVtxVariables_.push_back("ptbal"), tmvaPerVtxVariables_.push_back("ptasym"),tmvaPerVtxVariables_.push_back("logsumpt2");  
+  // my TMVA
+  //tmvaPerVtxVariables_.push_back("logsumpt2"), tmvaPerVtxVariables_.push_back("ptbal"),tmvaPerVtxVariables_.push_back("ptasym");
+  //my TMVA with 4 vars
+  //tmvaPerVtxVariables_.push_back("logsumpt2"), tmvaPerVtxVariables_.push_back("ptbal"),tmvaPerVtxVariables_.push_back("ptasym"),tmvaPerVtxVariables_.push_back("nch");  
   if( addConversionToMva ) {
     tmvaPerVtxVariables_.push_back("limPullToConv");
     tmvaPerVtxVariables_.push_back("nConv");
@@ -404,6 +410,7 @@ int main(int argc, char** argv)
 	std::vector<ROOT::Math::XYZTVector>* muons = reader.Get4V("muons");
 	std::vector<int>* muons_global = reader.GetInt("muons_global");
 	std::vector<int>* muons_tracker = reader.GetInt("muons_tracker");
+	std::vector<float>* muons_tkIsoR03 = reader.GetFloat("muons_tkIsoR03");
 	std::vector<float>* muons_dz_PV_noMuon = reader.GetFloat("muons_dz_PV_noMuon");
 	
 	PV_nTracks       = reader.GetInt("PV_noMuon_nTracks");
@@ -417,7 +424,7 @@ int main(int argc, char** argv)
 	tracks_dz        = reader.GetFloat("tracks_dz");
 	sc               = reader.Get4V("muons");  // use muon info for SC
 	
-	zmumuSelection(muons,muons_global,muons_tracker, accept, indpho1, indpho2);
+	zmumuSelection(muons,muons_global,muons_tracker, muons_tkIsoR03, accept, indpho1, indpho2);
 	
 	if (!accept) continue;
 	
@@ -434,10 +441,10 @@ int main(int argc, char** argv)
       int nvtx_;
       float  vtxx_[1000], vtxy_[1000], vtxz_[1000];
       int ntracks_;
-      float tkpx_[1000], tkpy_[1000], tkpz_[1000], tkPtErr_[1000], tkWeight_[1000], 
-	tkd0_[1000], tkd0Err_[1000], tkdz_[1000], tkdzErr_[1000];
-      int tkVtxId_[1000];
-      bool tkIsHighPurity_[1000];
+      float tkpx_[3000], tkpy_[3000], tkpz_[3000], tkPtErr_[3000], tkWeight_[3000], 
+	tkd0_[3000], tkd0Err_[3000], tkdz_[3000], tkdzErr_[3000];
+      int tkVtxId_[3000];
+      bool tkIsHighPurity_[3000];
       
       float phocalox_[100], phocaloy_[100], phocaloz_[100], phoen_[100];
       

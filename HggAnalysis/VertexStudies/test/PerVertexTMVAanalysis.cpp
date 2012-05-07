@@ -380,6 +380,7 @@ int main(int argc, char** argv)
 	   std::vector<ROOT::Math::XYZTVector>* muons = reader.Get4V("muons");
 	   std::vector<int>* muons_global = reader.GetInt("muons_global");
 	   std::vector<int>* muons_tracker = reader.GetInt("muons_tracker");
+	   std::vector<float>* muons_tkIsoR03 = reader.GetFloat("muons_tkIsoR03");
 	   std::vector<float>* muons_dz_PV_noMuon = reader.GetFloat("muons_dz_PV_noMuon");
 	  
 	   PV_nTracks       = reader.GetInt("PV_noMuon_nTracks");
@@ -393,7 +394,7 @@ int main(int argc, char** argv)
 	   tracks_dz        = reader.GetFloat("tracks_dz");
 	   sc               = reader.Get4V("muons");  // use muon info for SC
 	   
-	   zmumuSelection(muons,muons_global,muons_tracker, accept, indpho1, indpho2);
+	   zmumuSelection(muons,muons_global,muons_tracker, muons_tkIsoR03,accept, indpho1, indpho2);
 
 	   if (!accept) continue;
 	   

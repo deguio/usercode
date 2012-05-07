@@ -1,5 +1,5 @@
 
-///==== test program ====
+///==== include ====
 
 #include "treeReader.h"
 #include "hFactory.h"
@@ -20,32 +20,39 @@
 #include <sstream>
 #include "MyTest.h"
 
+#include "VertexAlgoParameters.h"
+#include "HggVertexAnalyzer.h"
+#include "HggVertexFromConversions.h"
+#include "PhotonInfo.h"
+#include "../src/selection.cc"
+#include "../src/eleId95.cc"
+
 #include <iostream>
 
 #include "TClonesArray.h"
 #include "TMatrix.h"
-#include "TApplication.h"
 
 #if not defined(__CINT__) || defined(__MAKECINT__)
 #include "TMVA/Tools.h"
 #include "TMVA/Reader.h"
 #endif
 
-#include "../src/selection.cc"
-#include "../src/eleId95.cc"
-
-#define etaEB 1.4442
-#define etaEE 1.566
-
-#define PI 3.141592654
 
 
-bool PhotonId( float et, float eta, float Eiso, float Hiso, float HoE, float Tiso, float setaeta);
+#define R_ECAL    129
+#define Z_ENDCAP  317
 
+#define etaEB   1.4442 
+#define etaEE   1.566
+
+
+using namespace std;
+ 
+
+// --------- MAIN -------------------
 
 int main(int argc, char** argv)
 { 
-
   //Check if all nedeed arguments to parse are there
   if(argc != 2)
   {
@@ -56,25 +63,22 @@ int main(int argc, char** argv)
   // Parse the config file
   parseConfigFile (argv[1]) ;
 
-  TApplication theApp("My First App", &argc, argv); // a cosa serve ?!?!?!?!?!?
-
   std::string inputFileList = gConfigParser -> readStringOption("Input::inputFileList");
- 
+
   std::string treeName  = gConfigParser -> readStringOption("Input::treeName");
-  
+    
   std::string outputRootFilePath = gConfigParser -> readStringOption("Output::outputRootFilePath");
   std::string outputRootFileName = gConfigParser -> readStringOption("Output::outputRootFileName");  
-  
+
   int entryMIN = gConfigParser -> readIntOption("Options::entryMIN");
   int entryMAX = gConfigParser -> readIntOption("Options::entryMAX");
+ 
   int isZee    = gConfigParser -> readIntOption("Options::isZee");
   int isZmumu  = gConfigParser -> readIntOption("Options::isZmumu");
   int isHiggs  = gConfigParser -> readIntOption("Options::isHiggs");
 
   int isData   = gConfigParser -> readIntOption("Options::isData");
   
-  double trackThr = gConfigParser -> readDoubleOption("Options::trackThr");
-
   int useWeights      = gConfigParser -> readIntOption("Options::useWeights");
   int poissonWeights  = gConfigParser -> readIntOption("Options::poissonWeights");
   int nAvePU          = gConfigParser -> readIntOption("Options::nAvePU");
@@ -84,23 +88,27 @@ int main(int argc, char** argv)
   int useJSON      = gConfigParser -> readIntOption("Options::useJSON");
   std::string jsonFileName = gConfigParser -> readStringOption("Options::jsonFileName");  
 
-  
-  // Get run/LS map from JSON file
-  std::cout << ">>> Gettting GOOD  run/LS from JSON file" << std::endl;
+
+  //******* Get run/LS map from JSON file *******
   std::map<int, std::vector<std::pair<int, int> > > jsonMap;
-  jsonMap = readJSONFile(jsonFileName);
+  if ( isData && useJSON ) {
+    std::cout << ">>> Getting GOOD  run/LS from JSON file" << std::endl;
+    jsonMap = readJSONFile(jsonFileName);
+    std::cout << std::endl;
+    std::cout << std::endl;
+  }
 
   
-  //------ use weights for MC
+  //****** Get weights for MC ****** 
   float nmax;
-  float w[50];
+  float w[500];
   TRandom *gRandom = new TRandom();
   
   if (useWeights){
     
     TFile weightsFile(puweightsFileName.c_str(),"READ");  
     TH1F* hweights;
-    
+     
     if ( poissonWeights ){
       std::cout << "N ave PU for Poisson PU reweighting : " << nAvePU << std::endl;
       char hname[100];
@@ -111,34 +119,51 @@ int main(int argc, char** argv)
       hweights = (TH1F*)weightsFile.Get("hweights");
     }
     
-    nmax = hweights ->GetMaximum();
-    std::cout << nmax << std::endl;
-    
     for (int ibin = 1; ibin < hweights->GetNbinsX()+1; ibin++){
+      // trick to skip low lumi runs
+      if ( ibin < 6 ) hweights->SetBinContent(ibin,0.);
       w[ibin-1] = hweights->GetBinContent(ibin);  // bin 1 --> nvtx = 0 
     }
+
+    nmax = hweights ->GetMaximum();
+    std::cout << " Max weight " << nmax << std::endl;
     weightsFile.Close();
   }
-  
 
   std::cout << std::endl;
   std::cout << std::endl;
-  
-  // open TH1 with tracks pt for kolmogorov test
+
+  //****** open TH1 with tracks pt for kolmogorov test
   //   TH1F *hTrackPt;
-  //   TFile ptFile("hTracksPt_PU25.root","READ"); 
+  //   TFile ptFile("hTracksPt_PU25_upTo10GeV.root","READ"); 
   //   hTrackPt = (TH1F*)ptFile.Get("hTracksPt")->Clone("hTrackPt");
   //   hTrackPt->SetDirectory(0);
   //   ptFile.Close();
+  //   std::cout << hTrackPt->GetEntries() << std::endl;
   
-
-  //Filling the ntuple
-  int isSig, evtNumber, nVertices, nTracks, nTracksPt05, nTracksPt4;
-  float sumPt2, modSumPt, modSumPtInCone_30, modSumPtInCone_45, deltaPhi_HSumPt, sum2PhoPt, normalizedChi2, sumModPt;
-  float ptbal, ptasym, pzasym, ptmax;
+  //   TH1F *htemp = (TH1F*)hTrackPt->Clone("htemp");
+  //   htemp->Reset()    ;
+ 
+    
+  //****** Parameters for vertex finding algo ****** 
+  VertexAlgoParameters vtxAlgoParams_;
+  vtxAlgoParams_.rescaleTkPtByError = false;
+  vtxAlgoParams_.trackCountThr      = 1.;
+  vtxAlgoParams_.highPurityOnly     = false;
+  vtxAlgoParams_.maxD0Signif        = 9999999.;
+  vtxAlgoParams_.maxDzSignif        = 9999999.;
+  vtxAlgoParams_.removeTracksInCone = 1;
+  vtxAlgoParams_.coneSize           = 0.05;
+  
+      
+  //****** BOOK TREE ******
+  int isSig, evtNumber, nVertices;
+  float diphopt, diphoM; 
+  float logsumpt2;
+  float ptbal, ptasym, ptmax, ptmax3, sumpt, nchthr, nch, sumtwd, pzasym;
   float photons_eta[2], photons_phi[2], photons_E[2], photons_pt[2], photonsSC_eta[2], photonsSC_phi[2], photonsSC_E[2], photonsMC_eta[2], photonsMC_phi[2], photonsMC_E[2];   
   
-  float trackPx[1000], trackPy[1000], trackPz[1000];
+  // no ptratio : 100% con ptbal
   float trackPt[1000];
   float dk;
 
@@ -146,15 +171,18 @@ int main(int argc, char** argv)
   outTree -> Branch("evtNumber", &evtNumber, "evtNumber/I");
   outTree -> Branch("nVertices", &nVertices, "nVertices/I");
 
-  outTree -> Branch("sum2PhoPt",  &sum2PhoPt,   "sum2PhoPt/F");
+  outTree -> Branch("diphopt",   &diphopt,   "diphopt/F");
+  outTree -> Branch("diphoM",    &diphoM,    "diphoM/F");
+  outTree -> Branch("logsumpt2", &logsumpt2, "logsumpt2/F");
+  outTree -> Branch("nch",       &nch,       "nch/F");
+  outTree -> Branch("nchthr",    &nchthr,    "nchthr/F");
+  outTree -> Branch("ptmax",     &ptmax,     "ptmax/F");
+  outTree -> Branch("ptmax3",    &ptmax3,    "ptmax3/F");
+  outTree -> Branch("ptbal",     &ptbal,     "ptbal/F");
+  outTree -> Branch("ptasym",    &ptasym,    "ptasym/F");
+  outTree -> Branch("sumtwd",    &sumtwd,    "sumtwd/F");
+  outTree -> Branch("dk",        &dk,        "dk/F");
 
-  outTree -> Branch("sumPt2",   &sumPt2,    "sumPt2/F");
-  outTree -> Branch("nTracks",  &nTracks, "nTracks/I");
-  outTree -> Branch("ptmax",    &ptmax, "ptmax/F");
-  outTree -> Branch("ptbal",    &ptbal,   "ptbal/F");
-  outTree -> Branch("ptasym",   &ptasym,   "ptasym/F");
-  //outTree -> Branch("pzasym",   &pzasym,   "pzasym/F");// inutile
-  
   outTree -> Branch("photons_eta",           photons_eta,              "photons_eta[2]/F");
   outTree -> Branch("photons_phi",           photons_phi,              "photons_phi[2]/F");
   outTree -> Branch("photons_E",             photons_E,                "photons_E[2]/F");
@@ -166,59 +194,43 @@ int main(int argc, char** argv)
   outTree -> Branch("photonsMC_phi",         photonsMC_phi,            "photonsMC_phi[2]/F");
   outTree -> Branch("photonsMC_E",           photonsMC_E,              "photonsMC_E[2]/F");
 
-  //outTree -> Branch("trackPx",trackPx, "trackPx[nTracks]/F");
-  //outTree -> Branch("trackPy",trackPy, "trackPy[nTracks]/F");
-  //outTree -> Branch("trackPz",trackPz, "trackPz[nTracks]/F");
-
-  //outTree -> Branch("trackPt",trackPt, "trackPt[nTracks]/F");
   outTree -> Branch("isSig", &isSig, "isSig/I");
-  outTree -> Branch("dk", &dk, "dk/F");
-
+    
 
   TH2F * hAcceptedLumis = new TH2F("hAcceptedLumis","hAcceptedLumis",20000, 160000, 180000, 10000, 0, 10000);
 
-  //TH1F *htemp = new TH1F("htemp","htemp",hTrackPt->GetNbinsX(),0,100);
-	
+
+  float ww = 1;
+  float r9cut = 0.93;
   
-  
-  
-  //Chain
-  
+  //****** LOAD TREE ******
   TChain* chain = new TChain(treeName.c_str());
   FillChain(*chain, inputFileList.c_str());
   treeReader reader((TTree*)(chain));
-  
-  std::cout<<"found "<< chain->GetEntries() <<" entries"<<std::endl;
   std::cout<<"found "<< reader.GetEntries() <<" entries"<<std::endl;
 
-  
-  
-  //start loop over entries
+  //****** Start loop over entries ******
+  int runId, lumiId;
+
   for (int u = 0; u < reader.GetEntries(); u++ )
     {
-      if(u < entryMIN) continue;
       if(u == entryMAX) break;
+      if(u < entryMIN)  continue;
       if(u%10000 == 0) std::cout<<"reading event "<< u <<std::endl;
       reader.GetEntry(u);
-
-      // filter bad runs/lumis
-      int runId = reader.GetInt("runId")->at(0);
-      int lumiId = reader.GetInt("lumiId")->at(0);
-
+      
+      //*** filter bad runs/lumis
+      runId = reader.GetInt("runId")->at(0);
+      lumiId = reader.GetInt("lumiId")->at(0);
+      
       bool skipEvent = false;
       if( isData && useJSON ){
 	if(AcceptEventByRunAndLumiSection(runId,lumiId,jsonMap) == false)
 	  skipEvent = true;
       }
-      
       if( skipEvent == true ) continue;
-      
-
       hAcceptedLumis -> Fill(runId, lumiId);
-      
-      //setup common branches
-      #include "../includeMe_forTMVA_check.h"
-      
+
       //*** pu weights        
       std::vector<float>*PU_z ;
       std::vector<int>* mc_PUit_NumInteractions;
@@ -232,456 +244,394 @@ int main(int argc, char** argv)
 	
 	mc_PUit_TrueNumInteractions  = reader.GetFloat("mc_PUit_TrueNumInteractions"); // needed for 2012 PU reweighting 
 	npuTrue = mc_PUit_TrueNumInteractions->at(0);
-
+	
         //--- use weights     
         if (useWeights){
           float myrnd = gRandom->Uniform(0,nmax);
           //if (myrnd > w[npu]) continue; // used in 2011    
 	  if (myrnd > w[int(npuTrue)]) continue; // for 2012  
-
-        }
+	}
       }
 
-      //global variables
-      float TrueVertex_Z;
-      
-      std::vector<float>* PV_normalizedChi2;
-      std::vector<int>* PV_ndof;
+     
+      //*** setup common branches ***
       std::vector<int>* PV_nTracks;
       std::vector<float>* PV_z;
       std::vector<float>* PV_d0;
-      std::vector<float>* PV_SumPt2;
-      std::vector<float>* PV_SumPt;
-      
       std::vector<ROOT::Math::XYZVector>* PVtracks;
       std::vector<int>* PVtracks_PVindex;
-      std::vector<int>* PVtracks_numberOfValidHits;
-      std::vector<float>* PVtracks_normalizedChi2;
+      std::vector<int>* tracks_PVindex;
+      std::vector<float>* tracks_dz ; //?
+      std::vector<float>* tracks_dz_PV ; //?
+      std::vector<float>* tracks_dxy_PV ; //?
+      std::vector<ROOT::Math::XYZTVector>* photons_SC; // supercluster
       
-      
+      int accept = 0;
+      int indpho1 = -100;
+      int indpho2 = -100;
+	
       ROOT::Math::XYZTVector sum2pho;
-      //---------------------------
-      //--- set up Hgg branches ---
-      //---------------------------
-      if ( isHiggs )
-	{
-	  
-	  //taking H variables
-	  std::vector<ROOT::Math::XYZVector>* TrueVertex = reader.Get3V("mc_H_vertex");
-	  std::vector<ROOT::Math::XYZTVector>* mcH = reader.Get4V("mc_H");
-	  
-	  std::vector<ROOT::Math::XYZTVector>* mcV1 = reader.Get4V("mcV1");
-	  std::vector<ROOT::Math::XYZTVector>* mcV2 = reader.Get4V("mcV2");
-	  
-	  if ( mcV1->size() != 1 ||  mcV2->size() != 1) continue;
-	  if (mcV1->at(0).E() > mcV2->at(0).E())
-	    {
-	      photonsMC_eta[0] = mcV1->at(0).Eta();
-	      photonsMC_eta[1] = mcV2->at(0).Eta();
-	      photonsMC_phi[0] = mcV1->at(0).Phi();
-	      photonsMC_phi[1] = mcV2->at(0).Phi();
-	      photonsMC_E[0]   = mcV1->at(0).E();
-	      photonsMC_E[1]   = mcV2->at(0).E();
-	    }
-	  else
-	    {
-	      photonsMC_eta[1] = mcV1->at(0).Eta();
-	      photonsMC_eta[0] = mcV2->at(0).Eta();
-	      photonsMC_phi[1] = mcV1->at(0).Phi();
-	      photonsMC_phi[0] = mcV2->at(0).Phi();
-	      photonsMC_E[1]   = mcV1->at(0).E();
-	      photonsMC_E[0]   = mcV2->at(0).E();
-	    }
-	  
-	  
-	  if (TrueVertex->size() != 1) continue;
-	  TrueVertex_Z = TrueVertex->at(0).Z();
-	  
-	  PV_normalizedChi2 = reader.GetFloat("PV_normalizedChi2");
-	  PV_ndof = reader.GetInt("PV_ndof");
-	  PV_nTracks = reader.GetInt("PV_nTracks");
-	  PV_z = reader.GetFloat("PV_z");
-	  PV_d0 = reader.GetFloat("PV_d0");
-	  PV_SumPt2 = reader.GetFloat("PV_SumPt2");
-	  PV_SumPt = reader.GetFloat("PV_SumPt");
-	  
-	  PVtracks = reader.Get3V("PVtracks");
-	  PVtracks_PVindex = reader.GetInt("PVtracks_PVindex");
-	  PVtracks_numberOfValidHits = reader.GetInt("PVtracks_numberOfValidHits");
-	  PVtracks_normalizedChi2 = reader.GetFloat("PVtracks_normalizedChi2");
-	  
-	  int indpho1 = -100, indpho2 = -100;
-	  int ngood = 0;
-	  
-	  double dR_1_min = 10000.;
-	  double dR_2_min = 10000.;
-	  
-	  for(unsigned int u=0; u < photons->size(); u++)
-	    {
-	      double dR_1 = deltaR( photonsMC_eta[0], photonsMC_phi[0], photons_SC->at(u).eta(), photons_SC->at(u).phi() );
-	      if (dR_1 < dR_1_min) { dR_1_min = dR_1; indpho1 = u; }
-	      
-	      double dR_2 = deltaR( photonsMC_eta[1], photonsMC_phi[1], photons_SC->at(u).eta(), photons_SC->at(u).phi() );
-	      if (dR_2 < dR_2_min) { dR_2_min = dR_2; indpho2 = u; }
-	    }
-	  
-	  if(dR_1_min > 0.15 || dR_2_min > 0.15) continue;
-	  if(photons_r9->at(indpho1) < 0.93 || photons_r9->at(indpho2) < 0.93) continue;
-	  
-	  sum2pho = photons->at(indpho1)+ photons->at(indpho2);
-	  
-	  if (photons->at(indpho1).E() > photons->at(indpho2).E())
-	    {
-	      photons_eta[0] = photons->at(indpho1).eta();
-	      photons_eta[1] = photons->at(indpho2).eta();
-	      photons_phi[0] = photons->at(indpho1).phi();
-	      photons_phi[1] = photons->at(indpho2).phi();
-	      photons_E[0]   = photons->at(indpho1).E();
-	      photons_E[1]   = photons->at(indpho2).E();
-	      photons_pt[0]  = photons->at(indpho1).pt();
-	      photons_pt[1]  = photons->at(indpho2).pt();
-	      
-	      photonsSC_eta[0] = photons_SC->at(indpho1).eta();
-	      photonsSC_eta[1] = photons_SC->at(indpho2).eta();
-	      photonsSC_phi[0] = photons_SC->at(indpho1).phi();
-	      photonsSC_phi[1] = photons_SC->at(indpho2).phi();
-	      photonsSC_E[0] = photons_SC->at(indpho1).E();
-	      photonsSC_E[1] = photons_SC->at(indpho2).E();
-	    }
-	  else
-	    {
-	      photons_eta[1] = photons->at(indpho1).eta();
-	      photons_eta[0] = photons->at(indpho2).eta();
-	      photons_phi[1] = photons->at(indpho1).phi();
-	      photons_phi[0] = photons->at(indpho2).phi();
-	      photons_E[1]   = photons->at(indpho1).E();
-	      photons_E[0]   = photons->at(indpho2).E();
-	      photons_pt[1]  = photons->at(indpho1).pt();
-	      photons_pt[0]  = photons->at(indpho2).pt();
-	      
-	      photonsSC_eta[1] = photons_SC->at(indpho1).eta();
-	      photonsSC_eta[0] = photons_SC->at(indpho2).eta();
-	      photonsSC_phi[1] = photons_SC->at(indpho1).phi();
-	      photonsSC_phi[0] = photons_SC->at(indpho2).phi();
-	      photonsSC_E[1] = photons_SC->at(indpho1).E();
-	      photonsSC_E[0] = photons_SC->at(indpho2).E();
-	    }
-	  
-	}//Hgg
-      //---------------------------
-      //--- set up Zee branches ---
-      //---------------------------
-      if ( isZee )
-	{
-	  std::vector<ROOT::Math::XYZTVector>* electrons = reader.Get4V("electrons");
-	  std::vector<ROOT::Math::XYZTVector>* electrons_SC = reader.Get4V("electrons");
-	  
-	  //taking Zee variables
-	  //	  std::vector<float>* eleid = reader.GetFloat("simpleEleId95cIso");
-	  // no eleID95 available for data 2011 --> compute it by hand
-	  std::vector<float>* eleid = new std::vector<float>;
-	  eleid->clear();
-	  if ( electrons->size() < 2) continue; 
-	  
-	  for (unsigned int iele = 0; iele < electrons->size(); iele++){
+      float etaMaxSC ;
+      float TrueVertex_Z;
+
+      //*** selections for Hgg ***
+      if (isHiggs){
+	std::vector<ROOT::Math::XYZVector>* mc_H_vertex = reader.Get3V("mc_H_vertex");
+	std::vector<ROOT::Math::XYZTVector>* mcV1 = reader.Get4V("mcV1");
+	std::vector<ROOT::Math::XYZTVector>* mcV2 = reader.Get4V("mcV2");
+	std::vector<ROOT::Math::XYZTVector>* photons = reader.Get4V("photons");
+	std::vector<float>* photons_r9 = reader.GetFloat("photons_r9");
+	
+	if (mc_H_vertex->size() != 1) continue;
+	
+	PV_nTracks       = reader.GetInt("PV_nTracks");
+	PV_z             = reader.GetFloat("PV_z");
+	PV_d0            = reader.GetFloat("PV_d0");
+	PVtracks         = reader.Get3V("PVtracks");
+	PVtracks_PVindex = reader.GetInt("PVtracks_PVindex");
+	tracks_PVindex   = reader.GetInt("tracks_PVindex");
+	tracks_dxy_PV    = reader.GetFloat("tracks_dxy_PV");
+	tracks_dz_PV     = reader.GetFloat("tracks_dz_PV");
+	tracks_dz        = reader.GetFloat("tracks_dz");
+	photons_SC       = reader.Get4V("photons_SC");
+
+	hggSelection(mcV1, mcV2, photons, photons_SC, photons_r9, accept, indpho1, indpho2);
+	if (!accept) continue;
+
+	if ( photons_r9->at(indpho1) < r9cut ) continue;
+	if ( photons_r9->at(indpho2) < r9cut ) continue;
+	
+	etaMaxSC = photons_SC->at(indpho1).eta();
+	sum2pho  = photons->at(indpho1)+ photons->at(indpho2);
+	TrueVertex_Z = mc_H_vertex->at(0).Z();
+	
+	if (photons->at(indpho1).E() > photons->at(indpho2).E())
+	  {
+	    photons_eta[0] = photons->at(indpho1).eta();
+	    photons_eta[1] = photons->at(indpho2).eta();
+	    photons_phi[0] = photons->at(indpho1).phi();
+	    photons_phi[1] = photons->at(indpho2).phi();
+	    photons_E[0]   = photons->at(indpho1).E();
+	    photons_E[1]   = photons->at(indpho2).E();
+	    photons_pt[0]  = photons->at(indpho1).pt();
+	    photons_pt[1]  = photons->at(indpho2).pt();
 	    
-	    float pt = electrons->at(iele).pt();
-	    float tkIso   = reader.GetFloat("electrons_tkIsoR03")->at(iele);
-	    float emIso   = reader.GetFloat("electrons_emIsoR03")->at(iele);
-	    float hadIso  = reader.GetFloat("electrons_hadIsoR03_depth1")->at(iele) + reader.GetFloat("electrons_hadIsoR03_depth2")->at(iele);
-	    float combIso = tkIso + emIso + hadIso;
-	    
-	    int isEB = reader.GetInt("electrons_isEB")->at(iele);
-	    float sigmaIetaIeta = reader.GetFloat("electrons_sigmaIetaIeta")->at(iele);
-	    float DetaIn        = reader.GetFloat("electrons_deltaEtaIn")->at(iele);
-	    float DphiIn        = reader.GetFloat("electrons_deltaPhiIn")->at(iele);
-	    float HOverE        = reader.GetFloat("electrons_hOverE")->at(iele);
-	    int mishits         = reader.GetInt("electrons_mishits")->at(iele);
-	    
-	    float id = eleId95 ( pt, tkIso, emIso, hadIso, combIso, isEB, sigmaIetaIeta, DetaIn, DphiIn, HOverE, mishits);	
-	    id *= 7.; // to emulate simpleEleId95cIso
-	    
-	    eleid->push_back( id );
+	    photonsSC_eta[0] = photons_SC->at(indpho1).eta();
+	    photonsSC_eta[1] = photons_SC->at(indpho2).eta();
+	    photonsSC_phi[0] = photons_SC->at(indpho1).phi();
+	    photonsSC_phi[1] = photons_SC->at(indpho2).phi();
+	    photonsSC_E[0] = photons_SC->at(indpho1).E();
+	    photonsSC_E[1] = photons_SC->at(indpho2).E();
 	  }
-	  PV_normalizedChi2 = reader.GetFloat("PV_noEle_normalizedChi2");
-	  PV_ndof = reader.GetInt("PV_noEle_ndof");
-	  PV_nTracks = reader.GetInt("PV_noEle_nTracks");
-	  PV_z = reader.GetFloat("PV_noEle_z");
-	  PV_d0 = reader.GetFloat("PV_noEle_d0");
-	  PV_SumPt2 = reader.GetFloat("PV_noEle_SumPt2");
-	  PV_SumPt = reader.GetFloat("PV_noEle_SumPt");
-	  
-	  PVtracks = reader.Get3V("PVEleLessTracks");
-	  PVtracks_PVindex = reader.GetInt("PVEleLessTracks_PVindex");
-	  PVtracks_numberOfValidHits = reader.GetInt("PVEleLessTracks_numberOfValidHits");
-	  PVtracks_normalizedChi2 = reader.GetFloat("PVEleLessTracks_normalizedChi2");
-	  
-	  int indele1 = -100, indele2 = -100;
-	  int ngood = 0;
-	  for(unsigned int uu = 0; uu < eleid->size(); uu++)
-	    {
-	      if (  eleid->at(uu) == 7 && indele1 < 0 )      {indele1 = uu; ngood++;}
-	      else if ( eleid->at(uu) == 7 && indele2 < 0 )  {indele2 = uu; ngood++;}
-	      else if( eleid->at(uu) == 7 )                  { ngood++;}
-	    }
-	  if ( ngood != 2){continue;}
-	  
-	  sum2pho = electrons->at(indele1) + electrons->at(indele2);
-	  
-	  if (electrons->at(indele1).E() > electrons->at(indele2).E())
-	    {
-	      photons_eta[0] = electrons->at(indele1).eta();
-	      photons_eta[1] = electrons->at(indele2).eta();
-	      photons_phi[0] = electrons->at(indele1).phi();
-	      photons_phi[1] = electrons->at(indele2).phi();
-	      photons_E[0]   = electrons->at(indele1).E();
-	      photons_E[1]   = electrons->at(indele2).E();
-	      photons_pt[0]  = electrons->at(indele1).pt();
-	      photons_pt[1]  = electrons->at(indele2).pt();
-	      
-	      photonsSC_eta[0] = electrons_SC->at(indele1).eta();
-	      photonsSC_eta[1] = electrons_SC->at(indele2).eta();
-	      photonsSC_phi[0] = electrons_SC->at(indele1).phi();
-	      photonsSC_phi[1] = electrons_SC->at(indele2).phi();
-	      photonsSC_E[0]   = electrons_SC->at(indele1).E();
-	      photonsSC_E[1]   = electrons_SC->at(indele2).E();
-	    }
-	  else
-	    {
-	      photons_eta[1] = electrons->at(indele1).eta();
-	      photons_eta[0] = electrons->at(indele2).eta();
-	      photons_phi[1] = electrons->at(indele1).phi();
-	      photons_phi[0] = electrons->at(indele2).phi();
-	      photons_E[1] = electrons->at(indele1).E();
-	      photons_E[0] = electrons->at(indele2).E();
-	      photons_pt[1] = electrons->at(indele1).pt();
-	      photons_pt[0] = electrons->at(indele2).pt();
-	      
-	      photonsSC_eta[1] = electrons_SC->at(indele1).eta();
-	      photonsSC_eta[0] = electrons_SC->at(indele2).eta();
-	      photonsSC_phi[1] = electrons_SC->at(indele1).phi();
-	      photonsSC_phi[0] = electrons_SC->at(indele2).phi();
-	      photonsSC_E[1] = electrons_SC->at(indele1).E();
-	      photonsSC_E[0] = electrons_SC->at(indele2).E();
-	    }
-	  
-	  
-	  if ( fabs(sum2pho.M() - 91) > 8 ) continue;
-	  
-	  TrueVertex_Z = PV_z->at(0) + (electrons_dz_PV_noEle->at(indele1) + electrons_dz_PV_noEle->at(indele2))/2.;
-	  
-	}//Zee end
-      //---------------------------
-      //--- set up Zee branches ---
-      //---------------------------
-      if ( isZmumu )
-	{
-	  
-	  //taking Zmumu variables
-	  PV_normalizedChi2 = reader.GetFloat("PV_noMuon_normalizedChi2");
-	  PV_ndof = reader.GetInt("PV_noMuon_ndof");
-	  PV_nTracks = reader.GetInt("PV_noMuon_nTracks");
-	  PV_z = reader.GetFloat("PV_noMuon_z");
-	  PV_d0 = reader.GetFloat("PV_noMuon_d0");
-	  PV_SumPt2 = reader.GetFloat("PV_noMuon_SumPt2");
-	  PV_SumPt = reader.GetFloat("PV_noMuon_SumPt");
-	  
-	  PVtracks = reader.Get3V("PVMuonLessTracks");
-	  PVtracks_PVindex = reader.GetInt("PVMuonLessTracks_PVindex");
-	  PVtracks_numberOfValidHits = reader.GetInt("PVMuonLessTracks_numberOfValidHits");
-	  PVtracks_normalizedChi2 = reader.GetFloat("PVMuonLessTracks_normalizedChi2");
-	  
-	  int indmu1 = -100, indmu2 = -100;
-	  int ngood = 0;
-	  for( int uu = 0; uu < muons->size(); uu++)
-	    {
-	      bool goodmuon =  (muons->at(uu).pt() > 10 && muons_global->at(uu)==1 && muons_tracker->at(uu)==1);
-	      if (goodmuon && indmu1 < 0 )        { indmu1 = uu; ngood++; }
-	      else if ( goodmuon && indmu2 < 0 )   { indmu2 = uu; ngood++; }
-	      else if ( goodmuon  )                 { ngood++;}
-	    }
-	  
-	  if ( ngood != 2){continue;}
-	  
-	  sum2pho = muons->at(indmu1) + muons->at(indmu2);
-	  
-	  if (muons->at(indmu1).E() > muons->at(indmu2).E())
-	    {
-	      photons_eta[0] = muons->at(indmu1).eta();
-	      photons_eta[1] = muons->at(indmu2).eta();
-	      photons_phi[0] = muons->at(indmu1).phi();
-	      photons_phi[1] = muons->at(indmu2).phi();
-	      photons_E[0]   = muons->at(indmu1).E();
-	      photons_E[1]   = muons->at(indmu2).E();
-	      photons_pt[0]  = muons->at(indmu1).pt();
-	      photons_pt[1]  = muons->at(indmu2).pt();
-	      
-	      photonsSC_eta[0] = muons->at(indmu1).eta();
-	      photonsSC_eta[1] = muons->at(indmu2).eta();
-	      photonsSC_phi[0] = muons->at(indmu1).phi();
-	      photonsSC_phi[1] = muons->at(indmu2).phi();
-	      photonsSC_E[0]   = muons->at(indmu1).E();
-	      photonsSC_E[1]   = muons->at(indmu2).E();
-	    }
-	  else
-	    {
-	      photons_eta[1] = muons->at(indmu1).eta();
-	      photons_eta[0] = muons->at(indmu2).eta();
-	      photons_phi[1] = muons->at(indmu1).phi();
-	      photons_phi[0] = muons->at(indmu2).phi();
-	      photons_E[1]   = muons->at(indmu1).E();
-	      photons_E[0]   = muons->at(indmu2).E();
-	      photons_pt[1]  = muons->at(indmu1).pt();
-	      photons_pt[0]  = muons->at(indmu2).pt();
-	      
-	      photonsSC_eta[1] = muons->at(indmu1).eta();
-	      photonsSC_eta[0] = muons->at(indmu2).eta();
-	      photonsSC_phi[1] = muons->at(indmu1).phi();
-	      photonsSC_phi[0] = muons->at(indmu2).phi();
-	      photonsSC_E[1]   = muons->at(indmu1).E();
-	      photonsSC_E[0]   = muons->at(indmu2).E();
-	    }
-	  
-	  
-	  if ( fabs(sum2pho.M() - 91) > 8 ) continue;
-
-	  if ( fabs(muons_dz_PV_noMuon->at(indmu1) - muons_dz_PV_noMuon->at(indmu2))> 0.5) continue;
-
-	  TrueVertex_Z = PV_z->at(0) + (muons_dz_PV_noMuon->at(indmu1) + muons_dz_PV_noMuon->at(indmu2))/2.;
-
-
-
-	}//Zmumu end
+	else
+	  {
+	    photons_eta[1] = photons->at(indpho1).eta();
+	    photons_eta[0] = photons->at(indpho2).eta();
+	    photons_phi[1] = photons->at(indpho1).phi();
+	    photons_phi[0] = photons->at(indpho2).phi();
+	    photons_E[1]   = photons->at(indpho1).E();
+	    photons_E[0]   = photons->at(indpho2).E();
+	    photons_pt[1]  = photons->at(indpho1).pt();
+	    photons_pt[0]  = photons->at(indpho2).pt();
+	    
+	    photonsSC_eta[1] = photons_SC->at(indpho1).eta();
+	    photonsSC_eta[0] = photons_SC->at(indpho2).eta();
+	    photonsSC_phi[1] = photons_SC->at(indpho1).phi();
+	    photonsSC_phi[0] = photons_SC->at(indpho2).phi();
+	    photonsSC_E[1] = photons_SC->at(indpho1).E();
+	    photonsSC_E[0] = photons_SC->at(indpho2).E();
+	  }
+	
+      }// end Hgg selection
       
-      
-      
-      
-      //vettore degli indici dei PV buoni (no splitting)
-      std::vector<int> goodIndex;
-      for (unsigned int vItr = 0; vItr < PV_z->size(); ++vItr)
-	{
-	  //if (PV_nTracks->at(vItr) > 3 || PV_SumPt2->at(vItr) > 10.) goodIndex.push_back(vItr);
-	  goodIndex.push_back(vItr);
+
+      //*** selections for Zee ***
+      if (isZee){
+	std::vector<ROOT::Math::XYZTVector>* electrons = reader.Get4V("electrons");
+	// std::vector<float>* eleid = reader.GetFloat("simpleEleId95cIso");
+	// no eleID95 available for data 2011 --> compute it by hand
+	std::vector<float>* eleid = new std::vector<float>;
+	eleid->clear();
+	if ( electrons->size() < 2) continue; 
+	
+	for (unsigned int iele = 0; iele < electrons->size(); iele++){
+	  
+	  float pt = electrons->at(iele).pt();
+	  float tkIso   = reader.GetFloat("electrons_tkIsoR03")->at(iele);
+	  float emIso   = reader.GetFloat("electrons_emIsoR03")->at(iele);
+	  float hadIso  = reader.GetFloat("electrons_hadIsoR03_depth1")->at(iele) + reader.GetFloat("electrons_hadIsoR03_depth2")->at(iele);
+	  float combIso = tkIso + emIso + hadIso;
+	
+	  int isEB = reader.GetInt("electrons_isEB")->at(iele);
+	  float sigmaIetaIeta = reader.GetFloat("electrons_sigmaIetaIeta")->at(iele);
+	  float DetaIn        = reader.GetFloat("electrons_deltaEtaIn")->at(iele);
+	  float DphiIn        = reader.GetFloat("electrons_deltaPhiIn")->at(iele);
+	  float HOverE        = reader.GetFloat("electrons_hOverE")->at(iele);
+	  int mishits         = reader.GetInt("electrons_mishits")->at(iele);
+
+	  float id = eleId95 ( pt, tkIso, emIso, hadIso, combIso, isEB, sigmaIetaIeta, DetaIn, DphiIn, HOverE, mishits);	
+	  id *= 7.; // to emulate simpleEleId95cIso
+
+	  eleid->push_back( id );
 	}
+
+	std::vector<float>* electrons_dz_PV_noEle = reader.GetFloat("electrons_dz_PV_noEle");
+
+	PV_nTracks       = reader.GetInt("PV_noEle_nTracks");
+	PV_z             = reader.GetFloat("PV_noEle_z");
+	PV_d0            = reader.GetFloat("PV_noEle_d0");
+	PVtracks         = reader.Get3V("PVEleLessTracks");
+	PVtracks_PVindex = reader.GetInt("PVEleLessTracks_PVindex");
+	tracks_PVindex   = reader.GetInt("tracks_PVindex");
+	tracks_dxy_PV    = reader.GetFloat("tracks_dxy_PV");
+	tracks_dz_PV     = reader.GetFloat("tracks_dz_PV");
+	tracks_dz        = reader.GetFloat("tracks_dz");
+	//sc               = reader.Get4V("electrons_SC");
+	photons_SC       = reader.Get4V("electrons");
+	
+	zeeSelection(electrons, eleid, accept, indpho1, indpho2);
+	if (!accept) continue;
+
+	etaMaxSC = photons_SC->at(indpho1).eta();
+	sum2pho  = electrons->at(indpho1)+ electrons->at(indpho2);
+	TrueVertex_Z = PV_z->at(0) + (electrons_dz_PV_noEle->at(indpho1) + electrons_dz_PV_noEle->at(indpho2))/2.;
+      }
+
+      //*** selections for Zmumu
+      if ( isZmumu ){
+	std::vector<ROOT::Math::XYZTVector>* muons = reader.Get4V("muons");
+	std::vector<int>* muons_global = reader.GetInt("muons_global");
+	std::vector<int>* muons_tracker = reader.GetInt("muons_tracker");
+	std::vector<float>* muons_tkIsoR03 = reader.GetFloat("muons_tkIsoR03");
+	std::vector<float>* muons_dz_PV_noMuon = reader.GetFloat("muons_dz_PV_noMuon");
+	
+	PV_nTracks       = reader.GetInt("PV_noMuon_nTracks");
+	PV_z             = reader.GetFloat("PV_noMuon_z");
+	PV_d0            = reader.GetFloat("PV_noMuon_d0");
+	PVtracks         = reader.Get3V("PVMuonLessTracks");
+	PVtracks_PVindex = reader.GetInt("PVMuonLessTracks_PVindex");
+	tracks_PVindex   = reader.GetInt("tracks_PVindex");
+	tracks_dxy_PV    = reader.GetFloat("tracks_dxy_PV");
+	tracks_dz_PV     = reader.GetFloat("tracks_dz_PV");
+	tracks_dz        = reader.GetFloat("tracks_dz");
+	photons_SC       = reader.Get4V("muons");  // use muon info for SC
+	
+	zmumuSelection(muons,muons_global,muons_tracker, muons_tkIsoR03,accept, indpho1, indpho2);
+	
+	if (!accept) continue;
+	
+	etaMaxSC = muons->at(indpho1).eta();
+	sum2pho  = muons->at(indpho1)+ muons->at(indpho2);
+	TrueVertex_Z = PV_z->at(0) + (muons_dz_PV_noMuon->at(indpho1) + muons_dz_PV_noMuon->at(indpho2))/2.;
+	
+	if (muons->at(indpho1).E() > muons->at(indpho2).E())
+	  {
+	    photons_eta[0] = muons->at(indpho1).eta();
+	    photons_eta[1] = muons->at(indpho2).eta();
+	    photons_phi[0] = muons->at(indpho1).phi();
+	    photons_phi[1] = muons->at(indpho2).phi();
+	    photons_E[0]   = muons->at(indpho1).E();
+	    photons_E[1]   = muons->at(indpho2).E();
+	    photons_pt[0]  = muons->at(indpho1).pt();
+	    photons_pt[1]  = muons->at(indpho2).pt();
+	    
+	    photonsSC_eta[0] = muons->at(indpho1).eta();
+	    photonsSC_eta[1] = muons->at(indpho2).eta();
+	    photonsSC_phi[0] = muons->at(indpho1).phi();
+	    photonsSC_phi[1] = muons->at(indpho2).phi();
+	    photonsSC_E[0]   = muons->at(indpho1).E();
+	    photonsSC_E[1]   = muons->at(indpho2).E();
+	  }
+	else
+	  {
+	    photons_eta[1] = muons->at(indpho1).eta();
+	    photons_eta[0] = muons->at(indpho2).eta();
+	    photons_phi[1] = muons->at(indpho1).phi();
+	    photons_phi[0] = muons->at(indpho2).phi();
+	    photons_E[1]   = muons->at(indpho1).E();
+	    photons_E[0]   = muons->at(indpho2).E();
+	    photons_pt[1]  = muons->at(indpho1).pt();
+	    photons_pt[0]  = muons->at(indpho2).pt();
+	    
+	    photonsSC_eta[1] = muons->at(indpho1).eta();
+	    photonsSC_eta[0] = muons->at(indpho2).eta();
+	    photonsSC_phi[1] = muons->at(indpho1).phi();
+	    photonsSC_phi[0] = muons->at(indpho2).phi();
+	    photonsSC_E[1]   = muons->at(indpho1).E();
+	    photonsSC_E[0]   = muons->at(indpho2).E();
+	  }
+	
+	if ( fabs(muons_dz_PV_noMuon->at(indpho1) - muons_dz_PV_noMuon->at(indpho2))> 0.5) continue;
+      }//Zmumu end
       
-      int npv = goodIndex.size();
-      if (npv == 0 ){continue;}
+      // branches buffers
+      int nvtx_;
+      float  vtxx_[1000], vtxy_[1000], vtxz_[1000];
+      int ntracks_;
+      float tkpx_[3000], tkpy_[3000], tkpz_[3000], tkPtErr_[3000], tkWeight_[3000], tkd0_[3000], tkd0Err_[3000], tkdz_[1000], tkdzErr_[3000];
+      int tkVtxId_[3000];
+      bool tkIsHighPurity_[3000];
+      
+      float phocalox_[100], phocaloy_[100], phocaloz_[100], phoen_[100];
+      
+      // set variables
+      
+      // vertices 
+      nvtx_    = (int) PV_z->size();
+      for ( int iv = 0; iv < nvtx_; iv++){
+	vtxx_[iv] =  0;
+	vtxy_[iv] =  0;
+	vtxz_[iv] =  PV_z->at(iv) ;
+      }
+      
+      // tracks
+      ntracks_ = PVtracks->size();
+      for (int itrk = 0; itrk <ntracks_; itrk++ ){
+	tkpx_[itrk]    = PVtracks->at(itrk).X();
+	tkpy_[itrk]    = PVtracks->at(itrk).Y();
+	tkpz_[itrk]    = PVtracks->at(itrk).Z();
+	tkPtErr_[itrk] = 0;
+	tkVtxId_[itrk] = PVtracks_PVindex->at(itrk);
+	
+	tkWeight_[itrk]= 1.;
+	tkd0_[itrk]    = 0;
+	tkd0Err_[itrk] = 0;
+	tkdz_[itrk]    = 0;
+	tkdzErr_[itrk] = 0;
+	tkIsHighPurity_[itrk]= 1.;
+      }
+      
+      // photons
+      for (int ipho = 0 ; ipho < photons_SC->size(); ipho++){
+	float px = photons_SC->at(ipho).X();
+	float py = photons_SC->at(ipho).Y();
+	float pz = photons_SC->at(ipho).Z();
+	float pt = sqrt ( px*px+py*py ); 
+	float theta = 2*atan(exp(-photons_SC->at(ipho).eta()) );
+	float tantheta = tan(theta);
+	
+	if ( fabs(photons_SC->at(ipho).eta()) < etaEB ) {
+	  phocalox_[ipho] = R_ECAL*px/pt;
+	  phocaloy_[ipho] = R_ECAL*py/pt;
+	  phocaloz_[ipho] = R_ECAL/tantheta;
+	} 
+	
+	if ( fabs(photons_SC->at(ipho).eta()) > etaEE ) {
+	  float r_endcap  = fabs(Z_ENDCAP * tantheta);
+	  phocalox_[ipho] = r_endcap * px/pt;
+	  phocaloy_[ipho] = r_endcap * py/pt;
+	  if (pz > 0) phocaloz_[ipho] = Z_ENDCAP;
+	  else phocaloz_[ipho] = -Z_ENDCAP;
+	} 
+	
+	phoen_[ipho] = photons_SC->at(ipho).E();
+	
+      }
+
+
+      float eta1 = photons_SC->at(indpho1).eta();
+      float eta2 = photons_SC->at(indpho2).eta();
+
+      if ( (fabs(eta1) > etaEB && fabs(eta1) < etaEE) || fabs(eta1) > 2.5) continue;
+      if ( (fabs(eta2) > etaEB && fabs(eta2) < etaEE) || fabs(eta2) > 2.5) continue;
+   
+      //*** set vertex info
+      TupleVertexInfo vinfo( nvtx_, vtxx_ , vtxy_, vtxz_, ntracks_, tkpx_, tkpy_, tkpz_, tkPtErr_, tkVtxId_, tkWeight_, tkd0_, tkd0Err_,tkdz_, tkdzErr_ , tkIsHighPurity_);
+           
+      //*** set photon info
+      PhotonInfo pho1(indpho1, TVector3(phocalox_[indpho1],phocaloy_[indpho1],phocaloz_[indpho1]),phoen_[indpho1]); 
+      PhotonInfo pho2(indpho2, TVector3(phocalox_[indpho2],phocaloy_[indpho2],phocaloz_[indpho2]),phoen_[indpho2]); 
+     
+      //*** vertex analyzer
+      HggVertexAnalyzer vAna(vtxAlgoParams_,nvtx_);
+      vAna.analyze(vinfo,pho1,pho2);
+            
+      //*** preselect vertices 
+      std::vector<int> presel;
+      for(int i=0; i<nvtx_; i++) {
+	presel.push_back(i); 
+      }
+      vAna.preselection(presel);
+      
       
       //look if the H vertex matches one of the PV vertices
       float dmin = 10000;
       int iClosest = -1;
-      int Vmatched = 0;
-      for ( int uu = 0; uu < npv; uu++)
+      for ( int uu = 0; uu < nvtx_; uu++)
 	{
-	  float distt = fabs( PV_z->at(goodIndex[uu]) - TrueVertex_Z );
-	  if ( distt < 0.3 )   { Vmatched++; }
+	  float distt = fabs( PV_z->at(uu) - TrueVertex_Z );
 	  if ( distt < dmin)   { dmin = distt; iClosest = uu; }
 	}
       
-      //pt balance for vertexId
-      for ( int uu = 0; uu < npv; uu++)
-	{
-	  //htemp->Reset();
-	  
-	  dk = -1;
-	  nTracks     = 0;
-	  nTracksPt05 = 0;
-	  nTracksPt4  = 0;
-	  
-	  ROOT::Math::XYZVector sumTracks;
-	  ROOT::Math::XYZVector sumTracksInCone_30;
-	  ROOT::Math::XYZVector sumTracksInCone_45;
-	  float vtxPx = 0;
-	  float vtxPy = 0;
-	  float vtxPz = 0;
-	  float vtxPt = 0;
-	  
-	  sumModPt = 0;
-	  sumPt2 = 0;
-	  
-	  for (unsigned int kk = 0; kk < PVtracks->size(); ++kk)
-	    {
-	      if (PVtracks_PVindex->at(kk) == goodIndex[uu])
-		{
-		  if ( PVtracks->at(kk).perp2() < trackThr*trackThr ) continue;
-		  
-// 		  double dr1 = deltaR( photonsSC_eta[0], photonsSC_phi[0], PVtracks->at(kk).eta(), PVtracks->at(kk).phi());
-// 		  double dr2 = deltaR( photonsSC_eta[1], photonsSC_phi[1], PVtracks->at(kk).eta(), PVtracks->at(kk).phi());
-// 		  if(dr1 < 0.05 || dr2 < 0.05) continue;
-		  
-		  vtxPx += PVtracks->at(kk).X();
-		  vtxPy += PVtracks->at(kk).Y();
-		  vtxPz += PVtracks->at(kk).Z();
-		  
-		  sumTracks += PVtracks->at(kk);
-		  sumModPt += sqrt((PVtracks->at(kk)).perp2());
-		  sumPt2 += PVtracks->at(kk).perp2();
-		  if ( deltaPhi(PVtracks->at(kk).phi(), sum2pho.phi()) > PI*11./12. ) sumTracksInCone_30 += PVtracks->at(kk);
-		  if ( deltaPhi(PVtracks->at(kk).phi(), sum2pho.phi()) > PI*7./8. ) sumTracksInCone_45 += PVtracks->at(kk);
-		  
-		  trackPx[nTracks] = PVtracks->at(kk).X();
-		  trackPy[nTracks] = PVtracks->at(kk).Y();
-		  trackPz[nTracks] = PVtracks->at(kk).Z();
-		  trackPt[nTracks] = sqrt(PVtracks->at(kk).perp2());
+      //*** NOW FILL THE TREE
+      for ( int uu = 0; uu < nvtx_; uu++){
+			
+	diphoM    = sum2pho.M();
+	diphopt   = vAna.diphopt(uu);
+	logsumpt2 = vAna.logsumpt2(uu);
+	nch       = vAna.nch(uu);
+	nchthr    = vAna.nchthr(uu);
+	ptbal     = vAna.ptbal(uu);
+	ptasym    = vAna.ptasym(uu);
+	ptmax     = vAna.ptmax(uu);
+	ptmax3    = vAna.ptmax3(uu);
+	sumtwd    = vAna.sumtwd(uu);
 
-		  nTracks ++;
-		  if ( PVtracks->at(kk).perp2() > 0.25 ) nTracksPt05++;
-		  if ( PVtracks->at(kk).perp2() > 16. )  nTracksPt4++;
-		  
-		  //htemp ->Fill( trackPt[nTracks] );
-		}
-	    }//tracks loop
-	  
-	  	  
+// 	htemp->Reset();
+// 	for (unsigned int kk = 0; kk < PVtracks->size(); ++kk){
+// 	  if (PVtracks_PVindex->at(kk) == uu){
+// 	    float tkpt = sqrt(PVtracks->at(kk).perp2()) ;
+// 	    htemp ->Fill( (tkpt < 10. ? tkpt : 10.) );
+// 	  }
+// 	}
+// 	if ( htemp->GetEntries()!=0 ) 
+// 	  dk = htemp->KolmogorovTest(hTrackPt);
 
-	  deltaPhi_HSumPt = deltaPhi( sumTracks.phi(),sum2pho.phi());
-	  modSumPt = sqrt( sumTracks.perp2() );
-	  modSumPtInCone_30 = sqrt( sumTracksInCone_30.perp2() );
-	  modSumPtInCone_45 = sqrt( sumTracksInCone_45.perp2() );
-	  sum2PhoPt = sum2pho.pt();	   
-	  normalizedChi2 = PV_normalizedChi2->at(goodIndex[uu]);
-	  
-	  ptbal  = -(vtxPx*sum2pho.X() + vtxPy*sum2pho.Y())/sum2pho.pt(); 
-	  vtxPt  = sqrt(vtxPx*vtxPx+vtxPy*vtxPy);
-	  ptasym = (vtxPt - sum2PhoPt)/ (vtxPt + sum2PhoPt);
-	  
-	  
-	  isSig = 0;
-	  if (uu == iClosest)
-	    isSig = 1;
-	  	  
-	  evtNumber = u;
-	  nVertices = npv;
-	  
-	  //if ( htemp->GetEntries()!=0 ) dk = htemp->KolmogorovTest(hTrackPt);
+	
+	isSig = 0;	
+	if (uu == iClosest)
+	  isSig = 1;
+	
+	evtNumber = u;
+	nVertices = nvtx_;
+      
+	
+	outTree -> Fill();
+	
 
-	  outTree -> Fill();	   
-	}//vertex loop
-    } //evt loop
-  
+      }// end vertex loop
+      
+
+      
+      
+      
+    }// end loop over entries
+
+  std::cout << "END LOOP OVER ENTRIES" << std::endl;
+  std::cout << "Saving histos on file ..." << std::endl;
   
   TFile ff( (outputRootFilePath+outputRootFileName).c_str(),"recreate");
-  
-  outTree -> Write();   
+
   hAcceptedLumis -> Write();
 
+  outTree -> Write();   
+  
   ff.Close();
+  
+  std::cout << "BYE BYE !!!! " << std::endl;
 
-
+  return 0; 
   
 
-  return 0;
-  
-  
 }
 
 
-bool PhotonId( float et, float eta, float Eiso, float Hiso, float HoE, float Tiso, float setaeta ) 
-{
-  
-  bool iso = Eiso < (4.2 + 0.006*et ) && Hiso < (2.2 + 0.0025*et) && Tiso < (3.5 + 0.001*et);
-  bool shape  = ( fabs (eta) < 1.45 && setaeta < 0.013 ) || ( fabs (eta) > 1.47 && setaeta < 0.030 );
-  
-  return (iso && shape && HoE<0.05);
 
-}
+
+
+
+
+
+
+
+
