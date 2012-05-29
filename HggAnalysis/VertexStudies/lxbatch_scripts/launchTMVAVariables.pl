@@ -26,7 +26,7 @@ $QUEUE            = $User_Preferences{"QUEUE"} ;
 
 
 $LISTFile = "./list.txt" ;
-system ("cmsLs ".$DATASETPATH." | grep root | awk '{print \"root://eoscms//eos/cms\" \$5}' > ".$LISTFile."\n") ;
+system ("cmsLs -R ".$DATASETPATH." | grep root | awk '{print \"root://eoscms//eos/cms\" \$5}' > ".$LISTFile."\n") ;
 
 $totNumber = 0;
 $jobNumber = 0;
