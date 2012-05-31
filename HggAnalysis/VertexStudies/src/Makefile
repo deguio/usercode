@@ -50,13 +50,13 @@ CXXFLAGS  =  -Wall -O -fPIC -I$(HDR) $(ROOTCFLAGS) $(NTUPLEPACKAGEFLAGS) $(VERTE
 CPP  =  c++
 CPPFLAGS  = -Wall $(ARCHL) -I$(HDR) $(ROOTCFLAGS) $(NTUPLEPACKAGEFLAGS) $(VERTEXANALYSISFLAGS)
 
+
 LD       =  c++
 LDFLAGS  =  -rdynamic -shared $(ARCHL)
 SONAME	 =  libMyTest.so
 SOFLAGS  =  -Wl,-soname,$(SONAME)
 
-GLIBS   =  -lm -ldl -rdynamic $(ROOTGLIBS) -lGenVector -lFoam -lMinuit -lTMVA -lMLP -lXMLIO  -lTreePlayer  $(NTUPLEPACKAGELIBS) $(VERTEXANALYSISLIBS)
-
+GLIBS   =  -lm -ldl -rdynamic $(ROOTGLIBS) -lGenVector  -lTMVA $(NTUPLEPACKAGELIBS) $(VERTEXANALYSISLIBS)
 
 #################################################
 #if mac
