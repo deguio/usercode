@@ -116,7 +116,7 @@ int main(int argc, char** argv)
   factory->AddVariable( "logsumpt2" );
   factory->AddVariable( "ptbal" );
   factory->AddVariable( "ptasym" );
-//   factory->AddVariable( "nch" );
+  factory->AddVariable( "nch" );
 //   factory->AddVariable( "nchthr" );
 //   factory->AddVariable( "ptmax" );
 //   factory->AddVariable( "ptmax3" );

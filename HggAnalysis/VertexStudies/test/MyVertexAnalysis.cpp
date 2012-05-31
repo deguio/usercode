@@ -109,7 +109,7 @@ int main(int argc, char** argv)
   
   //****** Get weights for MC ****** 
   float nmax;
-  float w[50];
+  float w[100]={0.};
   TRandom *gRandom = new TRandom();
   
   if (useWeights){
@@ -241,7 +241,7 @@ int main(int argc, char** argv)
   TH1F pt2bkg("pt2bkg","pt2 bkg",500,0,500);
 
 
-  TH2F * hAcceptedLumis = new TH2F("hAcceptedLumis","hAcceptedLumis",20000, 160000, 180000, 10000, 0, 10000);
+  //TH2F * hAcceptedLumis = new TH2F("hAcceptedLumis","hAcceptedLumis",20000, 160000, 180000, 10000, 0, 10000);
 
 
   float ww = 1;
@@ -273,7 +273,7 @@ int main(int argc, char** argv)
 	  skipEvent = true;
       }
       if( skipEvent == true ) continue;
-      hAcceptedLumis -> Fill(runId, lumiId);
+      //hAcceptedLumis -> Fill(runId, lumiId);
 
       //*** pu weights
       std::vector<float>*PU_z ;
@@ -291,9 +291,11 @@ int main(int argc, char** argv)
 
 	//--- use weights 
 	if (useWeights){
-	  float myrnd = gRandom->Uniform(0,nmax);
+	  //float myrnd = gRandom->Uniform(0,nmax);
 	  //if (myrnd > w[npu]) continue; // used in 2011
-	  if (myrnd > w[int(npuTrue)]) continue; // for 2012
+	  //if (myrnd > w[int(npuTrue)]) continue; // for 2012
+	  //if ( npuTrue > 50 ) std::cout << npuTrue << std::endl;
+	  ww = w[int(npuTrue)];
 	}
       }
 
@@ -619,7 +621,7 @@ int main(int argc, char** argv)
   
   TFile ff( (outputRootFilePath+outputRootFileName).c_str(),"recreate");
 
-  hAcceptedLumis -> Write();
+  //hAcceptedLumis -> Write();
   
   PtAll.Write();
   PtGood.Write();

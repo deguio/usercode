@@ -96,7 +96,7 @@ int main(int argc, char** argv)
   std::string jsonFileName = gConfigParser -> readStringOption("Options::jsonFileName");  
 
   // Get run/LS map from JSON file
-  std::cout << ">>> Gettting GOOD  run/LS from JSON file" << std::endl;
+  std::cout << ">>> Getting GOOD  run/LS from JSON file" << std::endl;
   std::map<int, std::vector<std::pair<int, int> > > jsonMap;
   jsonMap = readJSONFile(jsonFileName);
 
@@ -127,13 +127,13 @@ int main(int argc, char** argv)
       hweights = (TH1F*)weightsFile.Get("hweights");
     }
 
-
-    nmax = hweights ->GetMaximum();
-    std::cout << nmax << std::endl;
-    
     for (int ibin = 1; ibin < hweights->GetNbinsX()+1; ibin++){
+      // trick to skip low lumi runs that have very large weights
+      if ( ibin < 6 ) hweights->SetBinContent(ibin,0.);
       w[ibin-1] = hweights->GetBinContent(ibin);  // bin 1 --> nvtx = 0 
     }
+    nmax = hweights ->GetMaximum();
+    std::cout << " Max weight " << nmax << std::endl;
     weightsFile.Close();
   }
   
@@ -243,18 +243,27 @@ int main(int argc, char** argv)
 
       if( skipEvent == true ) continue;
 
-      
+      //*** pu weights
       std::vector<float>*PU_z ;
       std::vector<int>* mc_PUit_NumInteractions; 
-     
-      //--- use weights 
-      if (useWeights){
-
+      std::vector<float>* mc_PUit_TrueNumInteractions; 
+      int npu ;
+      float npuTrue;
+      
+      if ( !isData ){
 	mc_PUit_NumInteractions  = reader.GetInt("mc_PUit_NumInteractions");
 	npu = mc_PUit_NumInteractions->at(0);
 
-	float myrnd = gRandom->Uniform(0,nmax);
-       	if (myrnd > w[npu]) continue;
+      	mc_PUit_TrueNumInteractions  = reader.GetFloat("mc_PUit_TrueNumInteractions"); // needed for 2012 PU reweighting
+	npuTrue = mc_PUit_TrueNumInteractions->at(0);
+
+	//--- use weights 
+	if (useWeights){
+	  float myrnd = gRandom->Uniform(0,nmax);
+	  //if (myrnd > w[npu]) continue; // used in 2011
+	  if (myrnd > w[int(npuTrue)]) continue; // for 2012
+	  //ww = w[int(npuTrue)];
+	}
       }
 
       //setup common branches
