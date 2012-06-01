@@ -1,0 +1,13 @@
+DATASETPATH    = /store/cmst3/user/malberti/HIGGS/VERTEX/2012/DATA/
+
+CFGTEMPLATE    = pervertexMVA_ZmumuData_TEMPLATE.cfg
+
+JOBDIR         = PerVertexMVA_DoubleMu_190456-194479
+
+OUTPUTDIR      = /afs/cern.ch/work/m/malberti/private/PerVertexMVA_DoubleMu_190456-194479/
+
+OUTPUTFILENAME = PerVertexMVA_DoubleMu_190456-194479
+
+JOBMODULO      = 10
+
+QUEUE          = 8nh
