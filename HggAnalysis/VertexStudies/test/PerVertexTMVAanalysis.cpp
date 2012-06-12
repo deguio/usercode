@@ -128,10 +128,10 @@ int main(int argc, char** argv)
     }
 
     for (int ibin = 1; ibin < hweights->GetNbinsX()+1; ibin++){
-      // trick to skip low lumi runs that have very large weights
-      if ( ibin < 6 ) hweights->SetBinContent(ibin,0.);
       w[ibin-1] = hweights->GetBinContent(ibin);  // bin 1 --> nvtx = 0 
     }
+    
+    hweights->GetXaxis()->SetRangeUser(5,60);
     nmax = hweights ->GetMaximum();
     std::cout << " Max weight " << nmax << std::endl;
     weightsFile.Close();
@@ -239,6 +239,8 @@ int main(int argc, char** argv)
       if( isData && useJSON ){
 	if(AcceptEventByRunAndLumiSection(runId,lumiId,jsonMap) == false)
 	  skipEvent = true;
+	if ( runId==190949 || runId==191090 || runId==191112 || runId==191116 )  // skip low lumi runs
+	  skipEvent = true;
       }
 
       if( skipEvent == true ) continue;
@@ -257,11 +259,13 @@ int main(int argc, char** argv)
       	mc_PUit_TrueNumInteractions  = reader.GetFloat("mc_PUit_TrueNumInteractions"); // needed for 2012 PU reweighting
 	npuTrue = mc_PUit_TrueNumInteractions->at(0);
 
+	if ( npuTrue<6 ) continue;  // skip low lumi runs
+
 	//--- use weights 
 	if (useWeights){
 	  float myrnd = gRandom->Uniform(0,nmax);
-	  //if (myrnd > w[npu]) continue; // used in 2011
-	  if (myrnd > w[int(npuTrue)]) continue; // for 2012
+	  if (myrnd > w[npu]) continue; // observed
+	  //if (myrnd > w[int(npuTrue)]) continue; // true
 	  //ww = w[int(npuTrue)];
 	}
       }

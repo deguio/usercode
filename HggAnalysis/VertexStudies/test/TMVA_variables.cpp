@@ -120,11 +120,10 @@ int main(int argc, char** argv)
     }
     
     for (int ibin = 1; ibin < hweights->GetNbinsX()+1; ibin++){
-      // trick to skip low lumi runs
-      if ( ibin < 6 ) hweights->SetBinContent(ibin,0.);
       w[ibin-1] = hweights->GetBinContent(ibin);  // bin 1 --> nvtx = 0 
     }
-
+    hweights->GetXaxis()->SetRangeUser(5,60);
+    nmax = hweights ->GetMaximum();
     nmax = hweights ->GetMaximum();
     std::cout << " Max weight " << nmax << std::endl;
     weightsFile.Close();
@@ -197,7 +196,7 @@ int main(int argc, char** argv)
   outTree -> Branch("isSig", &isSig, "isSig/I");
     
 
-  TH2F * hAcceptedLumis = new TH2F("hAcceptedLumis","hAcceptedLumis",20000, 160000, 180000, 10000, 0, 10000);
+  //TH2F * hAcceptedLumis = new TH2F("hAcceptedLumis","hAcceptedLumis",20000, 160000, 180000, 10000, 0, 10000);
 
 
   float ww = 1;
@@ -227,9 +226,11 @@ int main(int argc, char** argv)
       if( isData && useJSON ){
 	if(AcceptEventByRunAndLumiSection(runId,lumiId,jsonMap) == false)
 	  skipEvent = true;
+	if ( runId==190949 || runId==191090 || runId==191112 || runId==191116 )  // skip low lumi runs
+	  skipEvent = true;
       }
       if( skipEvent == true ) continue;
-      hAcceptedLumis -> Fill(runId, lumiId);
+      //hAcceptedLumis -> Fill(runId, lumiId);
 
       //*** pu weights        
       std::vector<float>*PU_z ;
@@ -248,8 +249,8 @@ int main(int argc, char** argv)
         //--- use weights     
         if (useWeights){
           float myrnd = gRandom->Uniform(0,nmax);
-          //if (myrnd > w[npu]) continue; // used in 2011    
-	  if (myrnd > w[int(npuTrue)]) continue; // for 2012  
+          if (myrnd > w[npu]) continue; // used in 2011    
+	  //if (myrnd > w[int(npuTrue)]) continue; // for 2012  
 	}
       }
 
@@ -612,7 +613,7 @@ int main(int argc, char** argv)
   
   TFile ff( (outputRootFilePath+outputRootFileName).c_str(),"recreate");
 
-  hAcceptedLumis -> Write();
+  ///  hAcceptedLumis -> Write();
 
   outTree -> Write();   
   
