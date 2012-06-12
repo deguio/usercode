@@ -3,15 +3,15 @@
   setTDRStyle();
   gStyle->SetErrorX(0.5);
 
-  int saveScaleFactors    = 0;
-  bool useVariableBinning = false;
+  int saveScaleFactors    = 1;
+  bool useVariableBinning = true;
 
   // 0 : data
   // 1 : mc
 
   TFile *f[2];
-  f[0] = TFile::Open("/afs/cern.ch/work/m/malberti/private/Eff_DoubleMu_190456-194479/TMVA_check_DoubleMu_190456-194479.root");
-  f[1] = TFile::Open("/afs/cern.ch/work/m/malberti/private/Eff_DYJetsToLL_S9_minBiasXsec68300_190456-194479/TMVA_check_DYJetsToLL_S9_minBiasXsec68300_190456-194479.root");
+  f[0] = TFile::Open("/afs/cern.ch/work/m/malberti/private/Eff_DoubleMu_190456-195016/TMVA_check_DoubleMu_190456-195016.root");
+  f[1] = TFile::Open("/afs/cern.ch/work/m/malberti/private/Eff_DYJetsToLL_S9_minBiasXsec69000_observed_190456-195016/TMVA_check_DYJetsToLL_S9_minBiasXsec69000_observed_190456-195016.root");
     
   // legend
   string legtitle1    = "DATA Z#rightarrow#mu#mu (RANK)";
@@ -219,6 +219,17 @@
   ratioEffVsPt_BDT->Draw("e1");
   //ratioEffVsPt_Baseline->Draw("e1same");
 
+  //-- save also in TGraphErrors format
+  TGraphErrors *gratioEffVsPt_BDT = new TGraphErrors();
+  for (int ibin = 0; ibin < ratioEffVsPt_BDT->GetNbinsX();  ibin++){
+    float x  = ratioEffVsPt_BDT->GetBinCenter(ibin+1);
+    float ex = ratioEffVsPt_BDT->GetBinWidth(ibin+1)/2;
+    float y  = ratioEffVsPt_BDT->GetBinContent(ibin+1);
+    float ey = ratioEffVsPt_BDT->GetBinError(ibin+1);
+    gratioEffVsPt_BDT->SetPoint(ibin,x,y);
+    gratioEffVsPt_BDT->SetPointError(ibin,ex,ey);
+  }
+
   TLegend legend4(0.15, 0.2, 0.45, 0.4);
   legend4.SetFillColor(kWhite);
   legend4.SetBorderSize(1);
@@ -255,12 +266,11 @@
   //legend5.Draw("same");
 
   if (saveScaleFactors){
-    //    TFile *fileout = new TFile("vtxIdScaleFactorFromZmumu_Summer11_Puweights160404-167151.root","recreate");
-    //TFile *fileout = new TFile("vtxIdScaleFactorFromZmumu_Summer11_Puweights_lp.root","recreate");
-    //TFile *fileout = new TFile("vtxIdScaleFactorFromZmumu_Summer11_Puweights_eps.root","recreate");
-    TFile *fileout = new TFile("vtxIdScaleFactorFromZmumu_Summer11_Puweights_after_eps.root","recreate");
-    ratioEffVsPt_BDT->SetTitle("scaleFactor");
-    ratioEffVsPt_BDT->Write("scaleFactor");
+    TFile *fileout = new TFile("vtxIdScaleFactorFromZmumu_Summer12_PUweights_minBiasXsec69000_observed.root","recreate");
+    ratioEffVsPt_BDT->SetTitle("hscaleFactor");
+    ratioEffVsPt_BDT->Write("hscaleFactor");
+    gratioEffVsPt_BDT->SetTitle("scaleFactor");
+    gratioEffVsPt_BDT->Write("scaleFactor");
   }
 
 
