@@ -4,8 +4,8 @@
   setTDRStyle();
 
   TFile *f[2];
-  f[0] = TFile::Open("outputTMVA/PerEventMVA_DYJetsToLL_S9_minBiasXsec68300_190456-194479.root");  
-  f[1] = TFile::Open("outputTMVA/PerEventMVA_DoubleMu_190456-194479.root");
+  f[0] = TFile::Open("outputTMVA/PerEventMVA_DYJetsToLL_S9_minBiasXsec69000_190456-195016.root");  
+  f[1] = TFile::Open("outputTMVA/PerEventMVA_DoubleMu_190456-195016.root");
   
   
   // histograms
@@ -60,7 +60,7 @@
   leg->AddEntry(tmvaPerEventOutput[0],"MC Z#rightarrow#mu#mu","F");
   leg->AddEntry(tmvaPerEventOutput[1],"Data Z#rightarrow#mu#mu","LP");
 
-  TLatex *latex = new TLatex(0.55,0.85,"#splitline{          CMS preliminary}{#sqrt{s} = 8 TeV L = 1.92 fb^{-1}}");
+  TLatex *latex = new TLatex(0.55,0.85,"#splitline{          CMS preliminary}{#sqrt{s} = 8 TeV L = 2.8 fb^{-1}}");
   latex->SetNDC();
   latex->SetTextFont(42);
   latex->SetTextSize(0.04);
