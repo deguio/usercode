@@ -1,9 +1,0 @@
-FileIn         /tmp/malberti/treeWtaunu_7TeV.root
-FileOut        outputHistos_Wtaunu_7TeV.root
-Xsec           10312.
-Lumi           100.
-GenFilterEff   1.
-SkimEff        0.0839
-NeventsDataset 2185655
-MaxJetPt       100
-
