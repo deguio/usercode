@@ -69,7 +69,10 @@ int main(int argc, char** argv)
   
   std::string tmvaMethod    = gConfigParser -> readStringOption("Input::tmvaMethod");
   std::string tmvaWeights   = gConfigParser -> readStringOption("Input::tmvaWeights");
-  
+ 
+  std::string tmvaEventMethod    = gConfigParser -> readStringOption("Input::tmvaEventMethod");
+  std::string tmvaEventWeights   = gConfigParser -> readStringOption("Input::tmvaEventWeights");
+ 
   std::string outputRootFilePath = gConfigParser -> readStringOption("Output::outputRootFilePath");
   std::string outputRootFileName = gConfigParser -> readStringOption("Output::outputRootFileName");  
 
@@ -97,6 +100,9 @@ int main(int argc, char** argv)
   int useJSON      = gConfigParser -> readIntOption("Options::useJSON");
   std::string jsonFileName = gConfigParser -> readStringOption("Options::jsonFileName");  
 
+  int doBSreweighting      = gConfigParser -> readIntOption("Options::doBSreweighting");
+  float dzRightVertex   = gConfigParser -> readFloatOption("Options::dzRightVertex");
+  
   //******* Get run/LS map from JSON file *******
   std::map<int, std::vector<std::pair<int, int> > > jsonMap;
   if ( isData && useJSON ) {
@@ -168,11 +174,33 @@ int main(int argc, char** argv)
     tmvaPerVtxVariables_.push_back("nConv");
   } 
   
-  //--- book TMVA
+  //--- book per vertex TMVA
   TMVA::Reader *tmvaReader_ = new TMVA::Reader( "!Color:!Silent" );
   HggVertexAnalyzer::bookVariables( *tmvaReader_, tmvaPerVtxVariables_ );
   tmvaReader_->BookMVA( tmvaMethod.c_str(), tmvaWeights.c_str() );
 
+  //--- book per event TMVA
+  TMVA::Reader *tmvaPerEvtReader_ = new TMVA::Reader( "!Color:!Silent" );
+  HggVertexAnalyzer::bookPerEventVariables( *tmvaPerEvtReader_, 3, true );
+  tmvaPerEvtReader_->BookMVA( tmvaEventMethod.c_str(), tmvaEventWeights.c_str() );
+
+
+  //--- parameters for beam spot reweighting
+  float newBSmean1  = 9.9391e-02;
+  float newBSmean2  = 1.8902e-01;
+  float newBSnorm1  = 5.3210e+00;
+  float newBSnorm2  = 4.1813e+01;
+  float newBSsigma1 = 9.7530e-01;
+  float newBSsigma2 = 7.0811e+00;
+  
+  float oldBSmean1  = 7.2055e-02;
+  float oldBSmean2  = 4.9986e-01;
+  float oldBSnorm1  = 3.5411e+00;
+  float oldBSnorm2  = 4.0258e+01;
+  float oldBSsigma1 = 7.9678e-01;
+  float oldBSsigma2 = 8.5356e+00;
+
+  float diff ,newBSgaus1,  newBSgaus2 , oldBSgaus1 , oldBSgaus2, bsweight; 
 
   //****** BOOK OUTPUT HISTOGRAMS ******
 
@@ -234,7 +262,16 @@ int main(int argc, char** argv)
   TH1F BDToutput("BDToutput","BDT output",500,-1,1);
   TH1F BDToutput_sig("BDToutput_sig","BDT output - signal vertices",500,-1,1);
   TH1F BDToutput_bkg("BDToutput_bkg","BDT output - background",500,-1,1);
-  
+ 
+  TH1F perEventBDToutput("perEventBDToutput","BDT output",500,-1,1);
+  TH1F perEventBDToutput_sig("perEventBDToutput_sig","BDT output - signal vertices",500,-1,1);
+  TH1F perEventBDToutput_bkg("perEventBDToutput_bkg","BDT output - background",500,-1,1);
+ 
+  TH1F ChosenVertex_BDT("ChosenVertex_BDT","index of chosen vertex (BDT)",50,0,50);
+  TH1F ChosenVertexDz_BDT("ChosenVertexDz_BDT"," chosen vertex (z - z_{true}) (BDT)",100000,-50,50);
+  TH2F ChosenVertexDz_BDT_vs_pt("ChosenVertexDz_BDT_vs_pt"," chosen vertex (z - z_{true}) (BDT)",200, 0, 200, 100000,-50,50);
+
+  TH1F hz("hz"," primary vertex z",10000,-50,50);
 
   TH1F pt2h("pt2h","pt2 H",500,0,500);
   TH1F pt2bkg("pt2bkg","pt2 bkg",500,0,500);
@@ -245,6 +282,7 @@ int main(int argc, char** argv)
 
   float ww = 1;
   float r9cut = 0.93;
+  float mindz = dzRightVertex;
   
   //****** LOAD TREE ******
   TChain* chain = new TChain(treeName.c_str());
@@ -290,15 +328,11 @@ int main(int argc, char** argv)
       	mc_PUit_TrueNumInteractions  = reader.GetFloat("mc_PUit_TrueNumInteractions"); // needed for 2012 PU reweighting
 	npuTrue = mc_PUit_TrueNumInteractions->at(0);
 
-	if ( npuTrue<6 ) continue;  // skip low lumi runs
+	//	if ( npuTrue<6 ) continue;  // skip low lumi runs
 
 	//--- use weights 
 	if (useWeights){
 	  //float myrnd = gRandom->Uniform(0,nmax);
-	  //if (myrnd > w[npu]) continue; // used in 2011
-	  //if (myrnd > w[int(npuTrue)]) continue; // for 2012
-	  //if ( npuTrue > 50 ) std::cout << npuTrue << std::endl;
-	  //ww = w[int(npuTrue)]; // true
 	  ww = w[int(npu)]; // observed
 	}
       }
@@ -307,6 +341,7 @@ int main(int argc, char** argv)
       //*** setup common branches ***
       std::vector<int>* PV_nTracks;
       std::vector<float>* PV_z;
+      std::vector<float>* PV_z_muon;
       std::vector<float>* PV_d0;
       std::vector<ROOT::Math::XYZVector>* PVtracks;
       std::vector<int>* PVtracks_PVindex;
@@ -417,45 +452,68 @@ int main(int argc, char** argv)
 	std::vector<int>* muons_global = reader.GetInt("muons_global");
 	std::vector<int>* muons_tracker = reader.GetInt("muons_tracker");
 	std::vector<float>* muons_tkIsoR03 = reader.GetFloat("muons_tkIsoR03");
+	std::vector<float>* muons_normalizedChi2 = reader.GetFloat("muons_normalizedChi2");
+	std::vector<int>* muons_numberOfValidMuonHits = reader.GetInt("muons_numberOfValidMuonHits");
+	std::vector<int>* muons_numberOfValidPixelHits = reader.GetInt("muons_numberOfValidPixelHits");
+	std::vector<float>* muons_dxy_PV = reader.GetFloat("muons_dxy_PV");
+	std::vector<float>* muons_dz_PV = reader.GetFloat("muons_dz_PV");
 	std::vector<float>* muons_dz_PV_noMuon = reader.GetFloat("muons_dz_PV_noMuon");
-	
+		
 	PV_nTracks       = reader.GetInt("PV_noMuon_nTracks");
 	PV_z             = reader.GetFloat("PV_noMuon_z");
 	PV_d0            = reader.GetFloat("PV_noMuon_d0");
 	PVtracks         = reader.Get3V("PVMuonLessTracks");
 	PVtracks_PVindex = reader.GetInt("PVMuonLessTracks_PVindex");
+	PV_z_muon        = reader.GetFloat("PV_z");
+
+// 	//************ test !!!!!!!!!!!!!!!!
+// 	PV_nTracks       = reader.GetInt("PV_nTracks");
+// 	PV_z             = reader.GetFloat("PV_z");
+// 	PV_d0            = reader.GetFloat("PV_d0");
+// 	PVtracks         = reader.Get3V("PVtracks");
+// 	PVtracks_PVindex = reader.GetInt("PVtracks_PVindex");
+	//************ 
+
 	tracks_PVindex   = reader.GetInt("tracks_PVindex");
 	tracks_dxy_PV    = reader.GetFloat("tracks_dxy_PV");
 	tracks_dz_PV     = reader.GetFloat("tracks_dz_PV");
 	tracks_dz        = reader.GetFloat("tracks_dz");
 	sc               = reader.Get4V("muons");  // use muon info for SC
 	
-	zmumuSelection(muons,muons_global,muons_tracker, muons_tkIsoR03, accept, indpho1, indpho2);
+	zmumuSelection(muons,muons_global,muons_tracker, muons_tkIsoR03, 
+		       muons_normalizedChi2 , 
+		       muons_numberOfValidMuonHits,
+		       muons_numberOfValidPixelHits,
+		       muons_dxy_PV,
+		       muons_dz_PV,
+		       accept, indpho1, indpho2);
 	
 	if (!accept) continue;
 	
 	etaMaxSC = muons->at(indpho1).eta();
 	sum2pho  = muons->at(indpho1)+ muons->at(indpho2);
 	TrueVertex_Z = PV_z->at(0) + (muons_dz_PV_noMuon->at(indpho1) + muons_dz_PV_noMuon->at(indpho2))/2.;
-	
+		
 	hdiff_dZ_muons.Fill( sum2pho.pt(), muons_dz_PV_noMuon->at(indpho1) - muons_dz_PV_noMuon->at(indpho2) );
 	
 	if ( fabs(muons_dz_PV_noMuon->at(indpho1) - muons_dz_PV_noMuon->at(indpho2))> 0.5) continue;
       }//Zmumu end
-      
+
+    
       // branches buffers
       int nvtx_;
       float  vtxx_[1000], vtxy_[1000], vtxz_[1000];
       int ntracks_;
-      float tkpx_[3000], tkpy_[3000], tkpz_[3000], tkPtErr_[3000], tkWeight_[3000], 
-	tkd0_[3000], tkd0Err_[3000], tkdz_[3000], tkdzErr_[3000];
-      int tkVtxId_[3000];
-      bool tkIsHighPurity_[3000];
+      float tkpx_[5000], tkpy_[5000], tkpz_[5000], tkPtErr_[5000], tkWeight_[5000], 
+	tkd0_[5000], tkd0Err_[5000], tkdz_[5000], tkdzErr_[5000];
+      int tkVtxId_[5000];
+      bool tkIsHighPurity_[5000];
       
       float phocalox_[100], phocaloy_[100], phocaloz_[100], phoen_[100];
       
       // set variables
       
+   
       // vertices 
       nvtx_    = (int) PV_z->size();
       for ( int iv = 0; iv < nvtx_; iv++){
@@ -518,18 +576,22 @@ int main(int argc, char** argv)
       //*** set vertex info
       TupleVertexInfo vinfo( nvtx_, vtxx_ , vtxy_, vtxz_, ntracks_, tkpx_, tkpy_, tkpz_, tkPtErr_, tkVtxId_, tkWeight_, tkd0_, tkd0Err_,tkdz_, tkdzErr_ , tkIsHighPurity_);
            
+     
+
       //*** set photon info
       PhotonInfo pho1(indpho1, TVector3(phocalox_[indpho1],phocaloy_[indpho1],phocaloz_[indpho1]),phoen_[indpho1]); 
       PhotonInfo pho2(indpho2, TVector3(phocalox_[indpho2],phocaloy_[indpho2],phocaloz_[indpho2]),phoen_[indpho2]); 
      
       //*** vertex analyzer
       HggVertexAnalyzer vAna(vtxAlgoParams_,nvtx_);
+      vAna.setNConv(0);
       vAna.analyze(vinfo,pho1,pho2);
             
       //*** preselect vertices 
       std::vector<int> presel;
       for(int i=0; i<nvtx_; i++) {
 	presel.push_back(i); 
+	hz.Fill(PV_z->at(i));
       }
       vAna.preselection(presel);
       
@@ -547,62 +609,83 @@ int main(int argc, char** argv)
 
       //*** NOW FILL HISTOGRAMS
       
-      PtAll.Fill( sum2pho.pt(),ww );
-      if (fabs(eta1) < etaEB && fabs(eta2) < etaEB)  PtAll_EBEB.Fill( sum2pho.pt(),ww );
-      if (fabs(eta1) > etaEE && fabs(eta2) > etaEE)  PtAll_EEEE.Fill( sum2pho.pt(),ww );
-      if ( (fabs(eta1) < etaEB && fabs(eta2) > etaEE) || (fabs(eta2) < etaEB && fabs(eta1) > etaEE))  PtAll_EBEE.Fill( sum2pho.pt(),ww );
 
-      EtaAll.Fill( etaMaxSC ,ww);
-      NvtAll.Fill( nvtx_,ww );
-      if (!isData) NpuAll.Fill(npu,ww);
 
       //*** SUMPT2 CRITERION
-      vector<int> ranksumpt2 = vAna.rankprod(ranksumpt2_);
-      //-- matching 1cm
-      if ( fabs( TrueVertex_Z - PV_z->at(ranksumpt2[0]) ) < 1.) {
-	PtGood.Fill( sum2pho.pt(),ww );
-	EtaGood.Fill( etaMaxSC ,ww);
-	NvtGood.Fill( nvtx_ ,ww);
-	if (!isData) NpuGood.Fill(npu,ww);
-      }
-      //-- matching closest vtx
-      if ( iClosest == ranksumpt2[0]){
-	PtGood_matchedClosest.Fill( sum2pho.pt(),ww );
-	EtaGood_matchedClosest.Fill( etaMaxSC ,ww);
-	NvtGood_matchedClosest.Fill( nvtx_ ,ww);
-	if (!isData) NpuGood_matchedClosest.Fill(npu,ww);
-      }        
+//       vector<int> ranksumpt2 = vAna.rankprod(ranksumpt2_);
+//       //-- matching 1cm
+//       if ( fabs( TrueVertex_Z - PV_z->at(ranksumpt2[0]) ) < mindz) {
+// 	PtGood.Fill( sum2pho.pt(),ww );
+// 	EtaGood.Fill( etaMaxSC ,ww);
+// 	NvtGood.Fill( nvtx_ ,ww);
+// 	if (!isData) NpuGood.Fill(npu,ww);
+//       }
+//       //-- matching closest vtx
+//       if ( iClosest == ranksumpt2[0]){
+// 	PtGood_matchedClosest.Fill( sum2pho.pt(),ww );
+// 	EtaGood_matchedClosest.Fill( etaMaxSC ,ww);
+// 	NvtGood_matchedClosest.Fill( nvtx_ ,ww);
+// 	if (!isData) NpuGood_matchedClosest.Fill(npu,ww);
+//       }        
 
    
       //*** RANKING PRODUCT
-      vector<int> rankprod = vAna.rankprod(rankVariables_);
-      //-- matching 1cm
-      if ( fabs( TrueVertex_Z - PV_z->at(rankprod[0]) ) < 1.) {
-	PtGood_RANK.Fill( sum2pho.pt(),ww );
-	EtaGood_RANK.Fill( etaMaxSC ,ww);
-	NvtGood_RANK.Fill( nvtx_,ww );
-	if (!isData) NpuGood_RANK.Fill(npu,ww);
-      }
-      //-- matching closest vtx
-      if ( iClosest == rankprod[0]){
-	PtGood_RANK_matchedClosest.Fill( sum2pho.pt(),ww );
-	EtaGood_RANK_matchedClosest.Fill( etaMaxSC ,ww);
-	NvtGood_RANK_matchedClosest.Fill( nvtx_,ww );
-	if (!isData) NpuGood_RANK_matchedClosest.Fill(npu,ww);
-      }
+//       vector<int> rankprod = vAna.rankprod(rankVariables_);
+//       //-- matching 1cm
+//       if ( fabs( TrueVertex_Z - PV_z->at(rankprod[0]) ) < mindz) {
+// 	PtGood_RANK.Fill( sum2pho.pt(),ww );
+// 	EtaGood_RANK.Fill( etaMaxSC ,ww);
+// 	NvtGood_RANK.Fill( nvtx_,ww );
+// 	if (!isData) NpuGood_RANK.Fill(npu,ww);
+//       }
+//       //-- matching closest vtx
+//       if ( iClosest == rankprod[0]){
+// 	PtGood_RANK_matchedClosest.Fill( sum2pho.pt(),ww );
+// 	EtaGood_RANK_matchedClosest.Fill( etaMaxSC ,ww);
+// 	NvtGood_RANK_matchedClosest.Fill( nvtx_,ww );
+// 	if (!isData) NpuGood_RANK_matchedClosest.Fill(npu,ww);
+//       }
       
 
       //*** BDT 
       vector<int> ranktmva = vAna.rank(*tmvaReader_,tmvaMethod);
-      float vtxmva;
-      for (int iv=0;iv<ranktmva.size();iv++) {
-	vtxmva = vAna.mva(ranktmva[iv]);
-	BDToutput.Fill( vtxmva );
-	if ( iClosest == ranktmva[iv] ) BDToutput_sig.Fill( vtxmva );
-	else BDToutput_bkg.Fill( vtxmva );
+      
+      // -- BS reweighting 
+      if (doBSreweighting){
+        diff = PV_z->at(ranktmva[0])-TrueVertex_Z;
+	newBSgaus1 = newBSnorm1*exp(-0.5*pow((diff-newBSmean1)/newBSsigma1,2));
+	newBSgaus2 = newBSnorm2*exp(-0.5*pow((diff-newBSmean2)/newBSsigma2,2));
+	oldBSgaus1 = oldBSnorm1*exp(-0.5*pow((diff-oldBSmean1)/oldBSsigma1,2));
+	oldBSgaus2 = oldBSnorm2*exp(-0.5*pow((diff-oldBSmean2)/oldBSsigma2,2));
+	bsweight = (newBSgaus1+newBSgaus2)/(oldBSgaus1+oldBSgaus2);
+	if (fabs(diff)>0.1) {
+	  //cout << diff << "  "  << bsweight << endl;
+	  ww*=bsweight;
+	}
       }
+      ChosenVertex_BDT.Fill(ranktmva[0],ww);
+      ChosenVertexDz_BDT.Fill(TrueVertex_Z - PV_z->at(ranktmva[0]),ww);
+      ChosenVertexDz_BDT_vs_pt.Fill(sum2pho.pt(),TrueVertex_Z - PV_z->at(ranktmva[0]),ww);
+      float vtxmva, evtmva;
+      // fill per vertex mva 
+      for (int iv=0;iv<ranktmva.size();iv++) {
+	float vtxmva = vAna.mva(ranktmva[iv]);
+	if ( iClosest == ranktmva[iv] ) BDToutput_sig.Fill( vtxmva, ww );
+	else 	BDToutput_bkg.Fill( vtxmva, ww );
+      }
+      // fill per event mva
+      evtmva = vAna.perEventMva(*tmvaPerEvtReader_, tmvaEventMethod.c_str(),ranktmva);
+      perEventBDToutput.Fill( evtmva, ww );
+      if (fabs( TrueVertex_Z - PV_z->at(ranktmva[0]) ) < mindz) {
+      	perEventBDToutput_sig.Fill( evtmva, ww );
+      }
+      else{
+	perEventBDToutput_bkg.Fill( evtmva, ww );
+      }
+
+
       //-- matching 1cm
-      if ( fabs( TrueVertex_Z - PV_z->at(ranktmva[0]) ) < 1.) {
+      if ( fabs( TrueVertex_Z - PV_z->at(ranktmva[0]) ) < mindz) {
 	PtGood_BDT.Fill( sum2pho.pt(),ww );
 	EtaGood_BDT.Fill( etaMaxSC ,ww);
 	NvtGood_BDT.Fill( nvtx_ ,ww);
@@ -616,6 +699,16 @@ int main(int argc, char** argv)
 	if (!isData) NpuGood_BDT_matchedClosest.Fill(npu,ww);
       }
       
+
+      // -- all vtx
+      PtAll.Fill( sum2pho.pt(),ww );
+      if (fabs(eta1) < etaEB && fabs(eta2) < etaEB)  PtAll_EBEB.Fill( sum2pho.pt(),ww );
+      if (fabs(eta1) > etaEE && fabs(eta2) > etaEE)  PtAll_EEEE.Fill( sum2pho.pt(),ww );
+      if ( (fabs(eta1) < etaEB && fabs(eta2) > etaEE) || (fabs(eta2) < etaEB && fabs(eta1) > etaEE))  PtAll_EBEE.Fill( sum2pho.pt(),ww );
+
+      EtaAll.Fill( etaMaxSC ,ww);
+      NvtAll.Fill( nvtx_,ww );
+      if (!isData) NpuAll.Fill(npu,ww);
       
       
     }// end loop over entries
@@ -670,7 +763,14 @@ int main(int argc, char** argv)
   BDToutput.Write();
   BDToutput_sig.Write();
   BDToutput_bkg.Write();
-   
+  perEventBDToutput.Write();
+  perEventBDToutput_sig.Write();
+  perEventBDToutput_bkg.Write();
+  ChosenVertex_BDT.Write();
+  ChosenVertexDz_BDT.Write();
+  ChosenVertexDz_BDT_vs_pt.Write();
+  hz.Write();
+
   ff.Close();
   
   std::cout << "BYE BYE !!!! " << std::endl;
