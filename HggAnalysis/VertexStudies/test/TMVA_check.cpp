@@ -412,6 +412,11 @@ int main(int argc, char** argv)
 	std::vector<int>* muons_global = reader.GetInt("muons_global");
 	std::vector<int>* muons_tracker = reader.GetInt("muons_tracker");
 	std::vector<float>* muons_tkIsoR03 = reader.GetFloat("muons_tkIsoR03");
+	std::vector<float>* muons_normalizedChi2 = reader.GetFloat("muons_normalizedChi2");
+	std::vector<int>* muons_numberOfValidMuonHits = reader.GetInt("muons_numberOfValidMuonHits");
+	std::vector<int>* muons_numberOfValidPixelHits = reader.GetInt("muons_numberOfValidPixelHits");
+	std::vector<float>* muons_dxy_PV = reader.GetFloat("muons_dxy_PV");
+	std::vector<float>* muons_dz_PV = reader.GetFloat("muons_dz_PV");
 	std::vector<float>* muons_dz_PV_noMuon = reader.GetFloat("muons_dz_PV_noMuon");
 	
 	PV_nTracks       = reader.GetInt("PV_noMuon_nTracks");
@@ -425,8 +430,16 @@ int main(int argc, char** argv)
 	tracks_dz        = reader.GetFloat("tracks_dz");
 	sc               = reader.Get4V("muons");  // use muon info for SC
 	
-	zmumuSelection(muons,muons_global,muons_tracker, muons_tkIsoR03 ,accept, indpho1, indpho2);
 	
+	zmumuSelection(muons,muons_global,muons_tracker, muons_tkIsoR03, 
+		       muons_normalizedChi2 , 
+		       muons_numberOfValidMuonHits,
+		       muons_numberOfValidPixelHits,
+		       muons_dxy_PV,
+		       muons_dz_PV,
+		       accept, indpho1, indpho2);
+	
+
 	if (!accept) continue;
 	
 	etaMaxSC = muons->at(indpho1).eta();
