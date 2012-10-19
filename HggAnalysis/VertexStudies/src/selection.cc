@@ -157,9 +157,12 @@ void zmumuSelection (std::vector<ROOT::Math::XYZTVector>* muons ,
 		     std::vector<int>* muons_global,
 		     std::vector<int>* muons_tracker,
 		     std::vector<float>* muons_tkIsoR03,
-		     int& passSelection, int& i1, int& i2
-		     )
-
+		     std::vector<float>* muons_normalizedChi2 , 
+		     std::vector<int>* muons_numberOfValidMuonHits,
+		     std::vector<int>* muons_numberOfValidPixelHits,
+		     std::vector<float>* muons_dxy_PV,
+		     std::vector<float>* muons_dz_PV,
+		     int& passSelection, int& i1, int& i2)
 {
   passSelection = 0;
   int index1 = -100, index2 = -100;
@@ -168,7 +171,15 @@ void zmumuSelection (std::vector<ROOT::Math::XYZTVector>* muons ,
   for( unsigned int uu = 0; uu < muons->size(); uu++)
     {
       float relIso  = muons_tkIsoR03->at(uu)/muons->at(uu).pt();
-      bool goodmuon =  (muons->at(uu).pt() > 10 && muons_global->at(uu)==1 && muons_tracker->at(uu)==1 && relIso<0.10);
+      bool goodmuon =  (muons->at(uu).pt() > 10   && 
+			muons_global->at(uu)==1   && 
+			muons_tracker->at(uu)==1  && 
+			muons_normalizedChi2->at(uu)<10   &&
+			muons_numberOfValidMuonHits->at(uu)>0 &&
+			muons_numberOfValidPixelHits->at(uu)>0 &&
+			muons_dxy_PV->at(uu)<0.2 &&
+			muons_dz_PV->at(uu)<0.5  &&
+			relIso<0.10);
       if ( goodmuon && index1 < 0 )   { index1 = uu; ngood++; }
       else if (goodmuon && index2 < 0 )   { index2 = uu; ngood++; }
       else if (goodmuon)                 { ngood++;}
