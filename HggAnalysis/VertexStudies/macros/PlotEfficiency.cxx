@@ -3,16 +3,25 @@
   setTDRStyle();
   gStyle->SetErrorX(0.5);
 
-  int saveScaleFactors    = 1;
-  bool useVariableBinning = true;
+  int saveScaleFactors    = 0;
+  bool useVariableBinning = false;
 
   // 0 : data
   // 1 : mc
 
   TFile *f[2];
-  f[0] = TFile::Open("/afs/cern.ch/work/m/malberti/private/Eff_DoubleMu_190456-195016/TMVA_check_DoubleMu_190456-195016.root");
-  f[1] = TFile::Open("/afs/cern.ch/work/m/malberti/private/Eff_DYJetsToLL_S9_minBiasXsec69000_observed_190456-195016/TMVA_check_DYJetsToLL_S9_minBiasXsec69000_observed_190456-195016.root");
-    
+
+  //2012ABC
+  f[0] = TFile::Open("/afs/cern.ch/work/m/malberti/private/Eff_DoubleMu_Run2012ABC_dz01/TMVA_check_DoubleMu_Run2012ABC.root");
+  f[1] = TFile::Open("/afs/cern.ch/work/m/malberti/private/Eff_DYJetsToLL_Summer12_DR53X-PU_S10_minBiasXsec69400_corr_observed_Run2012ABC_dz01/testEfficiency.root");
+  //f[1] = TFile::Open("/afs/cern.ch/work/m/malberti/private/Eff_DYJetsToLL_Summer12_DR53X-PU_S10_minBiasXsec69400_corr_observed_Run2012ABC_dz01_BSrw1/testEfficiency.root");
+
+
+  TLatex *latex = new TLatex(0.55,0.85,"#splitline{CMS preliminary}{#sqrt{s} = 8 TeV L = 12 fb^{-1}}");
+  latex->SetNDC();
+  latex->SetTextFont(42);
+  latex->SetTextSize(0.04);
+
   // legend
   string legtitle1    = "DATA Z#rightarrow#mu#mu (RANK)";
   string legtitle1bdt = "DATA Z#rightarrow#mu#mu ";
@@ -20,7 +29,7 @@
   string legtitle2bdt = "MC Z#rightarrow#mu#mu ";
 
   // rebinning
-  int nRePt = 1;
+  int nRePt = 2;
 
   // if variable size bins
   double xbins[10] = {0.,10.,20.,30.,40.,50.,70.,110.,250.,400.};
@@ -47,12 +56,38 @@
   TH1F *effVsEta_BDT[2];
   TH1F *effVsEta_Baseline[2];
 
+  TH1F *BDToutput[2];
+  TH1F *BDToutput_sig[2];
+  TH1F *BDToutput_bkg[2];
+
+  TH1F *evtBDToutput[2];
+  TH1F *evtBDToutput_sig[2];
+  TH1F *evtBDToutput_bkg[2];
+
   int mycolor, mystyle;
   char hname[100];
   std::string evtType[2] = {"data","mc"};
   
   for (int i = 0; i < 2; i++){
+
+    BDToutput_sig[i] = (TH1F*) f[i]->Get("BDToutput_sig");
+    BDToutput_bkg[i] = (TH1F*) f[i]->Get("BDToutput_bkg");
+    evtBDToutput[i]     = (TH1F*) f[i]->Get("perEventBDToutput");
+    evtBDToutput_sig[i] = (TH1F*) f[i]->Get("perEventBDToutput_sig");
+    evtBDToutput_bkg[i] = (TH1F*) f[i]->Get("perEventBDToutput_bkg");
+
+    BDToutput_sig[i]->Sumw2();
+    BDToutput_bkg[i]->Sumw2();
+    evtBDToutput[i]->Sumw2();
+    evtBDToutput_sig[i]->Sumw2();
+    evtBDToutput_bkg[i]->Sumw2();
     
+    BDToutput_sig[i]->Rebin(10);
+    BDToutput_bkg[i]->Rebin(10);
+    evtBDToutput[i]->Rebin(10);
+    evtBDToutput_sig[i]->Rebin(10);
+    evtBDToutput_bkg[i]->Rebin(10);
+
     NvtxAll[i]      = (TH1F*) f[i]->Get("NvtAll");
     NvtxBaseline[i] = (TH1F*) f[i]->Get("NvtGood_RANK");
     NvtxBDT[i]      = (TH1F*) f[i]->Get("NvtGood_BDT");
@@ -130,9 +165,9 @@
     }
   }
 
-  int nMBMax = 30;
+  int nMBMax = 40;
   
-  TLegend legend1(0.68, 0.78, 0.99, 0.99);
+  TLegend legend1(0.68, 0.18, 0.92, 0.38);
   legend1.SetFillColor(kWhite);
   legend1.SetBorderSize(1);
   //legend1.AddEntry(effVsNvtx_Baseline[0],legtitle1.c_str(),"LP");
@@ -147,7 +182,6 @@
   TH2F cc("cc","",nMBMax+1,0,nMBMax+1,1000,0.,1.1);
   cc.SetStats(0); 
   cc.GetXaxis()->SetTitle("number of reconstructed vertices"); 
-  //cc.GetXaxis()->SetTitle("number of simulated PU vertices"); 
   cc.GetYaxis()->SetTitle("fraction of events");
   cc.Draw();
   for (int i = 0; i< 2; i++){
@@ -155,13 +189,13 @@
     effVsNvtx_BDT[i]->Draw("e1,same");
   }
   legend1.Draw("same");
-
+  latex->Draw("same");
 
   //*** EFF vs BOSON PT  
   TCanvas c2;
   c2.SetGridx();
   c2.SetGridy();
-  TH2F dd("dd","",400,0,400,1000,0.0,1.1);
+  TH2F dd("dd","",250,0,250,1000,0.0,1.1);
   dd.SetStats(0); 
   dd.GetXaxis()->SetTitle("p_{T}(Z) (GeV/c)"); 
   dd.GetYaxis()->SetTitle("fraction of events");
@@ -171,13 +205,13 @@
     effVsPt_BDT[i]->Draw("e1,same");
   }
   legend1.Draw("same");
+  latex->Draw("same");
     
   float ptlow = 0.;
-  float pthigh = 400.;
+  float pthigh = 250.;
 
   int bin1 = PtBaseline[0]->FindBin(ptlow);
   int bin2 = PtBaseline[0]->FindBin(pthigh);
-
    
   double eff1 = PtBaseline[0]->Integral(bin1,bin2)/ PtAll[0]->Integral(bin1,bin2);
   double eff2 = PtBaseline[1]->Integral(bin1,bin2)/ PtAll[1]->Integral(bin1,bin2);
@@ -265,14 +299,119 @@
   legend5.AddEntry(ratioEffVsNvtx_BDT,"BDT","LP");
   //legend5.Draw("same");
 
+
+
+  // NVTX control plot
+  TCanvas *cNvtx = new TCanvas("cNvtx","cNvtx",500,500);
+  NvtxAll[1]->SetFillColor(kRed);
+  NvtxAll[1]->SetFillStyle(3004);
+  NvtxAll[1]->GetXaxis()->SetTitle("Number of vertices");
+  NvtxAll[1]->DrawNormalized("histo");
+  NvtxAll[0]->DrawNormalized("esame");
+  latex->Draw("same");
+  float p = NvtxAll[0]->KolmogorovTest(NvtAll[1],"");
+  cout << "DATA < N_vtx > = " << NvtxAll[0]->GetMean() << endl;
+  cout << "MC   < N_vtx > = " << NvtxAll[1]->GetMean() << endl;
+  cout << "NVTX Kolmogorov : p = " << p << endl;
+  TLegend leg (0.6, 0.6,0.89,0.75);
+  leg->SetFillColor(0);
+  leg->SetBorderSize(0);
+  leg->AddEntry(NvtxAll[1],"MC Z#rightarrow#mu#mu","F");
+  leg->AddEntry(NvtxAll[0],"Data Z#rightarrow#mu#mu","LP");
+  leg->Draw("same");
+
+
+
+  //----------------- MVA control plots
+  // per vertex mva
+  BDToutput_sig[0] -> SetMarkerStyle(20);
+  BDToutput_sig[0] -> SetMarkerSize(0.8);
+  BDToutput_sig[0] -> SetMarkerColor(kGreen+2);
+  BDToutput_bkg[0] -> SetMarkerStyle(20);
+  BDToutput_bkg[0] -> SetMarkerSize(0.8);
+  BDToutput_bkg[0] -> SetMarkerColor(kRed+2);
+  BDToutput_sig[1] -> SetFillColor(kGreen+1);
+  BDToutput_sig[1] -> SetFillStyle(3002);
+  BDToutput_bkg[1] -> SetFillColor(kRed+1);
+  BDToutput_bkg[1] -> SetFillStyle(3005);
+
+  TLegend legVtxMva (0.6, 0.6,0.89,0.75);
+  legVtxMva->SetFillColor(0);
+  legVtxMva->SetBorderSize(0);
+  legVtxMva->AddEntry(evtBDToutput_sig[1],"right vertex MC","F");
+  legVtxMva->AddEntry(evtBDToutput_bkg[1],"wrong vertex MC","F");
+  legVtxMva->AddEntry(evtBDToutput_sig[0],"right vertex DATA","LP");
+  legVtxMva->AddEntry(evtBDToutput_bkg[0],"wrong vertex DATA","LP");
+
+  TCanvas *cVertexMva = new TCanvas("cVertexMva","cVertexMva",500,500);
+  BDToutput_bkg[1] -> GetXaxis() -> SetTitle("MVA_{vtx}");
+  BDToutput_bkg[1] -> DrawNormalized("histo");
+  BDToutput_sig[1] -> DrawNormalized("histo same");
+  BDToutput_bkg[0] -> DrawNormalized("esame");
+  BDToutput_sig[0] -> DrawNormalized("esame");
+  legVtxMva->Draw("same");
+  latex->Draw("same");
+
+  // per event mva
+  evtBDToutput_sig[0] -> SetMarkerStyle(20);
+  evtBDToutput_sig[0] -> SetMarkerSize(0.8);
+  evtBDToutput_sig[0] -> SetMarkerColor(kGreen+2);
+  evtBDToutput_bkg[0] -> SetMarkerStyle(20);
+  evtBDToutput_bkg[0] -> SetMarkerSize(0.8);
+  evtBDToutput_bkg[0] -> SetMarkerColor(kRed+2);
+  evtBDToutput_sig[1] -> SetFillColor(kGreen+1);
+  evtBDToutput_sig[1] -> SetFillStyle(3002);
+  evtBDToutput_bkg[1] -> SetFillColor(kRed+1);
+  evtBDToutput_bkg[1] -> SetFillStyle(3005);
+
+  TLegend legEvtMva (0.6, 0.6,0.89,0.75);
+  legEvtMva->SetFillColor(0);
+  legEvtMva->SetBorderSize(0);
+  legEvtMva->AddEntry(evtBDToutput_sig[1],"right vertex MC","F");
+  legEvtMva->AddEntry(evtBDToutput_bkg[1],"wrong vertex MC","F");
+  legEvtMva->AddEntry(evtBDToutput_sig[0],"right vertex DATA","LP");
+  legEvtMva->AddEntry(evtBDToutput_bkg[0],"wrong vertex DATA","LP");
+
+  TCanvas *cEventMva = new TCanvas("cEventMva","cEventMva",500,500);
+  evtBDToutput_sig[1] -> GetXaxis() -> SetTitle("MVA_{event}");
+  evtBDToutput_sig[1] -> DrawNormalized("histo");
+  evtBDToutput_bkg[1] -> DrawNormalized("histo same");
+  evtBDToutput_sig[0] -> DrawNormalized("esame");
+  evtBDToutput_bkg[0] -> DrawNormalized("esame");
+  legEvtMva->Draw("same");
+  latex->Draw("same");
+
+  // vertex probability
+  TH1F *hVertexProbability[2];
+  hVertexProbability[0]= (TH1F*)evtBDToutput_sig[0]->Clone("hVertexProbability");
+  hVertexProbability[1]= (TH1F*)evtBDToutput_sig[1]->Clone("hVertexProbability");
+  hVertexProbability[0]->Divide(evtBDToutput[0]);
+  hVertexProbability[1]->Divide(evtBDToutput[1]);
+  hVertexProbability[0]->SetMarkerColor(kBlue+1);
+  hVertexProbability[1]->SetMarkerColor(kRed+1);
+  TF1 *fprob = new TF1("fprob","1+[0]*(x+1)",-1,1);
+  fprob->SetParameter(0,-0.49);
+  fprob->SetLineColor(kGray+1);
+  TCanvas *cProbability = new TCanvas("cProbability","cProbability",500,300);
+  cProbability ->SetGridx();
+  cProbability ->SetGridy();
+  hVertexProbability[0]->GetXaxis()->SetTitle("MVA");
+  hVertexProbability[0]->GetYaxis()->SetTitle("probability");
+  hVertexProbability[0]->Draw();
+  hVertexProbability[1]->Draw("same");
+  fprob->Draw("same");
+  legend1.Draw("same");
+
   if (saveScaleFactors){
-    TFile *fileout = new TFile("vtxIdScaleFactorFromZmumu_Summer12_PUweights_minBiasXsec69000_observed.root","recreate");
+    TFile *fileout = new TFile("vtxIdScaleFactorFromZmumu_dz01_BSrw1.root","recreate");
     ratioEffVsPt_BDT->SetTitle("hscaleFactor");
     ratioEffVsPt_BDT->Write("hscaleFactor");
     gratioEffVsPt_BDT->SetTitle("scaleFactor");
     gratioEffVsPt_BDT->Write("scaleFactor");
+    fileout->Close();
   }
 
+  cout << "ciao ciao " << endl;
 
   
 }
