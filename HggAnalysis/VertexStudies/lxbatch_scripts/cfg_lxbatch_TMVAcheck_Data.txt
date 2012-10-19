@@ -2,12 +2,12 @@ DATASETPATH    = /store/cmst3/user/malberti/HIGGS/VERTEX/2012/DATA/
 
 CFGTEMPLATE    = TMVA_check_ZmumuData_TEMPLATE.cfg
 
-JOBDIR         = Eff_DoubleMu_190456-194479
+JOBDIR         = Eff_DoubleMu_Run2012ABC
 
-OUTPUTDIR      = /afs/cern.ch/work/m/malberti/private/Eff_DoubleMu_190456-194479
+OUTPUTDIR      = /afs/cern.ch/work/m/malberti/private/Eff_DoubleMu_Run2012ABC/
 
-OUTPUTFILENAME = TMVA_check_DoubleMu_190456-194479
+OUTPUTFILENAME = TMVA_check_DoubleMu_Run2012ABC
 
-JOBMODULO      = 10
+JOBMODULO      = 20
 
 QUEUE          = 8nh

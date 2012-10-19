@@ -1,13 +1,13 @@
-DATASETPATH    = /store/cmst3/user/malberti/HIGGS/VERTEX/2012/MC/
+DATASETPATH    = /store/cmst3/user/malberti/HIGGS/VERTEX/2012/MC/DYJetsToLL_M-50_TuneZ2Star_8TeV-madgraph-tarball_Summer12_DR53X-PU_S10_START53_V7A-v1_AODSIM
 
 CFGTEMPLATE    = TMVA_check_ZmumuMC_TEMPLATE.cfg
 
-JOBDIR         = ZmumuMCEff
+JOBDIR         = Eff_DYJetsToLL_Summer12_DR53X-PU_S10_minBiasXsec69400_corr_observed_Run2012ABC
 
-OUTPUTDIR      = 
+OUTPUTDIR      = /afs/cern.ch/work/m/malberti/private/Eff_DYJetsToLL_Summer12_DR53X-PU_S10_minBiasXsec69400_corr_observed_Run2012ABC/
 
-OUTPUTFILENAME = TMVA_check_ZmumuMC_2012.root
+OUTPUTFILENAME = testEfficiency
 
-JOBMODULO      = 10
+JOBMODULO      = 20
 
 QUEUE          = 8nh
