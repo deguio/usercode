@@ -185,7 +185,7 @@ int main(int argc, char** argv)
   tmvaPerEvtReader_->BookMVA( tmvaEventMethod.c_str(), tmvaEventWeights.c_str() );
 
 
-  //--- parameters for beam spot reweighting
+  //--- parameters for beam spot reweighting (Matt):https://hypernews.cern.ch/HyperNews/CMS/get/higgs2g/993.html
   float newBSmean1  = 9.9391e-02;
   float newBSmean2  = 1.8902e-01;
   float newBSnorm1  = 5.3210e+00;
@@ -199,6 +199,26 @@ int main(int argc, char** argv)
   float oldBSnorm2  = 4.0258e+01;
   float oldBSsigma1 = 7.9678e-01;
   float oldBSsigma2 = 8.5356e+00;
+
+  // use just 1 gaussian for Z->mumu as there are no conversions
+  newBSnorm1=0.;
+  oldBSnorm1=0.;
+
+
+  //--- parameters for beam spot reweighting (this are derived from Z)
+  //   float newBSmean1  = 0.;
+  //   float newBSmean2  = -0.013;
+  //   float newBSnorm1  = 0.;
+  //   float newBSnorm2  = 0.005875;
+  //   float newBSsigma1 = 1;
+  //   float newBSsigma2 = 6.951;
+  
+  //   float oldBSmean1  = 0;
+  //   float oldBSmean2  = 0.02159;
+  //   float oldBSnorm1  = 0.;
+  //   float oldBSnorm2  = 0.004739;
+  //   float oldBSsigma1 = 1;
+  //   float oldBSsigma2 = 8.577;
 
   float diff ,newBSgaus1,  newBSgaus2 , oldBSgaus1 , oldBSgaus2, bsweight; 
 
@@ -657,7 +677,8 @@ int main(int argc, char** argv)
 	newBSgaus2 = newBSnorm2*exp(-0.5*pow((diff-newBSmean2)/newBSsigma2,2));
 	oldBSgaus1 = oldBSnorm1*exp(-0.5*pow((diff-oldBSmean1)/oldBSsigma1,2));
 	oldBSgaus2 = oldBSnorm2*exp(-0.5*pow((diff-oldBSmean2)/oldBSsigma2,2));
-	bsweight = (newBSgaus1+newBSgaus2)/(oldBSgaus1+oldBSgaus2);
+	//	bsweight =  1.1235 *(newBSgaus1+newBSgaus2)/(oldBSgaus1+oldBSgaus2); // if using 2 gaussians
+	bsweight =  1.13242 *(newBSgaus1+newBSgaus2)/(oldBSgaus1+oldBSgaus2); // if using 1 gaussian
 	if (fabs(diff)>0.1) {
 	  //cout << diff << "  "  << bsweight << endl;
 	  ww*=bsweight;
