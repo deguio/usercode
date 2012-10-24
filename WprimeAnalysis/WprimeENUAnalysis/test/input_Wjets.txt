@@ -1,7 +1,0 @@
-FileIn         /tmp/malberti/treeWjets_7TeV.root
-FileOut        outputHistos_Wjets_7TeV.root
-Xsec           24170.
-Lumi           100.
-GenFilterEff   1.
-NeventsDataset 10000000
-JetVetoFlag    1
