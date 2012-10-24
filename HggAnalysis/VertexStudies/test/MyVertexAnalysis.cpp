@@ -26,6 +26,7 @@
 #include "PhotonInfo.h"
 #include "../src/selection.cc"
 #include "../src/eleId95.cc"
+#include "../src/BeamSpotReweighting.cc"
 
 #include <iostream>
 
@@ -47,7 +48,9 @@
 
 
 using namespace std;
- 
+
+
+
 
 // --------- MAIN -------------------
 
@@ -184,44 +187,7 @@ int main(int argc, char** argv)
   HggVertexAnalyzer::bookPerEventVariables( *tmvaPerEvtReader_, 3, true );
   tmvaPerEvtReader_->BookMVA( tmvaEventMethod.c_str(), tmvaEventWeights.c_str() );
 
-
-  //--- parameters for beam spot reweighting (Matt):https://hypernews.cern.ch/HyperNews/CMS/get/higgs2g/993.html
-  float newBSmean1  = 9.9391e-02;
-  float newBSmean2  = 1.8902e-01;
-  float newBSnorm1  = 5.3210e+00;
-  float newBSnorm2  = 4.1813e+01;
-  float newBSsigma1 = 9.7530e-01;
-  float newBSsigma2 = 7.0811e+00;
   
-  float oldBSmean1  = 7.2055e-02;
-  float oldBSmean2  = 4.9986e-01;
-  float oldBSnorm1  = 3.5411e+00;
-  float oldBSnorm2  = 4.0258e+01;
-  float oldBSsigma1 = 7.9678e-01;
-  float oldBSsigma2 = 8.5356e+00;
-
-  // use just 1 gaussian for Z->mumu as there are no conversions
-  newBSnorm1=0.;
-  oldBSnorm1=0.;
-
-
-  //--- parameters for beam spot reweighting (this are derived from Z)
-  //   float newBSmean1  = 0.;
-  //   float newBSmean2  = -0.013;
-  //   float newBSnorm1  = 0.;
-  //   float newBSnorm2  = 0.005875;
-  //   float newBSsigma1 = 1;
-  //   float newBSsigma2 = 6.951;
-  
-  //   float oldBSmean1  = 0;
-  //   float oldBSmean2  = 0.02159;
-  //   float oldBSnorm1  = 0.;
-  //   float oldBSnorm2  = 0.004739;
-  //   float oldBSsigma1 = 1;
-  //   float oldBSsigma2 = 8.577;
-
-  float diff ,newBSgaus1,  newBSgaus2 , oldBSgaus1 , oldBSgaus2, bsweight; 
-
   //****** BOOK OUTPUT HISTOGRAMS ******
 
   TH1F PtAll("PtAll","Pt of boson all",80,0,400);
@@ -303,7 +269,8 @@ int main(int argc, char** argv)
   float ww = 1;
   float r9cut = 0.93;
   float mindz = dzRightVertex;
-  
+  float diff, bsweight; 
+
   //****** LOAD TREE ******
   TChain* chain = new TChain(treeName.c_str());
   FillChain(*chain, inputFileList.c_str());
@@ -673,17 +640,11 @@ int main(int argc, char** argv)
       // -- BS reweighting 
       if (doBSreweighting){
         diff = PV_z->at(ranktmva[0])-TrueVertex_Z;
-	newBSgaus1 = newBSnorm1*exp(-0.5*pow((diff-newBSmean1)/newBSsigma1,2));
-	newBSgaus2 = newBSnorm2*exp(-0.5*pow((diff-newBSmean2)/newBSsigma2,2));
-	oldBSgaus1 = oldBSnorm1*exp(-0.5*pow((diff-oldBSmean1)/oldBSsigma1,2));
-	oldBSgaus2 = oldBSnorm2*exp(-0.5*pow((diff-oldBSmean2)/oldBSsigma2,2));
-	//	bsweight =  1.1235 *(newBSgaus1+newBSgaus2)/(oldBSgaus1+oldBSgaus2); // if using 2 gaussians
-	bsweight =  1.13242 *(newBSgaus1+newBSgaus2)/(oldBSgaus1+oldBSgaus2); // if using 1 gaussian
-	if (fabs(diff)>0.1) {
-	  //cout << diff << "  "  << bsweight << endl;
-	  ww*=bsweight;
-	}
+	bsweight = BSweight(diff);
+	//cout << diff << "  "  << bsweight << endl;
+	ww*=bsweight;
       }
+
       ChosenVertex_BDT.Fill(ranktmva[0],ww);
       ChosenVertexDz_BDT.Fill(TrueVertex_Z - PV_z->at(ranktmva[0]),ww);
       ChosenVertexDz_BDT_vs_pt.Fill(sum2pho.pt(),TrueVertex_Z - PV_z->at(ranktmva[0]),ww);
