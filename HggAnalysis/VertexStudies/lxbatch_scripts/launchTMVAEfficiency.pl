@@ -25,8 +25,13 @@ $JOBMODULO        = $User_Preferences{"JOBMODULO"} ;
 $QUEUE            = $User_Preferences{"QUEUE"} ;
 
 
+
 $LISTFile = "./list.txt" ;
+print ("cmsLs -R ".$DATASETPATH." | grep root | awk '{print \"root://eoscms//eos/cms\" \$5}' > ".$LISTFile."\n") ;
 system ("cmsLs -R ".$DATASETPATH." | grep root | awk '{print \"root://eoscms//eos/cms\" \$5}' > ".$LISTFile."\n") ;
+#system ("cmsLs -R ".$DATASETPATH." | egrep '2012A|2012B|PromptReco-v1|198934_202016|202017_203002' | grep root | awk '{print \"root://eoscms//eos/cms\" \$5}' > ".$LISTFile."\n") ;
+#system ("cmsLs -R ".$DATASETPATH." | grep 2012C | grep root | awk '{print \"root://eoscms//eos/cms\" \$5}' > ".$LISTFile."\n") ;
+#system ("cmsLs -R ".$DATASETPATH." | grep 13Jul | grep root | awk '{print \"root://eoscms//eos/cms\" \$5}' > ".$LISTFile."\n") ;
 
 $totNumber = 0;
 $jobNumber = 0;
