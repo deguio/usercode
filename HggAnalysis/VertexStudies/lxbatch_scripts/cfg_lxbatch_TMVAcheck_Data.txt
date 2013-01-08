@@ -2,12 +2,12 @@ DATASETPATH    = /store/cmst3/user/malberti/HIGGS/VERTEX/2012/DATA/
 
 CFGTEMPLATE    = TMVA_check_ZmumuData_TEMPLATE.cfg
 
-JOBDIR         = Eff_DoubleMu_Run2012ABC
+JOBDIR         = Eff_DoubleMu_Run2012ABCD
 
-OUTPUTDIR      = /afs/cern.ch/work/m/malberti/private/Eff_DoubleMu_Run2012ABC/
+OUTPUTDIR      = /afs/cern.ch/work/m/malberti/private/Eff_DoubleMu_Run2012ABCD/
 
-OUTPUTFILENAME = TMVA_check_DoubleMu_Run2012ABC
+OUTPUTFILENAME = testEfficiency
 
-JOBMODULO      = 20
+JOBMODULO      = 40
 
 QUEUE          = 8nh

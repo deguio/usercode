@@ -2,9 +2,9 @@ DATASETPATH    = /store/cmst3/user/malberti/HIGGS/VERTEX/2012/MC/DYJetsToLL_M-50
 
 CFGTEMPLATE    = TMVA_check_ZmumuMC_TEMPLATE.cfg
 
-JOBDIR         = Eff_DYJetsToLL_Summer12_DR53X-PU_S10_minBiasXsec69400_corr_observed_Run2012ABC
+JOBDIR         = Eff_DYJetsToLL_Summer12_DR53X-PU_S10_minBiasXsec69400_corr_observed_Run2012ABCD
 
-OUTPUTDIR      = /afs/cern.ch/work/m/malberti/private/Eff_DYJetsToLL_Summer12_DR53X-PU_S10_minBiasXsec69400_corr_observed_Run2012ABC/
+OUTPUTDIR      = /afs/cern.ch/work/m/malberti/private/Eff_DYJetsToLL_Summer12_DR53X-PU_S10_minBiasXsec69400_corr_observed_Run2012ABCD_BSrw/
 
 OUTPUTFILENAME = testEfficiency
 
