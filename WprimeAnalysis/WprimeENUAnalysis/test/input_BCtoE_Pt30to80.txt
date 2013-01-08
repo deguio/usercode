@@ -1,8 +1,0 @@
-FileIn         /tmp/malberti/treeBCtoE_Pt30to80_7TeV.root
-FileOut        outputHistos_BCtoEPt30to80_7TeV.root
-Xsec           59300000.
-Lumi           100.
-GenFilterEff   0.00234
-SkimEff        0.4147
-NeventsDataset 2447285
-MaxJetPt       100
