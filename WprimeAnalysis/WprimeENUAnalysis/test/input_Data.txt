@@ -1,7 +1,0 @@
-FileIn         /tmp/malberti/treeCollisions10_7TeV.root
-FileOut        outputHistos_Collisions_7TeV.root
-Xsec           1
-Lumi           1
-GenFilterEff   1
-NeventsDataset 1
-MaxJetPt       100
