@@ -27,6 +27,7 @@
 #include "../src/selection.cc"
 #include "../src/eleId95.cc"
 #include "../src/BeamSpotReweighting.cc"
+#include "../src/VertexIdEfficiencyReweighting.cc"
 
 #include <iostream>
 
@@ -103,9 +104,11 @@ int main(int argc, char** argv)
   int useJSON      = gConfigParser -> readIntOption("Options::useJSON");
   std::string jsonFileName = gConfigParser -> readStringOption("Options::jsonFileName");  
 
-  int doBSreweighting      = gConfigParser -> readIntOption("Options::doBSreweighting");
+  int doBSreweighting   = gConfigParser -> readIntOption("Options::doBSreweighting");
   float dzRightVertex   = gConfigParser -> readFloatOption("Options::dzRightVertex");
-  
+
+  int applyVertexIdScaleFactor = gConfigParser -> readIntOption("Options::applyVertexIdScaleFactor");
+
   //******* Get run/LS map from JSON file *******
   std::map<int, std::vector<std::pair<int, int> > > jsonMap;
   if ( isData && useJSON ) {
@@ -265,6 +268,7 @@ int main(int argc, char** argv)
 
   //TH2F * hAcceptedLumis = new TH2F("hAcceptedLumis","hAcceptedLumis",20000, 160000, 180000, 10000, 0, 10000);
 
+  VertexIdEfficiencyReweighting *myVtxIdEffRw = new VertexIdEfficiencyReweighting("/afs/cern.ch/user/m/malberti/public/scaleFactors/vtxIdScaleFactorFromZmumu_PUweights_minBiasXsec69400_observed_Run2012ABCD_BSreweight.root","hscaleFactor") ;
 
   float ww = 1;
   float r9cut = 0.93;
@@ -453,12 +457,7 @@ int main(int argc, char** argv)
 	PVtracks_PVindex = reader.GetInt("PVMuonLessTracks_PVindex");
 	PV_z_muon        = reader.GetFloat("PV_z");
 
-// 	//************ test !!!!!!!!!!!!!!!!
-// 	PV_nTracks       = reader.GetInt("PV_nTracks");
-// 	PV_z             = reader.GetFloat("PV_z");
-// 	PV_d0            = reader.GetFloat("PV_d0");
-// 	PVtracks         = reader.Get3V("PVtracks");
-// 	PVtracks_PVindex = reader.GetInt("PVtracks_PVindex");
+
 	//************ 
 
 	tracks_PVindex   = reader.GetInt("tracks_PVindex");
@@ -657,12 +656,14 @@ int main(int argc, char** argv)
       }
       // fill per event mva
       evtmva = vAna.perEventMva(*tmvaPerEvtReader_, tmvaEventMethod.c_str(),ranktmva);
-      perEventBDToutput.Fill( evtmva, ww );
+      float wid = 1;
+      if (applyVertexIdScaleFactor) wid = myVtxIdEffRw->GetWeight(sum2pho.pt());
+      perEventBDToutput.Fill( evtmva, ww*wid );
       if (fabs( TrueVertex_Z - PV_z->at(ranktmva[0]) ) < mindz) {
-      	perEventBDToutput_sig.Fill( evtmva, ww );
+      	perEventBDToutput_sig.Fill( evtmva, ww*wid );
       }
       else{
-	perEventBDToutput_bkg.Fill( evtmva, ww );
+	perEventBDToutput_bkg.Fill( evtmva, ww*wid );
       }
 
 
