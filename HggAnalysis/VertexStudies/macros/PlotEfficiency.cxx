@@ -1,4 +1,15 @@
+TH1F* MakeRatio(TH1F* h1, TH1F*h2, string hname){
+
+  TH1F *hratio = (TH1F*)h1->Clone(hname.c_str());
+  hratio->Divide(h1,h2,1./h1->GetSumOfWeights(),1./h2->GetSumOfWeights());
+  return(hratio);
+}
+
+
+
+void PlotEfficiency(string outdir, string lumi, bool plotVariables=false) 
 {
+
   gROOT->LoadMacro("~/setTDRStyle.C");
   setTDRStyle();
   gStyle->SetErrorX(0.5);
@@ -11,13 +22,15 @@
 
   TFile *f[2];
 
-  //2012ABC
-  f[0] = TFile::Open("/afs/cern.ch/work/m/malberti/private/Eff_DoubleMu_Run2012ABC_dz01/TMVA_check_DoubleMu_Run2012ABC.root");
-  f[1] = TFile::Open("/afs/cern.ch/work/m/malberti/private/Eff_DYJetsToLL_Summer12_DR53X-PU_S10_minBiasXsec69400_corr_observed_Run2012ABC_dz01/testEfficiency.root");
-  //f[1] = TFile::Open("/afs/cern.ch/work/m/malberti/private/Eff_DYJetsToLL_Summer12_DR53X-PU_S10_minBiasXsec69400_corr_observed_Run2012ABC_dz01_BSrw1/testEfficiency.root");
+  //2012ABCD
+  //f[0] = TFile::Open("/afs/cern.ch/work/m/malberti/private/Eff_DoubleMu_Run2012ABCD/testEfficiency.root");
+  //f[1] = TFile::Open("/afs/cern.ch/work/m/malberti/private/Eff_DYJetsToLL_Summer12_DR53X-PU_S10_minBiasXsec69400_corr_observed_Run2012ABCD_BSrw/testEfficiency.root");
+  f[0] = TFile::Open("/afs/cern.ch/work/m/malberti/private/Eff_DoubleMu_Run2012D/testEfficiency.root");
+  f[1] = TFile::Open("/afs/cern.ch/work/m/malberti/private/Eff_DYJetsToLL_Summer12_DR53X-PU_S10_minBiasXsec69400_corr_observed_Run2012D/testEfficiency.root");
+  
+  std::string text = "#splitline{CMS preliminary}{#sqrt{s} = 8 TeV L = "+lumi+" fb^{-1}}";
 
-
-  TLatex *latex = new TLatex(0.55,0.85,"#splitline{CMS preliminary}{#sqrt{s} = 8 TeV L = 12 fb^{-1}}");
+  TLatex *latex = new TLatex(0.55,0.85,text.c_str());
   latex->SetNDC();
   latex->SetTextFont(42);
   latex->SetTextSize(0.04);
@@ -64,11 +77,37 @@
   TH1F *evtBDToutput_sig[2];
   TH1F *evtBDToutput_bkg[2];
 
+  TH1F *ptbal_sig[2];
+  TH1F *ptbal_bkg[2];
+
+  TH1F *ptasym_sig[2];
+  TH1F *ptasym_bkg[2];
+
+  TH1F *sumpt2_sig[2];
+  TH1F *sumpt2_bkg[2];
+
   int mycolor, mystyle;
   char hname[100];
   std::string evtType[2] = {"data","mc"};
   
   for (int i = 0; i < 2; i++){
+    if (plotVariables){
+      sumpt2_sig[i] = (TH1F*)f[i]->Get("sumpt2_sig");
+      sumpt2_bkg[i] = (TH1F*)f[i]->Get("sumpt2_bkg");
+      ptbal_sig[i] = (TH1F*)f[i]->Get("ptbal_sig");
+      ptbal_bkg[i] = (TH1F*)f[i]->Get("ptbal_bkg");
+      ptasym_sig[i] = (TH1F*)f[i]->Get("ptasym_sig");
+      ptasym_bkg[i] = (TH1F*)f[i]->Get("ptasym_bkg");
+      
+      sumpt2_sig[i]->Sumw2();
+      sumpt2_bkg[i]->Sumw2();
+      ptbal_sig[i]->Sumw2();
+      ptbal_bkg[i]->Sumw2();
+      ptasym_sig[i]->Sumw2();
+      ptasym_bkg[i]->Sumw2();
+
+    }
+
 
     BDToutput_sig[i] = (TH1F*) f[i]->Get("BDToutput_sig");
     BDToutput_bkg[i] = (TH1F*) f[i]->Get("BDToutput_bkg");
@@ -205,30 +244,23 @@
     effVsPt_BDT[i]->Draw("e1,same");
   }
   legend1.Draw("same");
-  latex->Draw("same");
-    
+  latex->DrawLatex(0.18,0.22,text.c_str());
+      
   float ptlow = 0.;
   float pthigh = 250.;
 
-  int bin1 = PtBaseline[0]->FindBin(ptlow);
-  int bin2 = PtBaseline[0]->FindBin(pthigh);
+  int bin1 = PtBDT[0]->FindBin(ptlow);
+  int bin2 = PtBDT[0]->FindBin(pthigh);
    
-  double eff1 = PtBaseline[0]->Integral(bin1,bin2)/ PtAll[0]->Integral(bin1,bin2);
-  double eff2 = PtBaseline[1]->Integral(bin1,bin2)/ PtAll[1]->Integral(bin1,bin2);
-  
-  double eff1bdt = PtBDT[0]->Integral(bin1,bin2)/ PtAll[0]->Integral(bin1,bin2);
-  double eff2bdt = PtBDT[1]->Integral(bin1,bin2)/ PtAll[1]->Integral(bin1,bin2);
-  
+  double eff1 = PtBDT[0]->Integral(bin1,bin2)/ PtAll[0]->Integral(bin1,bin2);
+  double eff2 = PtBDT[1]->Integral(bin1,bin2)/ PtAll[1]->Integral(bin1,bin2);
+    
   cout << "Efficiency integrated in boson pt : [" << ptlow << ","<< pthigh<<"] GeV"<< endl;
-  cout << legtitle1.c_str() << " --> eff = " << eff1 << " +/- " 
+  cout << legtitle1bdt.c_str() << " --> eff = " << eff1 << " +/- " 
        << sqrt(eff1*(1-eff1)/PtAll[0]->Integral(bin1,bin2))<< endl;  
-  cout << legtitle2.c_str() << " --> eff = " << eff2 << " +/- " 
+  cout << legtitle2bdt.c_str() << " --> eff = " << eff2 << " +/- " 
        << sqrt(eff2*(1-eff2)/PtAll[1]->Integral(bin1,bin2))<<endl;  
-  cout << legtitle1bdt.c_str() << " --> eff = " << eff1bdt << " +/- " 
-       << sqrt(eff1bdt*(1-eff1bdt)/PtAll[0]->Integral(bin1,bin2))<<endl;  
-  cout << legtitle2bdt.c_str() << " --> eff = " << eff2bdt << " +/- " 
-       << sqrt(eff2bdt*(1-eff2bdt)/PtAll[1]->Integral(bin1,bin2))<<endl;  
-  
+    
 
   
   //EFFICIENCY RATIOs
@@ -302,23 +334,23 @@
 
 
   // NVTX control plot
-  TCanvas *cNvtx = new TCanvas("cNvtx","cNvtx",500,500);
+  TCanvas cNvtx("cNvtx","cNvtx",500,500);
   NvtxAll[1]->SetFillColor(kRed);
   NvtxAll[1]->SetFillStyle(3004);
   NvtxAll[1]->GetXaxis()->SetTitle("Number of vertices");
   NvtxAll[1]->DrawNormalized("histo");
   NvtxAll[0]->DrawNormalized("esame");
   latex->Draw("same");
-  float p = NvtxAll[0]->KolmogorovTest(NvtAll[1],"");
+  float p = NvtxAll[0]->KolmogorovTest(NvtxAll[1],"");
   cout << "DATA < N_vtx > = " << NvtxAll[0]->GetMean() << endl;
   cout << "MC   < N_vtx > = " << NvtxAll[1]->GetMean() << endl;
   cout << "NVTX Kolmogorov : p = " << p << endl;
   TLegend leg (0.6, 0.6,0.89,0.75);
-  leg->SetFillColor(0);
-  leg->SetBorderSize(0);
-  leg->AddEntry(NvtxAll[1],"MC Z#rightarrow#mu#mu","F");
-  leg->AddEntry(NvtxAll[0],"Data Z#rightarrow#mu#mu","LP");
-  leg->Draw("same");
+  leg.SetFillColor(0);
+  leg.SetBorderSize(0);
+  leg.AddEntry(NvtxAll[1],"MC Z#rightarrow#mu#mu","F");
+  leg.AddEntry(NvtxAll[0],"Data Z#rightarrow#mu#mu","LP");
+  leg.Draw("same");
 
 
 
@@ -335,23 +367,35 @@
   BDToutput_bkg[1] -> SetFillColor(kRed+1);
   BDToutput_bkg[1] -> SetFillStyle(3005);
 
+  TH1F *ratioBDToutput_sig = MakeRatio(BDToutput_sig[0], BDToutput_sig[1], "ratioBDToutput_sig");
+  TH1F *ratioBDToutput_bkg = MakeRatio(BDToutput_bkg[0], BDToutput_bkg[1], "ratioBDToutput_bkg");
+  
   TLegend legVtxMva (0.6, 0.6,0.89,0.75);
-  legVtxMva->SetFillColor(0);
-  legVtxMva->SetBorderSize(0);
-  legVtxMva->AddEntry(evtBDToutput_sig[1],"right vertex MC","F");
-  legVtxMva->AddEntry(evtBDToutput_bkg[1],"wrong vertex MC","F");
-  legVtxMva->AddEntry(evtBDToutput_sig[0],"right vertex DATA","LP");
-  legVtxMva->AddEntry(evtBDToutput_bkg[0],"wrong vertex DATA","LP");
+  legVtxMva.SetFillColor(0);
+  legVtxMva.SetBorderSize(0);
+  legVtxMva.AddEntry(evtBDToutput_sig[1],"right vertex MC","F");
+  legVtxMva.AddEntry(evtBDToutput_bkg[1],"wrong vertex MC","F");
+  legVtxMva.AddEntry(evtBDToutput_sig[0],"right vertex DATA","LP");
+  legVtxMva.AddEntry(evtBDToutput_bkg[0],"wrong vertex DATA","LP");
 
-  TCanvas *cVertexMva = new TCanvas("cVertexMva","cVertexMva",500,500);
+  TCanvas cVertexMva("cVertexMva","cVertexMva",500,600);
+  cVertexMva.Divide(1,2);
+  cVertexMva.cd(1);
   BDToutput_bkg[1] -> GetXaxis() -> SetTitle("MVA_{vtx}");
   BDToutput_bkg[1] -> DrawNormalized("histo");
   BDToutput_sig[1] -> DrawNormalized("histo same");
   BDToutput_bkg[0] -> DrawNormalized("esame");
   BDToutput_sig[0] -> DrawNormalized("esame");
-  legVtxMva->Draw("same");
+  legVtxMva.Draw("same");
   latex->Draw("same");
+  cVertexMva.cd(2);
+  cVertexMva.cd(2)->SetGridy();
+  ratioBDToutput_sig -> GetYaxis()->SetTitle("data/MC");
+  ratioBDToutput_sig -> GetYaxis()->SetRangeUser(0.,2.0);
+  ratioBDToutput_sig ->Draw();
+  ratioBDToutput_bkg ->Draw("same");
 
+ 
   // per event mva
   evtBDToutput_sig[0] -> SetMarkerStyle(20);
   evtBDToutput_sig[0] -> SetMarkerSize(0.8);
@@ -364,22 +408,33 @@
   evtBDToutput_bkg[1] -> SetFillColor(kRed+1);
   evtBDToutput_bkg[1] -> SetFillStyle(3005);
 
-  TLegend legEvtMva (0.6, 0.6,0.89,0.75);
-  legEvtMva->SetFillColor(0);
-  legEvtMva->SetBorderSize(0);
-  legEvtMva->AddEntry(evtBDToutput_sig[1],"right vertex MC","F");
-  legEvtMva->AddEntry(evtBDToutput_bkg[1],"wrong vertex MC","F");
-  legEvtMva->AddEntry(evtBDToutput_sig[0],"right vertex DATA","LP");
-  legEvtMva->AddEntry(evtBDToutput_bkg[0],"wrong vertex DATA","LP");
+  TH1F *ratioevtBDToutput_sig = MakeRatio(evtBDToutput_sig[0], evtBDToutput_sig[1], "ratioevtBDToutput_sig");
+  TH1F *ratioevtBDToutput_bkg = MakeRatio(evtBDToutput_bkg[0], evtBDToutput_bkg[1], "ratioevtBDToutput_bkg");
 
-  TCanvas *cEventMva = new TCanvas("cEventMva","cEventMva",500,500);
+  TLegend legEvtMva (0.6, 0.6,0.89,0.75);
+  legEvtMva.SetFillColor(0);
+  legEvtMva.SetBorderSize(0);
+  legEvtMva.AddEntry(evtBDToutput_sig[1],"right vertex MC","F");
+  legEvtMva.AddEntry(evtBDToutput_bkg[1],"wrong vertex MC","F");
+  legEvtMva.AddEntry(evtBDToutput_sig[0],"right vertex DATA","LP");
+  legEvtMva.AddEntry(evtBDToutput_bkg[0],"wrong vertex DATA","LP");
+
+  TCanvas cEventMva("cEventMva","cEventMva",500,600);
+  cEventMva.Divide(1,2);
+  cEventMva.cd(1);
   evtBDToutput_sig[1] -> GetXaxis() -> SetTitle("MVA_{event}");
   evtBDToutput_sig[1] -> DrawNormalized("histo");
   evtBDToutput_bkg[1] -> DrawNormalized("histo same");
   evtBDToutput_sig[0] -> DrawNormalized("esame");
   evtBDToutput_bkg[0] -> DrawNormalized("esame");
-  legEvtMva->Draw("same");
+  legEvtMva.Draw("same");
   latex->Draw("same");
+  cEventMva.cd(2);
+  cEventMva.cd(2)->SetGridy();
+  ratioevtBDToutput_sig -> GetYaxis()->SetTitle("data/MC");
+  ratioevtBDToutput_sig -> GetYaxis()->SetRangeUser(0.,2.0);
+  ratioevtBDToutput_sig ->Draw();
+  ratioevtBDToutput_bkg ->Draw("same");
 
   // vertex probability
   TH1F *hVertexProbability[2];
@@ -389,12 +444,19 @@
   hVertexProbability[1]->Divide(evtBDToutput[1]);
   hVertexProbability[0]->SetMarkerColor(kBlue+1);
   hVertexProbability[1]->SetMarkerColor(kRed+1);
+
+  TH1F *hRatioVertexProbability = (TH1F*)hVertexProbability[0]->Clone("hRatioVertexProbability");
+  hRatioVertexProbability->Divide(hVertexProbability[1]);
+
+
   TF1 *fprob = new TF1("fprob","1+[0]*(x+1)",-1,1);
   fprob->SetParameter(0,-0.49);
   fprob->SetLineColor(kGray+1);
-  TCanvas *cProbability = new TCanvas("cProbability","cProbability",500,300);
-  cProbability ->SetGridx();
-  cProbability ->SetGridy();
+  TCanvas cProbability("cProbability","cProbability",600,600);
+  cProbability.Divide(1,2);
+  cProbability.cd(1);
+  cProbability.cd(1)->SetGridx();
+  cProbability.cd(1)->SetGridy();
   hVertexProbability[0]->GetXaxis()->SetTitle("MVA");
   hVertexProbability[0]->GetYaxis()->SetTitle("probability");
   hVertexProbability[0]->Draw();
@@ -402,16 +464,155 @@
   fprob->Draw("same");
   legend1.Draw("same");
 
+  cProbability.cd(2);
+  cProbability.cd(2)->SetGridx();
+  cProbability.cd(2)->SetGridy();
+  hRatioVertexProbability->GetYaxis()->SetRangeUser(0.8,1.2);
+  hRatioVertexProbability->GetYaxis()->SetTitle("data/MC");
+  hRatioVertexProbability->GetXaxis()->SetTitle("MVA");
+  hRatioVertexProbability->Draw();
+
+ 
+  //input vtx id variables
+  if (plotVariables){ 
+    sumpt2_sig[0] -> SetMarkerStyle(20);
+    sumpt2_sig[0] -> SetMarkerSize(0.8);
+    sumpt2_sig[0] -> SetMarkerColor(kGreen+2);
+    sumpt2_bkg[0] -> SetMarkerStyle(20);
+    sumpt2_bkg[0] -> SetMarkerSize(0.8);
+    sumpt2_bkg[0] -> SetMarkerColor(kRed+2);
+    sumpt2_sig[1] -> SetFillColor(kGreen+1);
+    sumpt2_sig[1] -> SetFillStyle(3002);
+    sumpt2_bkg[1] -> SetFillColor(kRed+1);
+    sumpt2_bkg[1] -> SetFillStyle(3005);
+
+    TH1F *ratiosumpt2_sig = MakeRatio(sumpt2_sig[0], sumpt2_sig[1], "ratiosumpt2_sig");
+    TH1F *ratiosumpt2_bkg = MakeRatio(sumpt2_bkg[0], sumpt2_bkg[1], "ratiosumpt2_bkg");
+ 
+    TCanvas cSumpt2("cSumpt2","cSumpt2",500,600);
+    cSumpt2.Divide(1,2);
+    cSumpt2.cd(1);
+    sumpt2_bkg[1] -> GetXaxis() -> SetTitle("log(sumpt2)");
+    sumpt2_bkg[1] -> DrawNormalized("histo");
+    sumpt2_sig[1] -> DrawNormalized("histo same");
+    sumpt2_bkg[0] -> DrawNormalized("esame");
+    sumpt2_sig[0] -> DrawNormalized("esame");
+    legVtxMva.Draw("same");
+    latex->Draw("same");
+    cSumpt2.cd(2);
+    cSumpt2.cd(2)->SetGridy();
+    ratiosumpt2_sig -> GetYaxis()->SetTitle("data/MC");
+    ratiosumpt2_sig -> GetYaxis()->SetRangeUser(0.,2.0);
+    ratiosumpt2_sig ->Draw();
+    ratiosumpt2_bkg ->Draw("same");
+
+    
+
+    ptbal_sig[0] -> SetMarkerStyle(20);
+    ptbal_sig[0] -> SetMarkerSize(0.8);
+    ptbal_sig[0] -> SetMarkerColor(kGreen+2);
+    ptbal_bkg[0] -> SetMarkerStyle(20);
+    ptbal_bkg[0] -> SetMarkerSize(0.8);
+    ptbal_bkg[0] -> SetMarkerColor(kRed+2);
+    ptbal_sig[1] -> SetFillColor(kGreen+1);
+    ptbal_sig[1] -> SetFillStyle(3002);
+    ptbal_bkg[1] -> SetFillColor(kRed+1);
+    ptbal_bkg[1] -> SetFillStyle(3005);
+
+    TH1F *ratioptbal_sig = MakeRatio(ptbal_sig[0], ptbal_sig[1], "ratioptbal_sig");
+    TH1F *ratioptbal_bkg = MakeRatio(ptbal_bkg[0], ptbal_bkg[1], "ratioptbal_bkg");
+
+    TCanvas cPtbal("cPtbal","cPtbal",500,600);
+    cPtbal.Divide(1,2);
+    cPtbal.cd(1);
+    ptbal_bkg[1] -> GetXaxis() -> SetTitle("ptbal");
+    ptbal_bkg[1] -> DrawNormalized("histo");
+    ptbal_sig[1] -> DrawNormalized("histo same");
+    ptbal_bkg[0] -> DrawNormalized("esame");
+    ptbal_sig[0] -> DrawNormalized("esame");
+    legVtxMva.Draw("same");
+    latex->Draw("same");
+    cPtbal.cd(2);
+    cPtbal.cd(2)->SetGridy();
+    ratioptbal_sig -> GetYaxis()->SetTitle("data/MC");
+    ratioptbal_sig -> GetYaxis()->SetRangeUser(0.,2.0);
+    ratioptbal_sig ->Draw();
+    ratioptbal_bkg ->Draw("same");
+
+    ptasym_sig[0] -> SetMarkerStyle(20);
+    ptasym_sig[0] -> SetMarkerSize(0.8);
+    ptasym_sig[0] -> SetMarkerColor(kGreen+2);
+    ptasym_bkg[0] -> SetMarkerStyle(20);
+    ptasym_bkg[0] -> SetMarkerSize(0.8);
+    ptasym_bkg[0] -> SetMarkerColor(kRed+2);
+    ptasym_sig[1] -> SetFillColor(kGreen+1);
+    ptasym_sig[1] -> SetFillStyle(3002);
+    ptasym_bkg[1] -> SetFillColor(kRed+1);
+    ptasym_bkg[1] -> SetFillStyle(3005);
+
+    TH1F *ratioptasym_sig = MakeRatio(ptasym_sig[0], ptasym_sig[1], "ratioptasym_sig");
+    TH1F *ratioptasym_bkg = MakeRatio(ptasym_bkg[0], ptasym_bkg[1], "ratioptasym_bkg");
+
+    TCanvas cPtasym("cPtasym","cPtasym",500,600);
+    cPtasym.Divide(1,2);
+    cPtasym.cd(1);
+    ptasym_bkg[1] -> GetXaxis() -> SetTitle("ptasym");
+    ptasym_bkg[1] -> DrawNormalized("histo");
+    ptasym_sig[1] -> DrawNormalized("histo same");
+    ptasym_bkg[0] -> DrawNormalized("esame");
+    ptasym_sig[0] -> DrawNormalized("esame");
+    legVtxMva.Draw("same");
+    latex->Draw("same");
+    cPtasym.cd(2);
+    cPtasym.cd(2)->SetGridy();
+    ratioptasym_sig -> GetYaxis()->SetTitle("data/MC");
+    ratioptasym_sig -> GetYaxis()->SetRangeUser(0.,2.0);
+    ratioptasym_sig ->Draw();
+    ratioptasym_bkg ->Draw("same");
+  }
+
+
   if (saveScaleFactors){
-    TFile *fileout = new TFile("vtxIdScaleFactorFromZmumu_dz01_BSrw1.root","recreate");
+    TFile *fileout = new TFile("vtxIdScaleFactorFromZmumu_PUweights_minBiasXsec69400_observed_Run2012ABCD_BSreweight.root","recreate");
     ratioEffVsPt_BDT->SetTitle("hscaleFactor");
     ratioEffVsPt_BDT->Write("hscaleFactor");
     gratioEffVsPt_BDT->SetTitle("scaleFactor");
     gratioEffVsPt_BDT->Write("scaleFactor");
     fileout->Close();
+    
+    TFile *fileout = new TFile("vtxProbRatioFromZmumu_Run2012ABCD.root","recreate");
+    hRatioVertexProbability->SetTitle("hRatioVertexProbability");
+    hRatioVertexProbability->Write();
   }
 
-  cout << "ciao ciao " << endl;
 
   
+  //--- save plots
+  gSystem->mkdir(outdir.c_str(),true);
+  gSystem->cd(outdir.c_str());
+  cNvtx.SaveAs("nvtx_zmumu.png");
+  c1.SaveAs("efficiency_vs_nvtx_zmumu.png");
+  c2.SaveAs("efficiency_vs_pt_zmumu.png");
+  cRatioNvtx.SaveAs("efficiencyRatio_vs_nvtx_zmumu.png");
+  cRatioPt.SaveAs("efficiencyRatio_vs_pt_zmumu.png");
+  cVertexMva.SaveAs("vertex_mva_zmumu.png");
+  cEventMva.SaveAs("event_mva_zmumu.png");
+  cProbability.SaveAs("vertex_probability_zmumu.png");
+
+  cNvtx.SaveAs("nvtx_zmumu.pdf");
+  c1.SaveAs("efficiency_vs_nvtx_zmumu.pdf");
+  c2.SaveAs("efficiency_vs_pt_zmumu.pdf");
+  cRatioNvtx.SaveAs("efficiencyRatio_vs_nvtx_zmumu.pdf");
+  cRatioPt.SaveAs("efficiencyRatio_vs_pt_zmumu.pdf");
+  cVertexMva.SaveAs("vertex_mva_zmumu.pdf");
+  cEventMva.SaveAs("event_mva_zmumu.pdf");
+  cProbability.SaveAs("vertex_probability_zmumu.pdf");
+
+  gApplication->Run();
+
+
+  string done;
+  cout << "Done? " << endl;
+  cin  >>  done ;
+
 }
