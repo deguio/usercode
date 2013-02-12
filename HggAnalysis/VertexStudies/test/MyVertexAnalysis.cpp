@@ -260,6 +260,20 @@ int main(int argc, char** argv)
   TH1F ChosenVertexDz_BDT("ChosenVertexDz_BDT"," chosen vertex (z - z_{true}) (BDT)",100000,-50,50);
   TH2F ChosenVertexDz_BDT_vs_pt("ChosenVertexDz_BDT_vs_pt"," chosen vertex (z - z_{true}) (BDT)",200, 0, 200, 100000,-50,50);
 
+  
+  TH1F sumpt2("sumpt2","sumpt2",50,-5.,15.);
+  TH1F sumpt2_sig("sumpt2_sig","sumpt2 - signal vertices",50,-5,15);
+  TH1F sumpt2_bkg("sumpt2_bkg","sumpt2 - background",50,-5,15);
+
+  TH1F ptbal("ptbal","ptbal",100,-50.,150.);
+  TH1F ptbal_sig("ptbal_sig","ptbal - signal vertices",100,-50,150);
+  TH1F ptbal_bkg("ptbal_bkg","ptbal - background",100,-50,150);
+ 
+  TH1F ptasym("ptasym","ptasym",50,-1.,1.);
+  TH1F ptasym_sig("ptasym_sig","ptasym - signal vertices",50,-1,1);
+  TH1F ptasym_bkg("ptasym_bkg","ptasym - background",50,-1,1);
+
+
   TH1F hz("hz"," primary vertex z",10000,-50,50);
 
   TH1F pt2h("pt2h","pt2 H",500,0,500);
@@ -651,8 +665,18 @@ int main(int argc, char** argv)
       // fill per vertex mva 
       for (int iv=0;iv<ranktmva.size();iv++) {
 	float vtxmva = vAna.mva(ranktmva[iv]);
-	if ( iClosest == ranktmva[iv] ) BDToutput_sig.Fill( vtxmva, ww );
-	else 	BDToutput_bkg.Fill( vtxmva, ww );
+	if ( iClosest == ranktmva[iv] ) {
+	  BDToutput_sig.Fill( vtxmva, ww );
+	  sumpt2_sig.Fill(vAna.logsumpt2(ranktmva[iv]),ww ) ;
+	  ptasym_sig.Fill(vAna.ptasym(ranktmva[iv]),ww );
+	  ptbal_sig .Fill(vAna.ptbal(ranktmva[iv]),ww );
+	}
+	else {
+	  BDToutput_bkg.Fill( vtxmva, ww );
+	  sumpt2_bkg.Fill(vAna.logsumpt2(ranktmva[iv]),ww ) ;
+	  ptasym_bkg.Fill(vAna.ptasym(ranktmva[iv]),ww );
+	  ptbal_bkg .Fill(vAna.ptbal(ranktmva[iv]),ww );
+	}
       }
       // fill per event mva
       evtmva = vAna.perEventMva(*tmvaPerEvtReader_, tmvaEventMethod.c_str(),ranktmva);
@@ -753,6 +777,13 @@ int main(int argc, char** argv)
   ChosenVertexDz_BDT.Write();
   ChosenVertexDz_BDT_vs_pt.Write();
   hz.Write();
+
+  sumpt2_sig.Write();
+  ptbal_sig.Write();
+  ptasym_sig.Write();
+  sumpt2_bkg.Write();
+  ptbal_bkg.Write();
+  ptasym_bkg.Write();
 
   ff.Close();
   
